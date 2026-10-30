@@ -1,0 +1,13 @@
+.venv
+frontend/node_modules
+frontend/.next
+frontend/.npm-cache
+.git
+artifacts
+.env
+frontend/.env.local
+backend/data/*.db*
+**/__pycache__
+**/.pytest_cache
+*.pdf
+!backend/data/primary/*.pdf

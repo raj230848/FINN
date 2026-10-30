@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: finn-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: finn-sqlite
+      mountPath: /var/lib/finn
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////var/lib/finn/finn.db
+      - key: FINN_API_TOKEN
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENABLE_SCHEDULER
+        value: "false"

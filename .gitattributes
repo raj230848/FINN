@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+# Preserve original issuer HTML bytes so the source checksum survives checkout.
+backend/data/primary/*.html binary

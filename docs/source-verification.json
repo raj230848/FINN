@@ -1,0 +1,183 @@
+{
+  "checked_at": "2026-10-30T18:36:26.497258+00:00",
+  "sources": {
+    "nse_listing": {
+      "ok": true,
+      "listed_symbols": 2620
+    },
+    "sync": {
+      "prices": {
+        "RELIANCE": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "TCS": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "INFY": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "HDFCBANK": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "ICICIBANK": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "ITC": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "BHARTIARTL": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "MARUTI": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "SUNPHARMA": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "LT": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "HINDUNILVR": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "SBIN": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "WIPRO": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "TATASTEEL": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "BAJFINANCE": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "CERA": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "KPRMILL": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        },
+        "PERSISTENT": {
+          "ok": true,
+          "sessions": 125,
+          "latest_session": "2026-10-29"
+        }
+      },
+      "announcements": {
+        "ok": true,
+        "inserted": 67,
+        "matched": 72
+      },
+      "status": "complete"
+    }
+  },
+  "symbols": {
+    "RELIANCE": {
+      "verified": true,
+      "exchange_name": "Reliance Industries Limited"
+    },
+    "TCS": {
+      "verified": true,
+      "exchange_name": "Tata Consultancy Services Limited"
+    },
+    "INFY": {
+      "verified": true,
+      "exchange_name": "Infosys Limited"
+    },
+    "HDFCBANK": {
+      "verified": true,
+      "exchange_name": "HDFC Bank Limited"
+    },
+    "ICICIBANK": {
+      "verified": true,
+      "exchange_name": "ICICI Bank Limited"
+    },
+    "ITC": {
+      "verified": true,
+      "exchange_name": "ITC Limited"
+    },
+    "BHARTIARTL": {
+      "verified": true,
+      "exchange_name": "Bharti Airtel Limited"
+    },
+    "SUNPHARMA": {
+      "verified": true,
+      "exchange_name": "Sun Pharmaceutical Industries Limited"
+    },
+    "MARUTI": {
+      "verified": true,
+      "exchange_name": "Maruti Suzuki India Limited"
+    },
+    "LT": {
+      "verified": true,
+      "exchange_name": "Larsen & Toubro Limited"
+    },
+    "HINDUNILVR": {
+      "verified": true,
+      "exchange_name": "Hindustan Unilever Limited"
+    },
+    "SBIN": {
+      "verified": true,
+      "exchange_name": "State Bank of India"
+    },
+    "WIPRO": {
+      "verified": true,
+      "exchange_name": "Wipro Limited"
+    },
+    "TATASTEEL": {
+      "verified": true,
+      "exchange_name": "Tata Steel Limited"
+    },
+    "BAJFINANCE": {
+      "verified": true,
+      "exchange_name": "Bajaj Finance Limited"
+    },
+    "PERSISTENT": {
+      "verified": true,
+      "exchange_name": "Persistent Systems Limited"
+    },
+    "KPRMILL": {
+      "verified": true,
+      "exchange_name": "K.P.R. Mill Limited"
+    },
+    "CERA": {
+      "verified": true,
+      "exchange_name": "Cera Sanitaryware Limited"
+    }
+  }
+}

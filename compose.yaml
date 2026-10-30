@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: sqlite:////var/lib/finn/finn.db
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      FINN_API_TOKEN: ${FINN_API_TOKEN:-}
+      ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-false}
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-60}
+    volumes:
+      - finn-data:/var/lib/finn
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8000
+      FINN_API_TOKEN: ${FINN_API_TOKEN:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  finn-data:

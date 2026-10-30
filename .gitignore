@@ -1,0 +1,17 @@
+.venv/
+node_modules/
+.next/
+.npm-cache/
+*.tsbuildinfo
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+*.db-*
+/*.pdf
+.env
+.env.local
+backend/data/cache/
+artifacts/
+*.log
+!.env.example

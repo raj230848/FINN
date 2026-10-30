@@ -1,0 +1,61 @@
+{
+  "checked_at": "2026-10-30T18:51:58.420902+00:00",
+  "known": {
+    "INFY": {
+      "method": "extractive",
+      "citations": 6,
+      "sources": [
+        {
+          "title": "Infosys consolidated IFRS statements Q4 FY25",
+          "page": 45,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/consolifrsinr-fy25-q4-and-12m-finstatement.pdf#page=45"
+        },
+        {
+          "title": "Infosys integrated annual report 2024-25",
+          "page": 344,
+          "url": "https://www.infosys.com/investors/reports-filings/annual-report/annual/documents/infosys-ar-25.pdf#page=344"
+        }
+      ]
+    },
+    "TCS": {
+      "method": "extractive",
+      "citations": 1,
+      "sources": [
+        {
+          "title": "TCS Q4 FY25 company results release",
+          "page": 1,
+          "url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q4-fy-2025"
+        }
+      ]
+    },
+    "PERSISTENT": {
+      "method": "extractive",
+      "citations": 6,
+      "sources": [
+        {
+          "title": "Persistent integrated annual report 2024-25",
+          "page": 166,
+          "url": "https://www.persistent.com/wp-content/uploads/2025/06/persistent-annual-report-2025.pdf#page=166"
+        },
+        {
+          "title": "Persistent integrated annual report 2024-25",
+          "page": 277,
+          "url": "https://www.persistent.com/wp-content/uploads/2025/06/persistent-annual-report-2025.pdf#page=277"
+        }
+      ]
+    }
+  },
+  "unseen": {
+    "ticker": "POLYCAB",
+    "resolved": true,
+    "primary_candidates": 6,
+    "website": "https://www.polycab.com",
+    "imported": {
+      "title": "Polycab India Limited \u2014 Transcript (Oct 2026)",
+      "pages": 20,
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=77b6d277-0ffc-440d-ba8a-2bd9bc3dc43e.pdf"
+    },
+    "method": "extractive",
+    "citations": 6
+  }
+}

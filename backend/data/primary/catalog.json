@@ -1,0 +1,112 @@
+[
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q4 FY25 results - IFRS INR",
+    "period": "Q4 FY25",
+    "kind": "results",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf",
+    "file": "infy-00.pdf",
+    "checksum": "69d9d27533e26ca71fdee0074b5f29ab47bbeca45dc21051599837801be49c91",
+    "page_count": 7
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q4 FY24 earnings call",
+    "period": "Q4 FY24 / FY25 outlook",
+    "kind": "transcript",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf",
+    "file": "infy-01.pdf",
+    "checksum": "ab268076b83ea82bd0acb419f3e25fd39c5dad9dd7cdf0521fec99e43b26596f",
+    "page_count": 28
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q1 FY25 earnings call",
+    "period": "Q1 FY25",
+    "kind": "transcript",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf",
+    "file": "infy-02.pdf",
+    "checksum": "dd71416ab4cac7229670de4f1190821d53b34b1c9000149762d5da114d3fd0c7",
+    "page_count": 25
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q2 FY25 earnings call",
+    "period": "Q2 FY25",
+    "kind": "transcript",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf",
+    "file": "infy-03.pdf",
+    "checksum": "0c28ccd21308f114b0b6f14e7ce72af192e3f9fcbc5b0706b10071d62ce14a00",
+    "page_count": 24
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q3 FY25 earnings call",
+    "period": "Q3 FY25",
+    "kind": "transcript",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf",
+    "file": "infy-04.pdf",
+    "checksum": "8fbae2ae5a30506b42a7bc0ea024d92d38ef1e7e4b013b883fbc50b046656707",
+    "page_count": 25
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q4 FY25 earnings call",
+    "period": "Q4 FY25",
+    "kind": "transcript",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf",
+    "file": "infy-05.pdf",
+    "checksum": "2e4ccd145dd8a746cfcf4ac3ba8b23ca2080f90da1072a8d6010b968abe37e4e",
+    "page_count": 27
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys consolidated IFRS statements Q4 FY25",
+    "period": "Q4 FY25",
+    "kind": "results",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/consolifrsinr-fy25-q4-and-12m-finstatement.pdf",
+    "file": "infy-06.pdf",
+    "checksum": "e7781b00c1307eba367599696ee83d85bbaec5a6cb4a33997ab88b9936d24ec6",
+    "page_count": 59
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys integrated annual report 2024-25",
+    "period": "FY25",
+    "kind": "annual_report",
+    "url": "https://www.infosys.com/investors/reports-filings/annual-report/annual/documents/infosys-ar-25.pdf",
+    "file": "infy-07.pdf",
+    "checksum": "a2b9acdfbe79586ffdbe1780c4f14e5b2630743a4c81ee626f812f4c2fff1b44",
+    "page_count": 369
+  },
+  {
+    "ticker": "PERSISTENT",
+    "title": "Persistent integrated annual report 2024-25",
+    "period": "FY25",
+    "kind": "annual_report",
+    "url": "https://www.persistent.com/wp-content/uploads/2025/06/persistent-annual-report-2025.pdf",
+    "file": "persistent-09.pdf",
+    "checksum": "48a21ccac756b2ec1cc13db4f442e0e3fb1be46d90ef0e5fad9f7833dc8d276a",
+    "page_count": 450
+  },
+  {
+    "ticker": "TCS",
+    "title": "TCS Q4 FY25 company results release",
+    "period": "Q4 FY25",
+    "kind": "results",
+    "url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q4-fy-2025",
+    "file": "tcs-08.html",
+    "checksum": "3d8244c37715b5c24e8af6b2c15e8833415868cd79dc1a9810ff15a2468ca14f",
+    "page_count": 1
+  },
+  {
+    "ticker": "INFY",
+    "title": "Infosys Q3 FY25 results - IFRS INR",
+    "period": "Q3 FY25",
+    "kind": "results",
+    "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf",
+    "file": "infy-10.pdf",
+    "checksum": "31f57c686486f19e78e60061e65fe7eef005daefffbc87f82e7adb093bc3d048",
+    "page_count": 7
+  }
+]
