@@ -17,7 +17,11 @@ def save_announcements(db, rows: list[dict]) -> int:
     inserted = 0
     for row in rows:
         key = fingerprint(row['ticker'],row['title'],row['published_at'],'sourced')
-        if db.scalar(select(Announcement.id).where(Announcement.fingerprint == key)):
+        existing = db.scalar(select(Announcement).where(Announcement.fingerprint == key))
+        if existing:
+            if existing.analysis_method.startswith('Deterministic'):
+                for name,value in classify(row['title'], row.get('text','')).items():
+                    setattr(existing,name,value)
             continue
         result = classify(row['title'], row.get('text',''))
         method = 'Deterministic rules; exchange headline and description'

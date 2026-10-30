@@ -42,9 +42,14 @@ def classify(title: str, text: str = '') -> dict:
     if re.search(r'board meeting.*(consider|intimation)|notice.*results|newspaper.*results', content):
         score = min(score, 30)
         factors.append('Meeting notice or publication notice: actual results have not been established.')
+    if re.search(r'newspaper.*(publication|advertisement)|copy of newspaper', title.lower()):
+        score = min(score, 20)
+        factors.append('Administrative newspaper republication; not treated as a new business event.')
     priority = 'high' if score >= 75 else 'medium' if score >= 40 else 'low'
+    description = re.sub(r'\s+', ' ', text).strip()
+    summary = (f'Exchange description (extract): {description[:650]}' + ('…' if len(description)>650 else '')) if description else f'Disclosure headline: {title}. Read the original filing for the full terms and context.'
     return {'category': category, 'score': score, 'priority': priority, 'factors': factors,
-            'summary': f'Disclosure headline: {title}. Read the original filing for the full terms and context.',
+            'summary': summary,
             'why_matters': SIGNIFICANCE.get(category, 'Review the source for details. No material financial impact is established from the headline alone.')}
 
 def fingerprint(ticker: str, title: str, published_at, mode: str) -> str:

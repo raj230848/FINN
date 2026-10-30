@@ -18,3 +18,5 @@ This is a factual implementation decision log for the work in the current Codex 
 14. The final backend suite passed all 40 tests. The final frontend production build and fresh route-type generation/typecheck passed. A standalone production launcher replaced `next start` to match the configured deployment output. The app, proxy health endpoint and 18-company sourced coverage were verified through HTTP. The phone guidance range layout was rechecked after correction.
 
 Final test/build/browser results and remaining verification limits are recorded in `verification.md`. Add future implementation decisions and actual deployment outcomes here without overwriting this history.
+
+The final sourced-feed review also improved the no-key disclosure summaries: original exchange descriptions are now extracted instead of repeating generic headlines, and newspaper republications are lowered to routine priority. Two regression cases extended the suite to 42 passing tests. Cached deterministic analysis is updated without creating duplicate events.

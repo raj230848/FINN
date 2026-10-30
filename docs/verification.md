@@ -4,7 +4,7 @@ Observed during this build, 31 October 2026 IST. Machine-readable source checks 
 
 ## Automated checks
 
-- Backend: **40 tests passed**, including signed price changes, missing/zero/negative bases, complete-session boundaries, unusual-volume baselines, all key classification priorities, meeting-notice downgrading, filing deduplication, 24h/7d/custom date filtering, mode separation, persisted preferences, unseen ticker resolution, provider failures, URL/network guards, malformed PDF handling, page references, content-sensitive caching and invalid model citations.
+- Backend: **42 tests passed**, including signed price changes, missing/zero/negative bases, complete-session boundaries, unusual-volume baselines, all key classification priorities, meeting-notice downgrading, filing deduplication, 24h/7d/custom date filtering, mode separation, persisted preferences, unseen ticker resolution, provider failures, URL/network guards, malformed PDF handling, page references, content-sensitive caching and invalid model citations.
 - Four financial/guidance checks validate actual source-table rows, accounting-basis isolation, missing EBITDA and same-period guidance revisions.
 - One regression test uses the observed Screener document class structure and BSE PDF viewer format; secondary links and presentation/audio links are excluded from transcript results.
 - Frontend: TypeScript checking and a production Next.js build succeeded. The production build includes the app and same-origin server API proxy.

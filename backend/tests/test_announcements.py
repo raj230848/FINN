@@ -15,6 +15,7 @@ from app.services.sync import save_announcements
     ('Board meeting to consider financial results','results','low'),
     ('Earnings call transcript','earnings_call','medium'),
     ('New plant capacity expansion','capex','medium'),
+    ('Copy of newspaper publication of dividend record date','dividend','low'),
 ])
 def test_classification_and_explanation(title,category,priority):
     result = classify(title)
@@ -47,3 +48,8 @@ def test_custom_dates_and_invalid_range(client):
     assert client.get('/api/announcements?window=custom').status_code==422
     assert client.get('/api/announcements?window=custom&start=2026-10-31&end=2026-10-01').status_code==422
     assert client.get('/api/announcements?window=banana').status_code==422
+
+def test_exchange_description_is_extracted_without_invented_summary():
+    result=classify('Outcome of Board Meeting','Issuer approved consolidated quarterly financial results; see original filing.')
+    assert 'Issuer approved consolidated quarterly financial results' in result['summary']
+    assert result['summary'].startswith('Exchange description (extract):')
