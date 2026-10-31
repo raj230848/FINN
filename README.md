@@ -1,5 +1,7 @@
 # FINN
 
+Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
+
 **Your portfolio. In perspective.** A mobile-first investment intelligence prototype for the ENAM Holdings AI Engineer Build Challenge.
 
 FINN brings the daily workflow into one desk: prioritise disclosures, understand why a filing matters, monitor unusual end-of-day activity, and investigate a company through its own reports and earnings calls.
@@ -144,7 +146,7 @@ The prototype is one personal/shared desk. The optional `FINN_API_TOKEN` must ma
 
 ## Deploy
 
-No public deployment or remote GitHub repository is claimed. See [docs/deployment.md](docs/deployment.md) for exact Docker, Vercel, Render and GitHub steps. Docker is optional; its build has not been tested on this machine because Docker is not installed. A persistent Render disk may require a paid plan; the blueprint requests `starter` explicitly and does not claim to be free. Local operation and no-key research avoid hosting/model charges.
+The source is published at [raj230848/FINN](https://github.com/raj230848/FINN). No public application deployment is claimed. See [docs/deployment.md](docs/deployment.md) for exact Docker, Vercel, Render and GitHub steps. Docker is optional; its build has not been tested on this machine because Docker is not installed. A persistent Render disk may require a paid plan; the blueprint requests `starter` explicitly and does not claim to be free. Local operation and no-key research avoid hosting/model charges.
 
 ## Troubleshooting
 

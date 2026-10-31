@@ -49,7 +49,7 @@ The running Next.js frontend was exercised through the in-app browser against th
 
 - No actual OpenAI model request was made: no user API key was provided. The provider boundary and invalid-citation rejection have automated coverage, while live AI synthesis remains unverified.
 - Docker images, hosted deployment and remote CI were not executed; Docker/hosting credentials are not available on this machine. Their configuration is prepared and the exact steps are documented.
-- No public URL, remote GitHub repository or sent submission email is claimed. The local repository and covering draft are ready.
+- No public application URL or sent submission email is claimed. Source publication is verified below.
 - Reviewed numeric tables and guidance extraction are focused on INFY. Other companies use source retrieval until their accounting data is reviewed; no general-purpose extraction accuracy is claimed.
 - Source metadata/citations are validated, but semantic model entailment, exhaustive disclosure coverage and production multi-user security are not claimed.
 
@@ -72,3 +72,7 @@ The frontend production build includes compilation and TypeScript checking. The 
 ## Black-background theme verification
 
 The colorful dark theme was visually checked in the browser on phone and desktop layouts. Expanded insights, filter sheets, chart metric switching and the financial view remained interactive. DOM inspection found no large light-background surfaces in the checked overview and financial screens, and their document widths stayed within the viewport. The chart strokes, volume bars, grid, axes and tooltips use the dark palette. This iteration changes frontend presentation only.
+
+## GitHub publication
+
+On 31 October 2026 IST, the user explicitly requested a public repository. `raj230848/FINN` was created with public visibility and the complete committed project history was pushed to `main`. The remote branch SHA matched local HEAD after the push. Runtime secrets, local databases, dependencies, screenshots and the supplied challenge PDFs remain excluded by Git. The connected GitHub service independently confirmed public visibility and push access. Repository: https://github.com/raj230848/FINN.

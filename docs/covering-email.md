@@ -6,7 +6,7 @@ Dear ENAM team,
 Please find my FINN prototype, a mobile-first investment intelligence workspace that connects a prioritised portfolio digest with primary-source company research.
 
 Prototype: [INSERT VERIFIED DEPLOYED URL]
-Repository: [INSERT ACTUAL GITHUB URL AND ACCESS DETAILS]
+Repository: https://github.com/raj230848/FINN (public)
 AI build history: [INSERT REAL CONVERSATION EXPORT OR SHARE LINK]
 
 FINN monitors an 18-company NSE portfolio, explains disclosure priorities, and lets the investor configure end-of-day price and volume alerts. Research preserves the original document, period and page behind each passage. Its accountability view compares four revisions of Infosys's FY25 revenue guidance with the reported outcome, avoiding the misleading treatment of revisions as independent promises.

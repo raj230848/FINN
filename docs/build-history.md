@@ -34,3 +34,7 @@ The user then clarified that the deliverable must be designed for phones and ask
 ## Colorful black theme
 
 The user requested a colorful interface on a black background. A final theme layer applies a black canvas, dark card surfaces and violet/cyan/lime/pink accents across the phone and desktop workflows. Charts and tooltips were recolored directly, and native controls use dark color-scheme styling. Browser inspection checked the brief, expanded insight, filter sheet, volume chart, financial cards and desktop overview for readability and leftover light surfaces.
+
+## Public GitHub publication
+
+The user connected GitHub, completed the separate local Git authorization and requested public visibility. The public repository https://github.com/raj230848/FINN was created and the committed project history was pushed to `main`. GitHub visibility and the remote branch SHA were verified. The README, deployment guide and covering draft were updated with the real repository link; no application deployment or sent email is implied.

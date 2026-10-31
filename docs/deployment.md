@@ -1,6 +1,6 @@
 # Deployment and repository publication
 
-Prepared configuration is not evidence of deployment. At delivery, no remote repository or public application URL has been created. GitHub is not connected in this session and its CLI is not installed. Docker is also not installed here, so the container configuration has not been executed locally.
+Source is published in the public [raj230848/FINN](https://github.com/raj230848/FINN) repository. A public application deployment has not been performed. Docker is not installed on the build machine, so the container configuration has not been executed locally.
 
 ## Local production mode
 
@@ -29,7 +29,7 @@ The Docker backend uses one worker. The optional scheduler uses a process-local 
 
 ## Vercel frontend + persistent Python backend
 
-1. Create a private GitHub repository and push the project as described below.
+1. Use the published [FINN repository](https://github.com/raj230848/FINN) as the deployment source.
 2. Host the backend using its Dockerfile on a Python/container host. `render.yaml` supplies a Render example with a persistent disk and an explicit `starter` plan, which can incur charges. Review the host's current terms/pricing before creating the service. The public-source adapters are best effort and may be blocked from a data-centre IP even when local tests work.
 3. Set `DATABASE_URL=sqlite:////var/lib/finn/finn.db` and mount persistence at `/var/lib/finn`. Keep one worker. Health endpoint: `/api/health`.
 4. Set a strong `FINN_API_TOKEN` on the backend. If using the Render blueprint, it generates a token; copy the resulting value directly into the frontend's server-only environment setting. Never commit it.
@@ -46,17 +46,18 @@ Configuration references: [Vercel Next.js documentation](https://vercel.com/docs
 
 ## GitHub publication
 
-The local repository can be pushed using Git after creating an empty repository under your own GitHub account. Do not initialise the remote with a README if using the commands below. Replace the example URL with your actual repository URL; it is a placeholder, not a repository that exists.
+The project is published publicly at [raj230848/FINN](https://github.com/raj230848/FINN), as requested by its owner on 31 October 2026. The original local checkout tracks `origin/main`. To obtain a fresh copy:
 
 ```powershell
-git status
-git remote add origin https://github.com/YOUR-ACCOUNT/finn.git
-git push -u origin main
+git clone https://github.com/raj230848/FINN.git
+Set-Location FINN
 ```
 
-If Git requests credentials, authenticate using your normal GitHub credential flow. Keep credentials outside command-line arguments. `.env`, runtime databases, node_modules, Python environments and local screenshots are ignored. The supplied challenge PDFs are kept locally but ignored by Git. Primary company documents are included for reproducible research; their original copyright belongs to the issuer. Keep the assessment repository private unless authorised to redistribute its contents.
+To publish later committed changes from the configured checkout, run `git push origin main`.
 
-GitHub Actions are configured to run the isolated backend suite and frontend type/build checks on push/PR. That workflow has been written but cannot be claimed as remotely passing until a real push and CI run succeed.
+If Git requests credentials, authenticate using your normal GitHub credential flow. Keep credentials outside command-line arguments. `.env`, runtime databases, node_modules, Python environments and local screenshots are ignored. The supplied challenge PDFs are kept locally but ignored by Git. Primary company documents are included for reproducible research; their original copyright belongs to the issuer. Public visibility was explicitly requested by the user.
+
+GitHub Actions are configured to run the isolated backend suite and frontend type/build checks on push/PR. Pushes trigger that workflow automatically. Check the repository Actions page for the current remote result; local results alone do not establish a successful CI run.
 
 ## Submission checklist
 
