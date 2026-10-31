@@ -1,0 +1,1081 @@
+/* FINN after dark: black canvas with purposeful, accessible color accents. */
+:root {
+  color-scheme: dark;
+  --ink: #f5f3ff;
+  --muted: #a5a2b8;
+  --forest: #b794ff;
+  --green: #b6f17b;
+  --lime: #d4ff72;
+  --paper: #050507;
+  --line: #292832;
+  --card: #111115;
+  --violet: #b794ff;
+  --cyan: #59e1ee;
+  --pink: #ff76ba;
+  --amber: #ffbd69;
+}
+html,
+body,
+.app-shell,
+.app-main {
+  background: #050507;
+  color: var(--ink);
+}
+body {
+  scrollbar-color: #494254 #0b0b10;
+}
+::selection {
+  background: #875ad5;
+  color: white;
+}
+.app-shell :is(button, a):focus-visible {
+  outline-color: var(--cyan);
+}
+.app-shell :is(input, select, textarea):focus {
+  outline-color: var(--violet);
+}
+.app-shell :is(input, select, textarea) {
+  color: #f0edfa;
+}
+.app-shell input::placeholder,
+.app-shell textarea::placeholder {
+  color: #888599;
+}
+.app-shell select option {
+  background: #17161e;
+  color: #f0edfa;
+}
+.app-shell :is(h1, h2, h3, h4) {
+  color: #f5f3ff;
+}
+.app-shell :is(.eyebrow, .small-label, .nav-section-label) {
+  color: #b8a0e6;
+}
+.app-shell
+  :is(
+    .section-description,
+    .method-note,
+    .muted,
+    .feed-heading p,
+    .page-heading p,
+    .app-footer p
+  ) {
+  color: #a5a2b8;
+}
+.app-shell
+  :is(
+    .text-button,
+    .filing-link,
+    .view-all,
+    .financial-source-links a,
+    .candidate a
+  ) {
+  color: #a9e7ec;
+}
+.app-shell :is(.icon-button, .phone-refresh) {
+  color: #c6b4ed;
+  background: #19171f;
+  border-color: #34303f;
+}
+.app-shell :is(.icon-button:hover, .phone-refresh:hover) {
+  background: #2e2340;
+  color: white;
+}
+.sidebar {
+  background: #0c0b10;
+  border-right: 1px solid #24212d;
+}
+.sidebar nav > button {
+  color: #aaa5bc;
+}
+.sidebar nav > button.active {
+  background: linear-gradient(110deg, #b697ff, #d4b8ff);
+  color: #1b0f32;
+  box-shadow: 0 6px 24px #9c63ff1c;
+}
+.sidebar nav b {
+  background: #3b2c50;
+  color: #dfcaff;
+}
+.sidebar nav > button.active b {
+  background: #5d3482;
+  color: white;
+}
+.sidebar :is(.workspace-label, .settings-nav, .profile, .sidebar-promise) {
+  border-color: #26222f;
+}
+.sidebar
+  :is(
+    .workspace-label small,
+    .sidebar-promise p,
+    .profile small,
+    .sidebar-add
+  ) {
+  color: #9a90ab;
+}
+.sidebar :is(.sidebar-watch button, .settings-nav, .profile > span) {
+  color: #b5abc6;
+}
+.sidebar .sidebar-promise > span:first-child {
+  color: #c6a9fa;
+}
+.brand-symbol i,
+.brand-dot {
+  color: var(--lime);
+}
+.brand-symbol i {
+  background: var(--lime);
+}
+.topbar {
+  background: #09090cef;
+  border-color: #24212d;
+  backdrop-filter: blur(16px);
+}
+.breadcrumb,
+.breadcrumb b,
+.eod-label {
+  color: #aaa4ba;
+}
+.avatar,
+.profile > div,
+.workspace-initial {
+  color: #d4b8ff;
+  background: #2b1e3b;
+  border-color: #44305d;
+}
+.global-search {
+  background: #15131b;
+  border-color: #302a3d;
+  color: #a8a0bb;
+}
+.global-search:focus-within {
+  border-color: #a881f1;
+  background: #1b1625;
+  box-shadow: 0 0 0 3px #9966ee13;
+}
+.global-search kbd {
+  color: #b6a9cd;
+  border-color: #3e354f;
+  background: #221b2c;
+}
+.search-results {
+  background: #16131e;
+  border-color: #3b304e;
+  box-shadow: 0 20px 70px #000a;
+}
+.search-results :is(b, .search-new) {
+  color: #eee4ff;
+}
+.search-results :is(small, .search-tip, .search-results-label) {
+  color: #afa3c4;
+}
+.search-results button:hover,
+.search-results button.active {
+  background: #2b203e;
+}
+.search-company-icon {
+  background: #332249;
+  color: #d1afff;
+}
+.search-tip {
+  border-color: #34293f;
+}
+.mode-toggle {
+  background: #17141f;
+  border: 1px solid #2e263c;
+}
+.mode-toggle button {
+  color: #a29aad;
+}
+.mode-toggle button.selected {
+  background: #3a2756;
+  color: #e2cbff;
+  box-shadow: 0 2px 8px #0003;
+}
+.environment-bar {
+  border-color: #27222f;
+  color: #9690a6;
+}
+.page-heading h1 > span {
+  color: var(--lime);
+}
+.app-shell .btn {
+  color: #d2c7e4;
+  background: #1b1723;
+  border-color: #3b304b;
+}
+.app-shell .btn:hover {
+  background: #2b2239;
+  border-color: #8764b6;
+}
+.app-shell .btn.primary {
+  color: #160e23;
+  background: linear-gradient(115deg, #b899ff, #d3b2ff);
+  border-color: #c29cff;
+  box-shadow: 0 4px 20px #a46bff1a;
+}
+.app-shell .btn.primary:hover {
+  background: #dac3ff;
+  box-shadow: 0 4px 25px #a46bff35;
+}
+.app-shell
+  :is(
+    .panel,
+    .signal-card,
+    .market-explorer,
+    .phone-movers,
+    .phone-watchlist article
+  ) {
+  background: #111115;
+  border-color: #2a2632;
+  box-shadow: 0 4px 22px #0002;
+}
+.stat-card {
+  background: #17121f;
+  border-color: #352641;
+}
+.stat-card:nth-child(2) {
+  background: #192016;
+  border-color: #35472c;
+}
+.stat-card:nth-child(3) {
+  background: #101e23;
+  border-color: #234047;
+}
+.stat-card:nth-child(4) {
+  background: #21131e;
+  border-color: #4a2942;
+}
+.stat-card > div > span,
+.stat-card strong small,
+.stat-card .stat-bottom {
+  color: #a7a0b5;
+}
+.stat-card .stat-bottom {
+  border-color: #ffffff0d;
+}
+.stat-card strong {
+  color: #c4a1ff;
+}
+.stat-card.material strong {
+  color: var(--lime);
+}
+.stat-card:nth-child(3) strong {
+  color: var(--cyan);
+}
+.stat-card:nth-child(4) strong {
+  color: var(--pink);
+}
+.stat-card .stat-icon {
+  color: #c4a1ff;
+  background: #2d203f;
+}
+.stat-card.material .stat-icon {
+  color: var(--lime);
+  background: #2e3f22;
+}
+.stat-card:nth-child(3) .stat-icon {
+  color: var(--cyan);
+  background: #17353c;
+}
+.stat-card:nth-child(4) .stat-icon {
+  color: var(--pink);
+  background: #3f2137;
+}
+.daily-brief,
+.phone-digest {
+  background: linear-gradient(125deg, #302044, #1b142c 65%, #12242b);
+  border: 1px solid #7956aa73;
+  box-shadow: 0 8px 35px #6230a615;
+}
+.daily-brief p,
+.phone-digest p {
+  color: #e6dcf4;
+}
+.brief-icon {
+  background: #b794ff24;
+  color: #d3b2ff;
+}
+.brief-label,
+.phone-digest-label,
+.phone-digest-label > span {
+  color: #d7b8ff;
+}
+.brief-label span,
+.phone-digest-label small {
+  color: #b8a4cd;
+}
+.phone-digest button,
+.daily-brief > button {
+  color: var(--lime);
+}
+.daily-brief > button {
+  background: #d4ff7210;
+  border-color: #d4ff7230;
+}
+.phone-wordmark {
+  color: #f4edff;
+}
+.phone-wordmark span {
+  color: var(--lime);
+}
+.phone-greeting > div > span {
+  color: #a78cc5;
+}
+.phone-greeting h1 {
+  color: #f2eaff;
+}
+.phone-greeting h1 span {
+  color: #c7a1ff;
+}
+.phone-counts button {
+  border-color: #302638;
+}
+.phone-counts button:nth-child(1) strong {
+  color: var(--lime);
+}
+.phone-counts button:nth-child(2) strong,
+.phone-counts button:nth-child(2) strong svg {
+  color: var(--cyan);
+}
+.phone-counts button:nth-child(3) strong,
+.phone-counts button:nth-child(3) strong svg {
+  color: var(--pink);
+}
+.phone-counts i {
+  background: var(--lime);
+  box-shadow: 0 0 12px #d4ff7266;
+}
+.phone-counts span {
+  color: #aaa0ba;
+}
+.phone-view-switch {
+  background: #131017;
+  border-color: #2d2438;
+}
+.phone-view-switch button {
+  color: #a79ab7;
+}
+.phone-view-switch button[aria-pressed="true"] {
+  color: #e6d3ff;
+  background: #38244d;
+  box-shadow: inset 0 0 0 1px #b28ae02e;
+}
+.phone-feed-actions {
+  color: #af9cc8;
+}
+.app-shell :is(.count-badge, .tiny-tag) {
+  background: #352446;
+  color: #d8b8ff;
+}
+.app-shell .signal-card.priority-high {
+  border-left-color: #ff8d99;
+}
+.app-shell .signal-card.priority-medium {
+  border-left-color: #f0bb67;
+}
+.app-shell .signal-card.priority-low {
+  border-left-color: #62cfd7;
+}
+.app-shell .signal-card:hover {
+  border-color: #765692;
+}
+.app-shell .signal-card.priority-high:hover {
+  border-left-color: #ff8d99;
+}
+.app-shell .signal-card.priority-medium:hover {
+  border-left-color: #f0bb67;
+}
+.app-shell .signal-card.priority-low:hover {
+  border-left-color: #62cfd7;
+}
+.signal-meta,
+.signal-time {
+  color: #a398b4;
+}
+.signal-meta strong {
+  color: #d7c1f4;
+}
+.app-shell .signal-headline h3 {
+  color: #ede5f9;
+}
+.app-shell .signal-summary {
+  color: #b2a6c1;
+}
+.priority-pill.high {
+  background: #40222e;
+  color: #ffabb8;
+}
+.priority-pill.medium {
+  background: #3b2c18;
+  color: #ffce82;
+}
+.priority-pill.low {
+  background: #153137;
+  color: #7cdee8;
+}
+.why-matters {
+  background: #21192c;
+  color: #c9a9f7;
+}
+.why-matters p {
+  color: #baabc9;
+}
+.why-matters b {
+  color: #d5b2ff;
+}
+.signal-footer {
+  border-color: #29222f;
+}
+.signal-footer .text-button,
+.signal-research {
+  color: #c6a1f5;
+}
+.signal-research {
+  border-color: #352b40;
+}
+.fixture-label {
+  color: #9c8dab;
+}
+.save-signal {
+  color: #9b89b0;
+}
+.save-signal:hover,
+.save-signal.saved {
+  background: #3b2543;
+  color: #ff9bd0;
+}
+.signal-reasoning {
+  color: #b4a1c8;
+  background: #1b1424;
+  border-color: #3b2d4b;
+}
+.signal-reasoning b {
+  color: #d2b1fb;
+}
+.signal-reasoning small {
+  color: #a492b8;
+}
+.company-logo,
+.logo-0,
+.mover-mark,
+.drawer-company-icon {
+  background: #352248;
+  color: #d1a8ff;
+}
+.logo-1 {
+  background: #18373d;
+  color: #76e4ed;
+}
+.logo-2 {
+  background: #3a2134;
+  color: #ffa5d4;
+}
+.logo-3 {
+  background: #343a1e;
+  color: #d5ed85;
+}
+.logo-4 {
+  background: #3e2c1b;
+  color: #ffcd8b;
+}
+.routine-toggle,
+.research-note {
+  background: #181b15;
+  border-color: #343e29;
+  color: #b5c39b;
+}
+.routine-toggle b,
+.research-note h3 {
+  color: #cee29c;
+}
+.routine-toggle div > span,
+.research-note p {
+  color: #a2af8f;
+}
+.routine-icon {
+  background: #2a3320;
+  color: #c1dd8e;
+}
+.app-shell
+  :is(
+    .filter-chip,
+    .filter-select,
+    .sector-filters button,
+    .window-select,
+    .watch-search,
+    .watch-sort select
+  ) {
+  color: #b9abc9;
+  background: #15121b;
+  border-color: #342a41;
+}
+.app-shell :is(.filter-select select, .window-select select) {
+  color: #baafcc;
+}
+.app-shell :is(.filter-chip.active, .sector-filters button.active) {
+  color: #ddc6ff;
+  background: #352246;
+  border-color: #78529a;
+}
+.priority-dot {
+  background: #ff8c9e;
+}
+.segmented-control,
+.chart-ranges {
+  background: #19151f;
+  border-color: #33273f;
+}
+.segmented-control button,
+.chart-ranges button {
+  color: #a99cb9;
+}
+.segmented-control button.selected,
+.chart-ranges button.selected {
+  background: #3b2852;
+  color: #dbc0ff;
+}
+.explorer-value strong,
+.explorer-company select,
+.chart-price strong {
+  color: #ece2fb;
+}
+.explorer-heading .eyebrow,
+.explorer-footer,
+.chart-caption,
+.explorer-footer > span {
+  color: #a297b2;
+}
+.explorer-footer {
+  border-color: #292332;
+}
+.explorer-footer > button {
+  color: #bc98ef;
+}
+.period-change.up {
+  background: #20331f;
+  color: #c6f59a;
+}
+.period-change.down {
+  background: #3d202a;
+  color: #ff9fae;
+}
+.period-change small {
+  color: #ada0bc;
+}
+.breadth-panel {
+  background: linear-gradient(145deg, #1e182a, #12191b);
+  border-color: #33283e;
+}
+.breadth-panel :is(h3, strong, b),
+.breadth-numbers strong {
+  color: #d4bded;
+}
+.breadth-panel h3 em {
+  color: #b69acb;
+}
+.breadth-panel :is(p, span),
+.breadth-bottom {
+  color: #a89aba;
+}
+.breadth-icon {
+  color: #a6e8eb;
+  background: #193237;
+}
+.breadth-bar {
+  background: #ff8d9d;
+}
+.breadth-bar > span {
+  background: #c0ed8d;
+}
+.radar-row {
+  border-color: #29222f;
+}
+.radar-row:hover {
+  background: #1c1525;
+}
+.radar-row > div > b {
+  color: #d1c2e2;
+}
+.radar-row > div > span,
+.radar-subheading {
+  color: #a094ad;
+}
+.radar-footnote {
+  background: #17131d;
+  border-color: #29222f;
+  color: #9f91b1;
+}
+.app-shell .positive {
+  color: #c1f18d !important;
+}
+.app-shell .negative {
+  color: #ff90a7 !important;
+}
+.guidance-teaser {
+  background: linear-gradient(145deg, #291b3e, #172326);
+  border-color: #553971;
+}
+.guidance-teaser h3,
+.guidance-teaser h3 em {
+  color: #d5b9ff;
+}
+.guidance-teaser > p,
+.guidance-teaser .teaser-source,
+.teaser-top > span,
+.teaser-comparison > div > span {
+  color: #b1a1c4;
+}
+.teaser-comparison b,
+.guidance-teaser > button {
+  color: #d4ff94;
+}
+.app-shell
+  :is(.phone-movers b, .phone-watch-company b, .phone-watch-quote strong) {
+  color: #eadff9;
+}
+.app-shell
+  :is(
+    .phone-movers small,
+    .phone-movers > div > span,
+    .phone-watch-company small,
+    .phone-watch-quote span,
+    .phone-watchlist footer > span
+  ) {
+  color: #a59ab4;
+}
+.phone-movers > button,
+.phone-watchlist footer {
+  border-color: #302637;
+}
+.phone-watchlist footer button {
+  color: #d4b2ff;
+}
+.phone-watchlist article:nth-child(3n + 2) .mover-mark,
+.phone-movers button:nth-child(3n + 2) .mover-mark {
+  color: #68e1e9;
+  background: #173039;
+}
+.phone-watchlist article:nth-child(3n + 3) .mover-mark,
+.phone-movers button:nth-child(3n + 3) .mover-mark {
+  color: #ffa1d4;
+  background: #3c2037;
+}
+.watchlist-table th,
+.watchlist-table td {
+  border-color: #2c2433;
+  color: #ada0bc;
+}
+.watch-company b,
+.watchlist-table .strong {
+  color: #e1cfef;
+}
+.watch-company small,
+.watchlist-table td small {
+  color: #9f91b0;
+}
+.watchlist-table tbody tr:hover {
+  background: #1c1427;
+}
+.watch-toggle {
+  background: #241c2e;
+  color: #a791c0;
+}
+.watch-toggle.watching {
+  background: #3b2549;
+  color: #d0abff;
+}
+.mobile-bottom-nav {
+  background: #0e0b13f5;
+  border-color: #31253e;
+  box-shadow: 0 -6px 30px #0005;
+}
+.mobile-bottom-nav button {
+  color: #a092b0;
+}
+.mobile-bottom-nav button.active {
+  background: #352147;
+  color: #dcc2ff;
+}
+.mobile-bottom-nav button.active > svg {
+  filter: drop-shadow(0 0 6px #b482ff44);
+}
+.app-footer {
+  border-color: #29222f;
+}
+.app-footer > span {
+  color: #8e7e9f;
+}
+.app-shell :is(.settings-dialog, .company-drawer, .feed-filter-sheet) {
+  background: #111016;
+  border: 1px solid #3d2d4d;
+  color: #ece2f8;
+  box-shadow: 0 -15px 80px #0008;
+}
+.filter-backdrop,
+.modal-backdrop,
+.company-backdrop {
+  background: #0009;
+}
+.feed-filter-sheet header span {
+  color: #b79bd2;
+}
+.feed-filter-sheet header button,
+.drawer-top > button {
+  background: #2a2035;
+  color: #dcc3f7;
+}
+.app-shell
+  :is(
+    .feed-filter-sheet select,
+    .feed-filter-sheet input,
+    .setting-input input,
+    .import-form input,
+    .import-form select,
+    .research-search,
+    .question-box,
+    .date-range input
+  ) {
+  background: #1c1625;
+  border-color: #49345d;
+  color: #eee4fc;
+}
+.sheet-handle,
+.settings-dialog::before,
+.company-drawer::before {
+  background: #5c436f;
+}
+.sheet-note,
+.drawer-sector,
+.drawer-note p,
+.setting-input > span {
+  color: #b09cbe;
+}
+.drawer-price > strong,
+.drawer-metrics b {
+  color: #edddff;
+}
+.drawer-metrics,
+.drawer-metrics > div {
+  background: #17121e;
+  border-color: #382a44;
+}
+.drawer-metrics span,
+.drawer-top > span {
+  color: #b49dc8;
+}
+.drawer-note {
+  background: #21182a;
+  border-color: #3e2a50;
+  color: #cda9f2;
+}
+.drawer-source,
+.drawer-price small {
+  color: #a1dbe3;
+}
+.setting-input,
+.settings-dialog legend {
+  color: #d4b9f2;
+}
+.setting-chips button {
+  background: #21172c;
+  border-color: #463053;
+  color: #bca3ce;
+}
+.setting-chips button.active {
+  background: #4c2b60;
+  border-color: #a879c8;
+  color: #f0d2ff;
+}
+.app-shell .setting-input select {
+  background: #1c1625;
+  border-color: #49345d;
+  color: #eee4fc;
+}
+.settings-dialog fieldset p {
+  color: #a998bc;
+}
+.app-shell :is(.empty-state, .market-alerts, .date-range) {
+  background: #17121e;
+  border-color: #3b2a48;
+}
+.empty-state p {
+  color: #b0a0bf;
+}
+.dialog-footer {
+  border-color: #35263e;
+}
+.dialog-footer > span {
+  color: #a693b6;
+}
+.action-toast {
+  background: #271c35;
+  border-color: #6d488a;
+  color: #ebd9ff;
+  box-shadow: 0 8px 40px #0007;
+}
+.action-toast > svg {
+  color: var(--lime);
+}
+.data-notes,
+.notice-banner,
+.sync-banner {
+  background: #16232a;
+  border-color: #304a58;
+  color: #b0d8e5;
+}
+.data-notes b,
+.sync-banner b {
+  color: #c1e7f3;
+}
+.error-banner {
+  background: #321923;
+  border-color: #753447;
+  color: #ffc1d1;
+}
+.market-alerts {
+  border-color: #33283d;
+}
+.market-alert {
+  background: #19121f;
+  border-color: #3c2b46;
+}
+.market-alert summary b {
+  color: #e2c9f6;
+}
+.market-alert summary span,
+.market-alert p {
+  color: #b6a0c7;
+}
+.alert-symbol {
+  background: #352048;
+  color: #c6a1ff;
+}
+.app-shell
+  .research-workspace
+  :is(
+    h2,
+    h3,
+    h4,
+    .company-strip h2,
+    .source-document b,
+    .library-row h3,
+    .guidance-revision b,
+    .guidance-range > b
+  ) {
+  color: #e4d6f6;
+}
+.research-search {
+  box-shadow: 0 0 24px #9e5dff08;
+}
+.source-seal {
+  background: #1b2c28;
+  color: #91dfcb;
+  border-color: #2a5346;
+}
+.company-pills button {
+  background: #1a1423;
+  border-color: #42304f;
+  color: #b8a2c8;
+}
+.company-pills button.selected {
+  background: #432859;
+  color: #e5c5ff;
+  border-color: #9761be;
+}
+.company-pills > span,
+.company-strip p,
+.document-count {
+  color: #a69ab7;
+}
+.company-strip {
+  border-color: #34273e;
+}
+.research-tabs {
+  border-color: #392b44;
+}
+.research-tabs button {
+  color: #a696b7;
+}
+.research-tabs button[aria-selected="true"] {
+  color: #d4adff;
+  border-color: #b280f2;
+}
+.app-shell
+  .research-workspace
+  :is(
+    .section-description,
+    .research-empty p,
+    .research-note p,
+    .limitations p,
+    .method-note,
+    .guidance-outcome p,
+    .source-document span,
+    .library-row p,
+    .library-row small,
+    .guidance-revision span,
+    .guidance-status small
+  ) {
+  color: #afa0bd;
+}
+.app-shell
+  .research-workspace
+  :is(.answer-text, .evidence blockquote, .guidance-evidence p) {
+  color: #cfc0de;
+}
+.app-shell
+  .research-workspace
+  :is(
+    .evidence summary b,
+    .evidence > a,
+    .guidance-evidence,
+    .guidance-evidence a,
+    .financial-source-links a,
+    .verified-label
+  ) {
+  color: #96dce7;
+}
+.app-shell .research-workspace .question-chips button {
+  background: #21172d;
+  border-color: #4c325e;
+  color: #d0b1eb;
+}
+.app-shell .research-workspace .question-chips button:hover {
+  background: #352045;
+  border-color: #a775cb;
+}
+.question-box {
+  background: #1a1421;
+}
+.question-box > div,
+.answer,
+.source-document,
+.library-row,
+.guidance-row {
+  border-color: #34263e;
+}
+.answer-label,
+.answer h4 > span,
+.evidence summary span {
+  color: #ab93c1;
+}
+.limitations,
+.evidence blockquote {
+  background: #21172c;
+}
+.evidence {
+  background: #17111e;
+  border-color: #463052;
+}
+.research-empty {
+  background: #1d1626;
+  border-color: #3b2a4b;
+}
+.guidance-outcome {
+  background: linear-gradient(120deg, #26193b, #122b2e);
+  border-color: #58406f;
+}
+.app-shell .research-workspace .guidance-outcome strong {
+  color: var(--cyan);
+}
+.app-shell
+  .research-workspace
+  :is(.guidance-outcome > div > span, .guidance-range > span) {
+  color: #b49dcb;
+}
+.app-shell .research-workspace :is(.outcome.exceeded, .outcome.achieved) {
+  background: #223522;
+  color: #c1f18d;
+}
+.app-shell .research-workspace .outcome.missed {
+  background: #43212e;
+  color: #ffa0b8;
+}
+.app-shell .research-workspace .financial-panel th {
+  color: #bba3ce;
+  background: #20162b;
+  border-color: #3a2945;
+}
+.app-shell .research-workspace .financial-panel td {
+  color: #dbcaeb;
+  border-color: #32243d;
+}
+.app-shell .research-workspace .financial-panel td small {
+  color: #aa92bc;
+}
+.phone-financials > article {
+  background: #1d1527;
+  border-color: #443051;
+}
+.phone-financials > article:nth-child(3n + 1) {
+  background: #131f25;
+  border-color: #27424a;
+}
+.phone-financials > article:nth-child(3n + 3) {
+  background: #211a12;
+  border-color: #493924;
+}
+.app-shell .phone-financials h3 {
+  color: #e7d4f7;
+}
+.phone-financials article > strong {
+  color: #ead9fc;
+}
+.phone-financials article:first-child > strong {
+  color: #83e8ec;
+}
+.phone-financials article > div > span,
+.phone-financials strong small,
+.phone-financials article > p {
+  color: #af9fbd;
+}
+.financial-comparisons {
+  border-color: #44324d;
+}
+.financial-comparisons span {
+  color: #ac9ab9;
+}
+.financial-comparisons b {
+  color: #d4c0e5;
+}
+.file-tile {
+  background: #382344;
+  color: #d6b0f4;
+}
+.import-form,
+.candidate {
+  background: #19121f;
+  border-color: #463050;
+}
+.import-form label,
+.candidate b,
+.candidate-title {
+  color: #d1b7e5;
+}
+.app-shell .recharts-default-tooltip {
+  background: #21172c !important;
+  border-color: #72508d !important;
+  color: #f5e9ff !important;
+}
+.app-shell .recharts-tooltip-label {
+  color: #c8aedb !important;
+}
+.app-shell .recharts-tooltip-item {
+  color: #d4ff94 !important;
+}
+@media (max-width: 760px) {
+  body,
+  .app-shell,
+  .app-main {
+    background: #050507;
+  }
+  .topbar {
+    background: #09090cf5;
+  }
+  .research-tabs {
+    background: #050507;
+  }
+  .app-shell :is(.settings-dialog, .company-drawer, .feed-filter-sheet) {
+    border-bottom: 0;
+  }
+}

@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./workspace.css";
 import "./mobile.css";
+import "./colorful-dark.css";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#152d39",
+  themeColor: "#050507",
 };
 
 export const metadata: Metadata = {

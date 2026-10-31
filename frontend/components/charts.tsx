@@ -38,7 +38,7 @@ export function Sparkline({
             .join(" ");
         })()}
         fill="none"
-        stroke={positive ? "#3c806c" : "#bd7567"}
+        stroke={positive ? "#b8ec84" : "#ff90a7"}
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
@@ -55,13 +55,13 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
         >
           <defs>
             <linearGradient id="pricefill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2d7761" stopOpacity={0.2} />
-              <stop offset="100%" stopColor="#2d7761" stopOpacity={0} />
+              <stop offset="0%" stopColor="#b8ec84" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="#b8ec84" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
             vertical={false}
-            stroke="#e8ebe5"
+            stroke="#302838"
             strokeDasharray="3 5"
           />
           <XAxis
@@ -69,7 +69,7 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
             tickLine={false}
             axisLine={false}
             minTickGap={32}
-            tick={{ fontSize: 10, fill: "#8a918a" }}
+            tick={{ fontSize: 10, fill: "#a497b4" }}
             tickFormatter={(v) => String(v).slice(5)}
           />
           <YAxis
@@ -77,7 +77,7 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
             tickLine={false}
             axisLine={false}
             width={52}
-            tick={{ fontSize: 10, fill: "#8a918a" }}
+            tick={{ fontSize: 10, fill: "#a497b4" }}
             tickFormatter={(v) =>
               Number(v).toLocaleString("en-IN", { maximumFractionDigits: 0 })
             }
@@ -85,7 +85,9 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
           <Tooltip
             contentStyle={{
               borderRadius: 10,
-              border: "1px solid #e4e8e0",
+              backgroundColor: "#21172c",
+              color: "#f5e9ff",
+              border: "1px solid #614578",
               fontSize: 12,
             }}
             formatter={(value) => [
@@ -98,7 +100,7 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
           <Area
             dataKey="close"
             type="monotone"
-            stroke="#2d7761"
+            stroke="#b8ec84"
             fill="url(#pricefill)"
             strokeWidth={2}
             isAnimationActive={false}

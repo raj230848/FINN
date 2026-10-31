@@ -68,3 +68,7 @@ The phone workflow was checked in the actual browser with requested 390 x 844 an
 The filter sheet applied company, priority, seven-day and custom-date selections to the real API feed. Read insight revealed context and score factors; saving and removing a test bookmark updated Saved. The market switch opened the chart and daily movers, and company details opened as a bottom sheet. A mobile watchlist card successfully removed and re-added BAJFINANCE; the original 18-company monitoring state was restored. INFY financial cards displayed the reviewed revenue/PBT/PAT comparisons, unavailable EBITDA and source-page links. All four guidance revisions remained accessible on the small screen. Saved views do not expose active date controls.
 
 The frontend production build includes compilation and TypeScript checking. The backend is unchanged in this iteration; the existing 42-test result above applies to that unchanged implementation. Phone screenshots are retained under `artifacts/screenshots`.
+
+## Black-background theme verification
+
+The colorful dark theme was visually checked in the browser on phone and desktop layouts. Expanded insights, filter sheets, chart metric switching and the financial view remained interactive. DOM inspection found no large light-background surfaces in the checked overview and financial screens, and their document widths stayed within the viewport. The chart strokes, volume bars, grid, axes and tooltips use the dark palette. This iteration changes frontend presentation only.

@@ -30,3 +30,7 @@ Production compilation and type checking passed. Windows initially denied standa
 ## Mobile-first correction
 
 The user then clarified that the deliverable must be designed for phones and asked for the PDFs to be checked again. The main brief's frontend and interaction sections were reread, including its explicit “Everything mobile-first” requirement. A separate phone workflow replaced the scaled desktop overview: compact daily brief, actionable counts, priority inbox, optional market view, saved insights and a filter sheet with draft/apply/reset behavior. Signal context expands on demand. Mobile watchlist and financial tables became cards; source links and unavailable-value handling were preserved. Existing desktop views and the FastAPI data/research implementation were retained.
+
+## Colorful black theme
+
+The user requested a colorful interface on a black background. A final theme layer applies a black canvas, dark card surfaces and violet/cyan/lime/pink accents across the phone and desktop workflows. Charts and tooltips were recolored directly, and native controls use dark color-scheme styling. Browser inspection checked the brief, expanded insight, filter sheet, volume chart, financial cards and desktop overview for readability and leftover light surfaces.

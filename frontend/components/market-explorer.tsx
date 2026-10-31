@@ -41,13 +41,13 @@ function HistoryChart({
   const common = { data, margin: { top: 14, right: 16, left: 0, bottom: 0 } };
   const axes = (
     <>
-      <CartesianGrid vertical={false} stroke="#edf0f4" strokeDasharray="3 6" />
+      <CartesianGrid vertical={false} stroke="#302838" strokeDasharray="3 6" />
       <XAxis
         dataKey="date"
         axisLine={false}
         tickLine={false}
         minTickGap={40}
-        tick={{ fill: "#8993a2", fontSize: 11 }}
+        tick={{ fill: "#a497b4", fontSize: 11 }}
         tickFormatter={(d) =>
           new Date(`${d}T12:00:00`).toLocaleDateString("en-IN", {
             day: "numeric",
@@ -60,7 +60,7 @@ function HistoryChart({
         tickLine={false}
         width={62}
         domain={metric === "price" ? ["auto", "auto"] : [0, "auto"]}
-        tick={{ fill: "#8993a2", fontSize: 11 }}
+        tick={{ fill: "#a497b4", fontSize: 11 }}
         tickFormatter={(v) =>
           metric === "volume"
             ? `${(Number(v) / 1e6).toFixed(1)}M`
@@ -68,14 +68,16 @@ function HistoryChart({
         }
       />
       <Tooltip
-        cursor={{ stroke: "#b7c5d3", strokeDasharray: "3 3" }}
+        cursor={{ stroke: "#a78bc0", strokeDasharray: "3 3" }}
         contentStyle={{
-          border: "1px solid #e6eaf0",
+          border: "1px solid #614578",
           borderRadius: 12,
+          backgroundColor: "#21172c",
+          color: "#f5e9ff",
           boxShadow: "0 10px 32px #0c1c3312",
           fontSize: 12,
         }}
-        labelStyle={{ color: "#708095", marginBottom: 6 }}
+        labelStyle={{ color: "#b9a1cc", marginBottom: 6 }}
         formatter={(v) => [
           metric === "price" ? money(Number(v)) : number(Number(v)),
           metric === "price" ? "Adjusted close" : "Shares traded",
@@ -94,15 +96,15 @@ function HistoryChart({
           <AreaChart {...common}>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#a7d858" stopOpacity={0.26} />
-                <stop offset="100%" stopColor="#a7d858" stopOpacity={0} />
+                <stop offset="0%" stopColor="#a9f182" stopOpacity={0.26} />
+                <stop offset="100%" stopColor="#a9f182" stopOpacity={0} />
               </linearGradient>
             </defs>
             {axes}
             <Area
               dataKey="close"
               type="monotone"
-              stroke="#4b8055"
+              stroke="#b8ec84"
               strokeWidth={2.5}
               fill={`url(#${id})`}
               isAnimationActive={false}
@@ -114,7 +116,7 @@ function HistoryChart({
             {axes}
             <Bar
               dataKey="volume"
-              fill="#92b978"
+              fill="#b794ff"
               radius={[3, 3, 0, 0]}
               isAnimationActive={false}
             />

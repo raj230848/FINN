@@ -167,3 +167,5 @@ The covering email draft is [docs/covering-email.md](docs/covering-email.md). Th
 ## Phone experience
 
 The challenge PDF explicitly asks for everything to be mobile-first. FINN therefore uses a distinct phone workflow: digest and priority inbox first, optional market exploration, touch-sized bottom navigation, and bottom sheets for filters, preferences and company details. The watchlist becomes individual company cards, and quarterly numbers become metric cards with both QoQ and YoY comparisons. Desktop tables and the wider workspace remain available at larger widths. Saved signals persist on the current device.
+
+The interface uses a black canvas with violet, cyan, lime and pink accents. Charts, menus, source panels and phone sheets share the same dark palette.
