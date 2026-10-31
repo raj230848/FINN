@@ -53,6 +53,13 @@ import {
   MarketExplorer,
 } from "@/components/market-explorer";
 
+import {
+  FilterSheet,
+  MobileBrief,
+  MobileMovers,
+  MobileWatchlist,
+} from "@/components/mobile-workspace";
+
 type View = "home" | "signals" | "research" | "watchlist";
 const navigation = [
   { id: "home" as View, title: "Overview", icon: LayoutDashboard },
@@ -95,7 +102,9 @@ function SignalCard({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <article className={`signal-card priority-${filing.priority}`}>
+    <article
+      className={`signal-card priority-${filing.priority} ${open ? "is-expanded" : ""}`}
+    >
       <div className="signal-meta">
         <CompanyMark ticker={filing.ticker} />
         <strong>{filing.ticker}</strong>
@@ -133,7 +142,7 @@ function SignalCard({
           aria-expanded={open}
         >
           <ListFilter size={13} />
-          {open ? "Hide reasoning" : "See the reasoning"}
+          {open ? "Close insight" : "Read insight"}
           <ChevronDown size={12} className={open ? "rotate" : ""} />
         </button>
         <div>
@@ -423,6 +432,9 @@ export default function Home() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileFocus, setMobileFocus] = useState<"brief" | "market">("brief");
+  const closeFilters = useCallback(() => setFiltersOpen(false), []);
   const [windowValue, setWindowValue] = useState("24h");
   const [filterTicker, setFilterTicker] = useState("");
   const [category, setCategory] = useState("");
@@ -602,6 +614,7 @@ export default function Home() {
   }
   function navigate(id: View) {
     setView(id);
+    if (id === "home") setMobileFocus("brief");
     setMobileNav(false);
     setSavedOnly(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -688,7 +701,7 @@ export default function Home() {
   const sourcedLabel = mode === "demo" ? "Demo replay" : "Sourced data";
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-view={view} data-mobile-focus={mobileFocus}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -804,6 +817,9 @@ export default function Home() {
             >
               <Menu size={21} />
             </button>
+            <span className="phone-wordmark">
+              finn<span>.</span>
+            </span>
             <span>Workspace</span>
             <ChevronRight size={12} />
             <b>{navigation.find((n) => n.id === view)?.title}</b>
@@ -847,6 +863,7 @@ export default function Home() {
             </span>
             <button
               className="text-button subtle"
+              aria-label="Data notes"
               onClick={() => setSourceDetails(!sourceDetails)}
             >
               <CircleHelp size={13} />
@@ -893,6 +910,28 @@ export default function Home() {
             />
           ) : (
             <>
+              {view === "home" && (
+                <MobileBrief
+                  dashboard={dashboard}
+                  focus={mobileFocus}
+                  onFocus={setMobileFocus}
+                  refreshing={refreshing}
+                  onRefresh={() => void refresh()}
+                  onPriority={() => focusSignals("high")}
+                  onAlerts={() => focusSignals("market")}
+                  onWatchlist={() => navigate("watchlist")}
+                  savedCount={
+                    savedSignals.filter((f) => f.mode === mode).length
+                  }
+                  onSaved={() => {
+                    navigate("signals");
+                    setSavedOnly(true);
+                    setPriority("");
+                    setCategory("");
+                    setFilterTicker("");
+                  }}
+                />
+              )}
               <div className="page-heading">
                 <div>
                   <div className="eyebrow">
@@ -1097,13 +1136,21 @@ export default function Home() {
                           <ArrowRight size={19} />
                         </button>
                       </section>
-                      <MarketExplorer
-                        quotes={
-                          dashboard?.mode === mode ? dashboard.companies : []
-                        }
-                        mode={mode}
-                        onInspect={setSelectedCompany}
-                      />
+                      <div className="home-market">
+                        <MarketExplorer
+                          quotes={
+                            dashboard?.mode === mode ? dashboard.companies : []
+                          }
+                          mode={mode}
+                          onInspect={setSelectedCompany}
+                        />
+                        <MobileMovers
+                          quotes={
+                            dashboard?.mode === mode ? dashboard.companies : []
+                          }
+                          onInspect={setSelectedCompany}
+                        />
+                      </div>
                     </>
                   )}
                   {(view === "home" || view === "signals") && (
@@ -1127,6 +1174,26 @@ export default function Home() {
                                 : "The developments worth a closer look."}
                             </p>
                           </div>
+                          <button
+                            className="phone-feed-actions"
+                            aria-label="Filter signals"
+                            aria-haspopup="dialog"
+                            onClick={() => setFiltersOpen(true)}
+                          >
+                            <Clock3 size={13} />
+                            <span>
+                              {savedOnly
+                                ? "All saved dates"
+                                : windowValue === "24h"
+                                  ? "Last 24 hours"
+                                  : windowValue === "7d"
+                                    ? "Last 7 days"
+                                    : windowValue === "30d"
+                                      ? "Last 30 days"
+                                      : "Custom dates"}
+                            </span>
+                            <SlidersHorizontal size={16} />
+                          </button>
                           <label className="window-select">
                             <Clock3 size={12} />
                             <span className="sr-only">Time window</span>
@@ -1219,13 +1286,14 @@ export default function Home() {
                           </div>
                           <button
                             className="icon-button filter-settings"
-                            aria-label="Monitoring preferences"
-                            onClick={() => setSettingsOpen(true)}
+                            aria-label="Filter signals"
+                            aria-haspopup="dialog"
+                            onClick={() => setFiltersOpen(true)}
                           >
                             <SlidersHorizontal size={16} />
                           </button>
                         </div>
-                        {windowValue === "custom" && (
+                        {windowValue === "custom" && !savedOnly && (
                           <div className="date-range">
                             <label>
                               From
@@ -1624,7 +1692,21 @@ export default function Home() {
                           </select>
                         </label>
                       </div>
-                      <div className="table-scroll">
+                      <MobileWatchlist
+                        companies={watchlist}
+                        quotes={dashboard?.companies || []}
+                        onInspect={(ticker) => {
+                          if (
+                            dashboard?.companies.some(
+                              (q) => q.ticker === ticker,
+                            )
+                          )
+                            setSelectedCompany(ticker);
+                          else research(ticker);
+                        }}
+                        onToggle={(company) => void toggleWatch(company)}
+                      />
+                      <div className="table-scroll watchlist-desktop-table">
                         <table className="watchlist-table">
                           <thead>
                             <tr>
@@ -1740,6 +1822,7 @@ export default function Home() {
           <button
             key={n.id}
             className={view === n.id ? "active" : ""}
+            aria-current={view === n.id ? "page" : undefined}
             onClick={() => navigate(n.id)}
           >
             <n.icon size={19} />
@@ -1750,7 +1833,7 @@ export default function Home() {
                   ? "Research"
                   : n.id === "watchlist"
                     ? "Watchlist"
-                    : "Overview"}
+                    : "My brief"}
             </span>
           </button>
         ))}
@@ -1777,6 +1860,32 @@ export default function Home() {
             <X size={14} />
           </button>
         </div>
+      )}
+      {filtersOpen && (
+        <FilterSheet
+          initial={{
+            ticker: filterTicker,
+            category,
+            priority,
+            window: windowValue,
+            start: customStart,
+            end: customEnd,
+          }}
+          companies={companies}
+          categories={filterCategories}
+          savedOnly={savedOnly}
+          onClose={closeFilters}
+          onApply={(filters) => {
+            setFilterTicker(filters.ticker);
+            setCategory(filters.category);
+            setPriority(filters.priority);
+            setRoutine(filters.priority === "low");
+            setWindowValue(filters.window);
+            setCustomStart(filters.start);
+            setCustomEnd(filters.end);
+            setFiltersOpen(false);
+          }}
+        />
       )}
       {settingsOpen && prefs && (
         <Preferences

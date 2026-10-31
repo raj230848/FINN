@@ -59,8 +59,8 @@ Run the backend from `backend` with `..\.venv\Scripts\python.exe -m uvicorn app.
 
 ## What to try
 
-1. **Overview:** a compact daily brief, material disclosures, market radar and a company price chart. Demo replay is fixed to 30 October 2026 at 18:30 IST and unmistakably synthetic.
-2. **Signals & alerts:** switch between 24 hours, seven days, 30 days or a custom IST range. Filter by company/category/priority, expand the score explanation, or inspect routine filings.
+1. **Overview / My brief:** the phone opens with an actionable daily brief and priority inbox. Use My brief / The market / Saved to switch tasks. Market exploration includes price/volume ranges, daily movers and company detail sheets. Demo replay is fixed to 30 October 2026 at 18:30 IST and unmistakably synthetic.
+2. **Signals & alerts:** switch between 24 hours, seven days, 30 days or a custom IST range. Filter by company/category/priority, tap Read insight for context and the score explanation, save a signal, or inspect routine filings. On phones, the time-window row opens a filter sheet with company/category/priority and custom dates.
 3. **Monitoring preferences:** save price threshold, volume multiplier, lookback, company scope and announcement interests. Alerts are recalculated in the backend. Volume baselines exclude the latest session.
 4. **Sourced data:** press Refresh sources to download actual EOD histories and NSE disclosures. Partial failures and original session dates remain visible. Cached source data is never relabelled as a current quote.
 5. **Research desk:** start with INFY, TCS or PERSISTENT. Ask a question; open the returned document/page evidence. The supplied original documents make those demonstrations usable offline.
@@ -163,3 +163,7 @@ No public deployment or remote GitHub repository is claimed. See [docs/deploymen
 | History latest date is yesterday | Provider latency, a trading holiday or incomplete session may explain this. FINN shows the returned date. |
 
 The covering email draft is [docs/covering-email.md](docs/covering-email.md). The decision log is [docs/build-history.md](docs/build-history.md); attach/export the actual coding-agent conversation separately. A decision log is not a fabricated substitute for the required conversation history.
+
+## Phone experience
+
+The challenge PDF explicitly asks for everything to be mobile-first. FINN therefore uses a distinct phone workflow: digest and priority inbox first, optional market exploration, touch-sized bottom navigation, and bottom sheets for filters, preferences and company details. The watchlist becomes individual company cards, and quarterly numbers become metric cards with both QoQ and YoY comparisons. Desktop tables and the wider workspace remain available at larger widths. Saved signals persist on the current device.

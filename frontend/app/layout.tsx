@@ -1,6 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./workspace.css";
+import "./mobile.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#152d39",
+};
 
 export const metadata: Metadata = {
   title: "FINN — A clearer view of your portfolio",

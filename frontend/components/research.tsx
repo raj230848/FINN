@@ -492,7 +492,52 @@ export function ResearchWorkspace({
                 {financials.basis} · Historical, reviewed source figures.
                 Percentages calculated in Python.
               </p>
-              <div className="table-scroll">
+              <div className="phone-financials">
+                {financials.rows.map((r) => (
+                  <article key={r.metric}>
+                    <div>
+                      <h3>
+                        {r.metric === "revenue"
+                          ? "Revenue"
+                          : r.metric.toUpperCase()}
+                      </h3>
+                      <span>{financials.current_period}</span>
+                    </div>
+                    <strong>
+                      {number(r.current)}
+                      <small>{financials.currency}</small>
+                    </strong>
+                    {r.current === null && (
+                      <p>Not reliably available in the reviewed source.</p>
+                    )}
+                    <div className="financial-comparisons">
+                      <div>
+                        <span>vs. {financials.previous_period}</span>
+                        <b>{number(r.previous)}</b>
+                        <em
+                          className={
+                            (r.qoq || 0) >= 0 ? "positive" : "negative"
+                          }
+                        >
+                          {pct(r.qoq)} QoQ
+                        </em>
+                      </div>
+                      <div>
+                        <span>vs. {financials.last_year_period}</span>
+                        <b>{number(r.last_year)}</b>
+                        <em
+                          className={
+                            (r.yoy || 0) >= 0 ? "positive" : "negative"
+                          }
+                        >
+                          {pct(r.yoy)} YoY
+                        </em>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="table-scroll financial-desktop-table">
                 <table>
                   <thead>
                     <tr>

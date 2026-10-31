@@ -4,7 +4,7 @@ Start both services, open FINN, and use Demo replay for the synthetic PUSH scena
 
 ## 1. A management change deserves attention
 
-Open Overview. The synthetic TCS CFO-resignation scenario appears at high priority. Expand **See the reasoning**: the rule assigns 85 base points for management change and 10 more for departure language. Read **Why it matters**, then explain that review urgency is not a predicted investment return. The card is labelled **Simulated disclosure** and does not invent a source URL.
+Open Overview. The synthetic TCS CFO-resignation scenario appears at high priority. Expand **Read insight**: the rule assigns 85 base points for management change and 10 more for departure language. Read **Why it matters**, then explain that review urgency is not a predicted investment return. The card is labelled **Simulated disclosure** and does not invent a source URL.
 
 Switch the window to Last 7 days. Filter High priority or a company/category. Clear filters and expand routine filings to demonstrate information triage.
 
@@ -52,4 +52,6 @@ Expand Evidence on the last revision. Open the original earnings-call page and t
 
 ## Mobile check
 
-Try a phone or narrow browser: use the bottom navigation, horizontally scroll the research tab strip and financial table, and inspect the stacked guidance rows. No essential interaction depends on hover. In-app links open original source documents in a new tab.
+Open the phone layout and begin at **My brief**. The digest expands in place; the three counts lead to priority signals, threshold alerts and the watchlist. The inbox follows the brief, while **The market** opens chart exploration and daily movers. Tap the time-window/filter row, choose a company and date range, then Apply filters. Open **Read insight** for context and priority factors; bookmark a signal and revisit it under Saved.
+
+Use the bottom navigation to open Research. Quarterly figures appear as individual metric cards, with current/prior periods, QoQ/YoY and the original page links. The watchlist also uses touchable company cards. Preferences and company details open as bottom sheets. The research tab strip scrolls horizontally; financial information does not require a wide table. No essential interaction depends on hover. Source links open the original documents in a new tab.

@@ -60,3 +60,11 @@ The later UI update retained the existing backend and primary sources. The final
 Browser checks confirmed price/volume switching, 1W/1M/3M chart ranges, selecting another chart company, opening company details and closing with Escape, saving a disclosure, preserving that bookmark after reload, filtering information-technology companies, sorting by daily gainers, and keyboard search for Infosys followed by its four guidance comparisons. Saved view disables date filtering because it explicitly spans all dates.
 
 The final phone check confirmed document width 341 CSS pixels within an actual 355-pixel viewport, with no horizontal page overflow. The full-width company brief and its chart were inspected at the same phone size. Desktop and phone screenshots are kept under `artifacts/screenshots` locally. Browser bookmarks are device-local and are not shared account preferences.
+
+## Mobile-first workflow verification
+
+The phone workflow was checked in the actual browser with requested 390 x 844 and 320 x 740 viewport overrides (actual CSS widths were 355 and 291 because of browser scaling). The document stayed within the viewport on the brief, watchlist, financials and guidance screens. Desktop was also inspected at a requested 1440 x 1000 size; the existing statistics, chart and wider workspace remained visible while phone-only components were hidden. Browser console inspection returned no errors.
+
+The filter sheet applied company, priority, seven-day and custom-date selections to the real API feed. Read insight revealed context and score factors; saving and removing a test bookmark updated Saved. The market switch opened the chart and daily movers, and company details opened as a bottom sheet. A mobile watchlist card successfully removed and re-added BAJFINANCE; the original 18-company monitoring state was restored. INFY financial cards displayed the reviewed revenue/PBT/PAT comparisons, unavailable EBITDA and source-page links. All four guidance revisions remained accessible on the small screen. Saved views do not expose active date controls.
+
+The frontend production build includes compilation and TypeScript checking. The backend is unchanged in this iteration; the existing 42-test result above applies to that unchanged implementation. Phone screenshots are retained under `artifacts/screenshots`.
