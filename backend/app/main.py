@@ -11,22 +11,35 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from .config import ROOT, settings
 from .database import Base, engine, get_db, SessionLocal
-from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun
+from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent
 from .schemas import ImportDocumentIn, Mode, PreferencesIn, ResearchIn, WatchIn, normalize_ticker
 from .seed import DEMO_CLOCK, seed
+from .migrations import migrate_schema
+from .services.coverage import describe_coverage
+from .services.events import record_filing_events
+from .rate_limit import allow_request
 from .services.alerts import evaluate_alerts, quotes
 from .services.calculations import guidance_comparison, percent_change
 from .services.documents import discover_documents, ingest_url, store_document
-from .services.materiality import CATEGORIES
+from .services.materiality import CATEGORIES, classify
 from .services.research import research
 from .services.sync import run_sync, SYNC_LOCK
 from .ingestion.http import SourceError
 from .ingestion.market import resolve_company
 
 def initialize():
+    if settings.public_deployment and not settings.finn_api_token:
+        raise RuntimeError("Public deployment requires a backend API token.")
     Base.metadata.create_all(engine)
+    migrate_schema(engine)
     with SessionLocal() as db:
         seed(db)
+        # Apply improved rules to retained source rows without overwriting
+        # reviewed/model analysis or changing the fixed synthetic replay.
+        for row in db.scalars(select(Announcement).where(Announcement.mode=='sourced')):
+            if row.analysis_method.startswith('Deterministic'):
+                for name, value in classify(row.title, row.text).items():
+                    setattr(row, name, value)
         # Bundled original public documents make the demo reproducible offline.
         catalog = ROOT/'data'/'primary'/'catalog.json'
         if catalog.exists():
@@ -40,6 +53,7 @@ def initialize():
                     store_document(db,company,row['title'],row['period'],row['kind'],row['url'],path.read_bytes())
             db.commit()
         evaluate_alerts(db,'demo')
+        record_filing_events(db)
         db.commit()
 
 @asynccontextmanager
@@ -64,6 +78,11 @@ async def token_guard(request: Request, call_next):
         supplied = request.headers.get('authorization','').removeprefix('Bearer ')
         if not hmac.compare_digest(supplied,settings.finn_api_token):
             return JSONResponse(status_code=401,content={'detail':'API token required.'})
+    if settings.public_deployment and request.method == 'POST':
+        path = request.url.path
+        operation,limit = ('research',10) if path=='/api/research' else ('sync',2) if path=='/api/sync' else ('import',3) if path=='/api/documents' or path.endswith('/discover') else ('other',60)
+        if operation!='other' and not allow_request(request.client.host if request.client else 'unknown',operation,limit):
+            return JSONResponse(status_code=429,headers={'Retry-After':'60'},content={'detail':'Request limit reached. Please try again in a minute.'})
     return await call_next(request)
 
 @app.exception_handler(SourceError)
@@ -95,7 +114,7 @@ def serial(obj):
 
 @app.get('/api/health')
 def health():
-    return {'status':'ok','version':'1.0.0','ai_configured':bool(settings.openai_api_key),'scheduler_enabled':settings.enable_scheduler,'demo_clock':DEMO_CLOCK.isoformat()+'Z'}
+    return {'status':'ok','version':'1.0.0','ai_configured':bool(settings.gemini_api_key),'ai_provider':'gemini','ai_model':settings.gemini_model,'access_protected':bool(settings.finn_api_token),'scheduler_enabled':settings.enable_scheduler,'demo_clock':DEMO_CLOCK.isoformat()+'Z'}
 
 @app.get('/api/companies')
 def companies(db: DB, q: str = ''):
@@ -126,10 +145,10 @@ def dashboard(db: DB, mode: Mode = 'demo'):
     high = sum(x.priority=='high' for x in filings)
     routine = sum(x.priority=='low' for x in filings)
     volumes = sum(x.kind=='volume' for x in alerts)
-    return {'mode':mode,'as_of':clock.isoformat()+'Z','companies':monitored,'stats':{'companies':len(monitored),'high_priority':high,'volume_alerts':volumes,'price_alerts':sum(x.kind=='price' for x in alerts),'routine':routine,'total_filings':len(filings),'coverage':sum(x['close'] is not None for x in monitored)},'digest':f'{high} high-priority disclosures and {volumes} unusual-volume signals across your watchlist. {routine} routine filings are tucked away.' if filings or alerts else 'No sourced signals yet. Refresh sources to retrieve completed trading sessions and exchange disclosures.','last_sync':serial(latest) if latest else None,'ai_configured':bool(settings.openai_api_key),'scheduler_enabled':settings.enable_scheduler}
+    return {'mode':mode,'as_of':clock.isoformat()+'Z','companies':monitored,'stats':{'companies':len(monitored),'high_priority':high,'volume_alerts':volumes,'price_alerts':sum(x.kind=='price' for x in alerts),'routine':routine,'total_filings':len(filings),'coverage':sum(x['close'] is not None for x in monitored)},'digest':f'{high} high-priority disclosures and {volumes} unusual-volume signals across your watchlist. {routine} routine filings are tucked away.' if filings or alerts else 'No sourced signals yet. Refresh sources to retrieve completed trading sessions and exchange disclosures.','last_sync':serial(latest) if latest else None,'ai_configured':bool(settings.gemini_api_key),'scheduler_enabled':settings.enable_scheduler}
 
 @app.get('/api/announcements')
-def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None=None, category: str|None=None, priority: str|None=None, include_routine: bool=False, start: datetime|None=None, end: datetime|None=None):
+def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None=None, category: str|None=None, priority: str|None=None, include_routine: bool=False, start: datetime|None=None, end: datetime|None=None, offset: int=Query(0,ge=0), limit: int=Query(100,ge=1,le=300)):
     clock = DEMO_CLOCK if mode=='demo' else datetime.now(timezone.utc).replace(tzinfo=None)
     if window not in {'24h','7d','30d','custom'}:
         raise HTTPException(422,'Choose 24h, 7d, 30d or custom.')
@@ -153,11 +172,43 @@ def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None
     routine_count = db.scalar(select(func.count()).select_from(stmt.where(Announcement.priority=='low').subquery()))
     if not include_routine:
         stmt = stmt.where(Announcement.priority!='low')
-    return {'items':[serial(a) for a in db.scalars(stmt.order_by(Announcement.score.desc(),Announcement.published_at.desc()).limit(300))],'routine_count':routine_count,'start':start.isoformat()+'Z','end':end.isoformat()+'Z','mode':mode}
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    items = [serial(a) for a in db.scalars(stmt.order_by(Announcement.score.desc(),Announcement.published_at.desc(),Announcement.id.desc()).offset(offset).limit(limit))]
+    monitored = list(db.scalars(watched))
+    return {'items':items,'routine_count':routine_count,'start':start.isoformat()+'Z','end':end.isoformat()+'Z','mode':mode,
+            'total':total,'offset':offset,'has_more':offset+len(items)<total,
+            'next_offset':offset+len(items) if offset+len(items)<total else None,
+            'coverage':describe_coverage(db,mode,monitored,start,end)}
 
 @app.get('/api/alerts')
 def alerts(db: DB, mode: Mode='demo'):
     return [serial(a) for a in db.scalars(select(Alert).where(Alert.mode==mode).order_by(Alert.date.desc(),Alert.value.desc()))]
+
+@app.get('/api/notifications')
+def notifications(db: DB, mode: Mode='demo', unread_only: bool=False, offset: int=Query(0,ge=0), limit: int=Query(50,ge=1,le=100)):
+    base = select(SignalEvent).where(SignalEvent.mode==mode)
+    unread = db.scalar(select(func.count()).select_from(base.where(SignalEvent.read_at.is_(None)).subquery()))
+    if unread_only: base = base.where(SignalEvent.read_at.is_(None))
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    items = [serial(e) for e in db.scalars(base.order_by(SignalEvent.created_at.desc(),SignalEvent.id.desc()).offset(offset).limit(limit))]
+    return {'items':items,'unread_count':unread,'total':total,'has_more':offset+len(items)<total}
+
+@app.post('/api/notifications/read-all')
+def read_all_notifications(db: DB, mode: Mode='demo'):
+    from sqlalchemy import update
+    from .models import utcnow
+    db.execute(update(SignalEvent).where(SignalEvent.mode==mode,SignalEvent.read_at.is_(None)).values(read_at=utcnow()))
+    db.commit()
+    return {'status':'read'}
+
+@app.post('/api/notifications/{event_id}/read')
+def read_notification(event_id: int, db: DB):
+    from .models import utcnow
+    event = db.get(SignalEvent,event_id)
+    if not event: raise HTTPException(404,'Notification not found.')
+    if event.read_at is None: event.read_at = utcnow()
+    db.commit()
+    return serial(event)
 
 @app.get('/api/preferences')
 def preferences(db: DB):

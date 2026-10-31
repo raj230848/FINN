@@ -40,6 +40,7 @@ def test_reviewed_values_exist_in_actual_pdf_rows():
     sources={row['url']:row for row in json.loads((ROOT/'data/primary/catalog.json').read_text(encoding='utf-8'))}
     manifest=json.loads((ROOT/'data/primary/verified.json').read_text(encoding='utf-8'))
     for row in manifest['financials']:
+        if row['ticker']!='INFY': continue
         source=sources[row['source_url']]
         with pymupdf.open(ROOT/'data/primary'/source['file']) as doc:
             text=doc[row['page']-1].get_text(sort=True)
@@ -49,3 +50,25 @@ def test_reviewed_values_exist_in_actual_pdf_rows():
             numbers=[int(n.replace(',','')) for n in re.findall(r'\b\d[\d,]*\b',line)]
             col=1 if row['period']=='2024-Q4' else 0
             assert numbers[col]==row['metrics'][metric]
+
+def test_second_company_uses_reported_tcs_usd_tables(client):
+    result=client.get('/api/companies/TCS/financials').json()
+    assert result['currency']=='USD million'
+    assert 'Consolidated IFRS' in result['basis']
+    rows={r['metric']:r for r in result['rows']}
+    assert rows['revenue']['current']==7465 and rows['revenue']['previous']==7539 and rows['revenue']['last_year']==7363
+    assert rows['pbt']['current']==1900 and rows['pat']['current']==1418
+    assert rows['revenue']['qoq']==-0.98 and rows['revenue']['yoy']==1.39
+    assert rows['ebitda']['current'] is None
+    manifest=json.loads((ROOT/'data/primary/verified.json').read_text())
+    tables=json.loads((ROOT/'data/primary/reviewed-tcs-tables.json').read_text())['tables']
+    for row in [r for r in manifest['financials'] if r['ticker']=='TCS']:
+        source=next(t for t in tables if t['source_url']==row['source_url'])
+        column=source['period_columns'].index(row['period'])
+        for metric,label in [('revenue','Revenue'),('pbt','Income before income taxes'),('pat','Net income')]:
+            assert row['metrics'][metric]==source['rows'][label][column]
+    # Q4 and prior-year facts are also checked directly against the original issuer HTML.
+    from bs4 import BeautifulSoup
+    html=BeautifulSoup((ROOT/'data/primary/tcs-08.html').read_bytes(),'html.parser')
+    table=next(t for t in html.find_all('table') if 'Three-month periods ended March' in t.get_text(' ',strip=True))
+    assert all(str(v) in table.get_text(' ',strip=True).replace(',','') for v in [7465,7363,1900,1418])

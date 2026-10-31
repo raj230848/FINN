@@ -32,11 +32,11 @@ The Docker backend uses one worker. The optional scheduler uses a process-local 
 1. Use the published [FINN repository](https://github.com/raj230848/FINN) as the deployment source.
 2. Host the backend using its Dockerfile on a Python/container host. `render.yaml` supplies a Render example with a persistent disk and an explicit `starter` plan, which can incur charges. Review the host's current terms/pricing before creating the service. The public-source adapters are best effort and may be blocked from a data-centre IP even when local tests work.
 3. Set `DATABASE_URL=sqlite:////var/lib/finn/finn.db` and mount persistence at `/var/lib/finn`. Keep one worker. Health endpoint: `/api/health`.
-4. Set a strong `FINN_API_TOKEN` on the backend. If using the Render blueprint, it generates a token; copy the resulting value directly into the frontend's server-only environment setting. Never commit it.
-5. Optional: set `OPENAI_API_KEY` and `OPENAI_MODEL` on the backend. Leave the key empty for extractive-only operation.
+4. Set `PUBLIC_DEPLOYMENT=true` and a strong `FINN_API_TOKEN` on the backend (startup refuses a missing token). If using the Render blueprint, it generates a token; copy the resulting value directly into the frontend's server-only environment setting. Never commit it.
+5. Optional: set `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.5-flash-lite` on the backend. Leave the key empty for extractive-only operation.
 6. Import the GitHub repository into Vercel with **Root Directory `frontend`** and the Next.js framework preset. The build command is `npm run build`.
 7. Set server-only `BACKEND_URL` to the deployed HTTPS backend origin (no `/api` suffix). Set the matching server-only `FINN_API_TOKEN`. Neither variable uses a `NEXT_PUBLIC_` prefix.
-8. Keep deployment protection/access control enabled for the prototype. The shared token protects the backend, not end users of the frontend proxy. Add real whole-app authentication and per-user storage before treating it as a public multi-user service.
+8. Set frontend `FINN_PUBLIC_MODE=true`, `FINN_ACCESS_TOKEN` (at least 16 characters) and `FINN_SESSION_SECRET` (at least 32 random characters). Vercel/Render enable the gate automatically. Anonymous proxy requests return 401; sign-in creates an eight-hour signed HttpOnly cookie. POST/PUT/PATCH require same-origin requests. This protects one shared desk; add individual accounts and per-user storage for a multi-user product. Keep platform deployment protection enabled as an additional control.
 9. Verify backend health, open the frontend, switch to Sourced data, refresh, and inspect partial-error handling and source timestamps. Then test a research question and both guidance evidence links.
 10. Copy only the **actual successfully verified** URLs into the covering email. A provider dashboard or a configured project is not a deployed-product URL.
 

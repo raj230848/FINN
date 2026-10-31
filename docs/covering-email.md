@@ -13,7 +13,7 @@ FINN monitors an 18-company NSE portfolio, explains disclosure priorities, and l
 
 I used Next.js/TypeScript for the responsive desk and FastAPI/SQLAlchemy/SQLite for a small, traceable backend. Financial arithmetic, scoring, deduplication and threshold evaluation are deterministic. Page-preserving retrieval and caching reduce model cost; structured AI synthesis is optional, while no-key operation transparently returns source extracts.
 
-I prioritised the digest-to-evidence workflow and explicitly separated sourced data from synthetic demonstration scenarios. Reviewed financial tables and guidance pairs are focused on Infosys; the document/research engine accepts unseen NSE tickers where sources are available. I deliberately excluded trading, intraday tick monitoring, multi-user accounts, OCR and broker commentary. Wider accounting-table extraction, stronger claim-entailment evaluation and durable hosted background jobs would be my next improvements.
+I prioritised the digest-to-evidence workflow and explicitly separated sourced data from synthetic demonstration scenarios. Reviewed financial tables cover Infosys and TCS, while guidance pairs focus on Infosys; the document/research engine accepts unseen NSE tickers where sources are available. I deliberately excluded trading, intraday tick monitoring, multi-user accounts, OCR and broker commentary. Wider accounting-table extraction, stronger claim-entailment evaluation and durable hosted background jobs would be my next improvements.
 
 Setup, reproducible demonstration scenarios and verified limitations are documented in the repository. Thank you for reviewing my submission.
 

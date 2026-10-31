@@ -32,6 +32,7 @@ export type Filing = {
   source_url: string | null;
   analysis_method: string;
   mode: Mode;
+  needs_review?: boolean;
 };
 export type Alert = {
   id: number;
@@ -161,6 +162,49 @@ export type GuidanceItem = {
   deviation_pp: number;
   midpoint_deviation_pp: number;
 };
+export type Coverage = {
+  partial_coverage: boolean;
+  kind: string;
+  message: string;
+  first_observed_at?: string | null;
+  last_successful_fetch_at?: string | null;
+};
+export type FilingFeed = {
+  items: Filing[];
+  routine_count: number;
+  total?: number;
+  has_more?: boolean;
+  next_offset?: number | null;
+  coverage?: Coverage;
+};
+export type NotificationEvent = {
+  id: number;
+  ticker: string;
+  mode: Mode;
+  kind: string;
+  severity: string;
+  title: string;
+  explanation: string;
+  source_url: string | null;
+  occurred_at: string;
+  created_at: string;
+  read_at: string | null;
+};
+export type NotificationFeed = {
+  items: NotificationEvent[];
+  unread_count: number;
+  total: number;
+  has_more: boolean;
+};
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string,
+  ) {
+    super(message);
+  }
+}
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...options,
@@ -168,10 +212,12 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   });
   const data = await response.json();
   if (!response.ok)
-    throw new Error(
+    throw new ApiError(
       typeof data.detail === "string"
         ? data.detail
         : "The request could not be validated. Check the fields and try again.",
+      response.status,
+      data.code,
     );
   return data as T;
 }

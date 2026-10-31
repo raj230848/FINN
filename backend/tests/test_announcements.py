@@ -23,11 +23,11 @@ def test_classification_and_explanation(title,category,priority):
     assert result['priority']==priority
     assert result['factors'] and result['why_matters']
 
-def test_dedup_different_time_attachment_and_punctuation(db):
+def test_distinct_attachments_survive_and_exact_duplicates_collapse(db):
     day = datetime(2026,10,30,4)
     a = {'ticker':'INFY','title':'Financial Results!','published_at':day,'source_url':'https://nsearchives.nseindia.com/a.pdf','text':''}
     b = {**a,'title':'Financial results','published_at':day+timedelta(hours=1),'source_url':'https://nsearchives.nseindia.com/b.pdf'}
-    assert save_announcements(db,[a,b])==1
+    assert save_announcements(db,[a,b])==2
     assert save_announcements(db,[a])==0
     assert fingerprint('INFY',a['title'],day,'demo')!=fingerprint('INFY',a['title'],day,'sourced')
 

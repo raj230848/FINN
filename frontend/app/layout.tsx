@@ -3,6 +3,7 @@ import "./globals.css";
 import "./workspace.css";
 import "./mobile.css";
 import "./colorful-dark.css";
+import "./reliability.css";
 
 export const viewport: Viewport = {
   width: "device-width",

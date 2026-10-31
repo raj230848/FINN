@@ -1,0 +1,269 @@
+.notification-button {
+  position: relative;
+}
+.unread-badge {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #d4ff72;
+  color: #19200e;
+  font-size: 9px;
+  font-weight: 750;
+}
+.coverage-notice {
+  display: flex;
+  gap: 10px;
+  background: #15252b;
+  border: 1px solid #305662;
+  color: #b1dbe4;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 12px 0 18px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.coverage-notice.partial {
+  background: #2b2118;
+  border-color: #665035;
+  color: #e3c8a0;
+}
+.coverage-notice > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.coverage-notice b {
+  display: block;
+  color: #f1dfc3;
+  margin-bottom: 3px;
+}
+.coverage-notice small {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.85;
+}
+.load-more-filings {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 20px;
+  font-size: 12px;
+  color: #ad9abd;
+}
+.load-more-filings .btn {
+  min-height: 44px;
+}
+.notification-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: #0009;
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: flex-end;
+}
+.notification-sheet {
+  width: 480px;
+  max-width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: #111016;
+  border-left: 1px solid #3c2d4e;
+  padding: 26px;
+  color: #ddcdec;
+}
+.notification-sheet header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.notification-sheet header > div > span {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #ae8ac9;
+}
+.notification-sheet h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f1e6fb;
+  font-size: 25px;
+  margin-top: 8px;
+}
+.notification-sheet h2 > b {
+  background: #3d2852;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font:
+    600 12px Arial,
+    sans-serif;
+  color: #d7b3ff;
+}
+.notification-sheet header > button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: #2c2037;
+  color: #dac3ee;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.notification-sheet > p {
+  color: #a996bb;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.notification-sheet .text-button {
+  color: #c5a2ef;
+  min-height: 44px;
+  font-size: 12px;
+}
+.notification-sheet > article {
+  background: #191220;
+  border: 1px solid #3c2c48;
+  border-radius: 14px;
+  margin-top: 14px;
+  padding: 17px;
+}
+.notification-sheet > article.unread {
+  border-left: 3px solid #c198f9;
+}
+.notification-sheet > article.read {
+  opacity: 0.78;
+}
+.notification-sheet article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: #b995d1;
+}
+.notification-sheet h3 {
+  color: #efdefa;
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 12px 0 9px;
+}
+.notification-sheet article > p {
+  font-size: 13px;
+  color: #b9a5c8;
+  line-height: 1.75;
+}
+.notification-sheet article > small {
+  display: block;
+  color: #9f8bad;
+  font-size: 10px;
+  margin: 10px 0 4px;
+}
+.notification-sheet article footer {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  border-top: 1px solid #30223c;
+  margin-top: 11px;
+  padding-top: 3px;
+}
+.notification-sheet article footer a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #91d6e6;
+  min-height: 44px;
+  font-size: 11px;
+}
+.access-gate {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at top, #251735, #050507 65%);
+  padding: 24px;
+  color: #e8d9f6;
+}
+.access-gate > section {
+  width: 420px;
+  max-width: 100%;
+  background: #131017;
+  border: 1px solid #443151;
+  padding: 30px;
+  border-radius: 22px;
+  box-shadow: 0 15px 80px #0006;
+}
+.access-logo {
+  font-size: 38px;
+  font-weight: 750;
+  letter-spacing: -2px;
+  color: #f8f1ff;
+  margin-bottom: 30px;
+}
+.access-logo span {
+  color: #d4ff72;
+}
+.access-gate section > svg {
+  color: #bd91f2;
+}
+.access-gate h1 {
+  font-family: Georgia, serif;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 17px 0 12px;
+  color: #f2e4ff;
+}
+.access-gate p {
+  font-size: 13px;
+  color: #b19bc2;
+  line-height: 1.7;
+}
+.access-gate form {
+  display: grid;
+  gap: 12px;
+  margin-top: 25px;
+}
+.access-gate label {
+  font-size: 13px;
+  color: #ceb4e2;
+}
+.access-gate input {
+  font-size: 16px;
+  min-height: 48px;
+  border: 1px solid #604474;
+  padding: 12px;
+  border-radius: 11px;
+  background: #211529;
+  color: #f0e5f7;
+}
+.access-gate .primary {
+  min-height: 48px;
+  justify-content: center;
+  background: #c5a1ff;
+  color: #1b0e2b;
+  margin-top: 5px;
+}
+@media (max-width: 760px) {
+  .notification-backdrop {
+    align-items: flex-end;
+  }
+  .notification-sheet {
+    height: auto;
+    max-height: 93dvh;
+    border: 1px solid #44314e;
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px max(25px, env(safe-area-inset-bottom));
+  }
+  .notification-sheet h2 {
+    font-size: 23px;
+  }
+  .coverage-notice {
+    font-size: 13px;
+  }
+}

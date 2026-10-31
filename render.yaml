@@ -15,7 +15,11 @@ services:
         value: sqlite:////var/lib/finn/finn.db
       - key: FINN_API_TOKEN
         generateValue: true
-      - key: OPENAI_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: PUBLIC_DEPLOYMENT
+        value: "true"
       - key: ENABLE_SCHEDULER
         value: "false"

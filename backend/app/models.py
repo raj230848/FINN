@@ -44,6 +44,10 @@ class Announcement(Base):
     text: Mapped[str] = mapped_column(Text, default='')
     mode: Mapped[str] = mapped_column(String(12), index=True)
     analysis_method: Mapped[str] = mapped_column(String(100), default='Deterministic rules; headline only')
+    source_filing_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    content_checksum: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    ingested_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=utcnow)
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, server_default='0')
 
 class Preference(Base):
     __tablename__ = 'preferences'
@@ -111,6 +115,30 @@ class ResearchCache(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     result: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+class SignalEvent(Base):
+    __tablename__ = 'signal_events'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_key: Mapped[str] = mapped_column(String(250), unique=True)
+    ticker: Mapped[str] = mapped_column(ForeignKey('companies.ticker'), index=True)
+    mode: Mapped[str] = mapped_column(String(12), index=True)
+    kind: Mapped[str] = mapped_column(String(30))
+    severity: Mapped[str] = mapped_column(String(12))
+    title: Mapped[str] = mapped_column(Text)
+    explanation: Mapped[str] = mapped_column(Text)
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    delivery_status: Mapped[str] = mapped_column(String(20), default='in_app')
+
+class IngestionCoverage(Base):
+    __tablename__ = 'ingestion_coverage'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ticker: Mapped[str] = mapped_column(ForeignKey('companies.ticker'), index=True)
+    start_at: Mapped[datetime] = mapped_column(DateTime)
+    end_at: Mapped[datetime] = mapped_column(DateTime)
+    completed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 class SyncRun(Base):
     __tablename__ = 'sync_runs'

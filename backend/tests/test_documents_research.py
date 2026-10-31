@@ -37,7 +37,7 @@ def test_primary_sources_page_citations_cache_and_no_outside_knowledge(db):
 def test_model_fabricated_citation_rejected(db,monkeypatch):
     from app.services import research as module
     store_document(db,db.get(Company,'INFY'),'Test financial report','FY25','results','https://www.infosys.com/test.pdf',sample_pdf())
-    monkeypatch.setattr(settings,'openai_api_key','test-key')
+    monkeypatch.setattr(settings,'gemini_api_key','test-key')
     monkeypatch.setattr(module,'structured_call',lambda *args: AnalysisOut(answer='Invented claim [999999]',evidence_ids=[999999],limitations=[]))
     result=module.research(db,'INFY','What is revenue outlook?',True)
     assert result['method']=='extractive'

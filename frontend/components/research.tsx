@@ -365,7 +365,7 @@ export function ResearchWorkspace({
                   <span>
                     <Sparkles size={13} />
                     {answer.method === "grounded_ai"
-                      ? "SOURCE-GROUNDED AI"
+                      ? "SOURCE-GROUNDED GEMINI"
                       : answer.method === "extractive"
                         ? "EXTRACTIVE RESEARCH"
                         : "INSUFFICIENT EVIDENCE"}

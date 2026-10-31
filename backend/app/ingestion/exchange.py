@@ -6,6 +6,8 @@ from .http import HEADERS, SourceError
 ANNOUNCEMENTS_PAGE = 'https://www.nseindia.com/companies-listing/corporate-filings-announcements'
 
 def fetch_announcements(tickers: set[str], days: int = 7) -> list[dict]:
+    if not 1 <= days <= 31:
+        raise ValueError('Announcement windows must be between 1 and 31 days.')
     now = datetime.now(ZoneInfo('Asia/Kolkata'))
     try:
         with httpx.Client(headers={**HEADERS, 'Accept': 'application/json', 'Referer': ANNOUNCEMENTS_PAGE}, timeout=15, follow_redirects=True) as client:
@@ -40,5 +42,9 @@ def fetch_announcements(tickers: set[str], days: int = 7) -> list[dict]:
         title = str(row.get('desc') or row.get('attchmntText') or '').strip()
         if not title:
             continue
-        results.append({'ticker':ticker,'title':title,'published_at':parsed,'source_url':row.get('attchmntFile') or ANNOUNCEMENTS_PAGE, 'text':str(row.get('attchmntText') or '')})
+        filing_id = row.get('seq_id') or row.get('an_seq') or row.get('broadcast_id') or row.get('id')
+        results.append({'ticker':ticker,'title':title,'published_at':parsed,
+                        'source_filing_id':str(filing_id)[:160] if filing_id is not None else None,
+                        'source_url':row.get('attchmntFile') or ANNOUNCEMENTS_PAGE,
+                        'text':str(row.get('attchmntText') or '')})
     return results

@@ -36,7 +36,7 @@ The journey is digest → reason → original filing → company research → pa
 
 `services/research.py`: BM25-style lexical retrieval without paid embeddings or vector infrastructure. A maximum of six distinct document/page citations feeds a small structured-output model call. Cache keys incorporate question, ticker, retrieved content, provider mode and model. Source text is treated as untrusted input. Schema validation and citation validation reject malformed answers; failure falls back to extractive evidence. This reduces, but cannot mathematically eliminate, unsupported model inference.
 
-`ai/client.py`: one small provider boundary, no stored secrets. OpenAI is optional and configured by environment variables. The endpoint receives only the question and relevant public source passages, not the portfolio database. No-key mode incurs no model calls.
+`ai/client.py`: one small provider boundary, no stored secrets. Gemini 3.5 Flash-Lite is optional and configured by server-only environment variables. The endpoint receives only the question and relevant public source passages, not the portfolio database. No-key mode incurs no model calls.
 
 `services/calculations.py`: percentages and guidance comparisons in Python. Missing/zero denominators yield null. For negative bases, change is `(current - previous) / abs(previous)`, explicitly explained. Guidance deviation is percentage points from the nearest bound. Operating profit is not silently substituted for EBITDA.
 

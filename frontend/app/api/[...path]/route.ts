@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  requiresAccess,
+  sameOrigin,
+  SESSION_COOKIE,
+  validSession,
+} from "@/lib/server-auth";
 
 // One origin in the browser. Backend credentials remain on the server.
 export const dynamic = "force-dynamic";
@@ -7,6 +13,28 @@ async function proxy(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
+  if (requiresAccess()) {
+    if (!process.env.FINN_API_TOKEN)
+      return NextResponse.json(
+        { detail: "The private desk is not configured." },
+        { status: 503 },
+      );
+    if (!validSession(request.cookies.get(SESSION_COOKIE)?.value || "")) {
+      return NextResponse.json(
+        {
+          detail: "Sign in to open your private FINN desk.",
+          code: "SIGN_IN_REQUIRED",
+        },
+        { status: 401 },
+      );
+    }
+    if (!["GET", "HEAD"].includes(request.method) && !sameOrigin(request)) {
+      return NextResponse.json(
+        { detail: "Invalid request origin." },
+        { status: 403 },
+      );
+    }
+  }
   const { path } = await params;
   const base = (process.env.BACKEND_URL || "http://127.0.0.1:8000").replace(
     /\/$/,

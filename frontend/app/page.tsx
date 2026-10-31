@@ -33,6 +33,9 @@ import {
 } from "lucide-react";
 import {
   api,
+  ApiError,
+  FilingFeed,
+  NotificationFeed,
   Alert,
   Company,
   Dashboard,
@@ -59,6 +62,9 @@ import {
   MobileMovers,
   MobileWatchlist,
 } from "@/components/mobile-workspace";
+
+import { AccessGate } from "@/components/access-gate";
+import { Notifications } from "@/components/notifications";
 
 type View = "home" | "signals" | "research" | "watchlist";
 const navigation = [
@@ -125,7 +131,7 @@ function SignalCard({
         <h3>{filing.title}</h3>
         <span className={`priority-pill ${filing.priority}`}>
           <i />
-          {label(filing.priority)}
+          {filing.needs_review ? "Needs review" : label(filing.priority)}
         </span>
       </div>
       <p className="signal-summary">{filing.summary}</p>
@@ -431,6 +437,21 @@ export default function Home() {
   const [filings, setFilings] = useState<Filing[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [prefs, setPrefs] = useState<Prefs | null>(null);
+  const [sessionLocked, setSessionLocked] = useState(false);
+  const [notificationFeed, setNotificationFeed] = useState<NotificationFeed>({
+    items: [],
+    unread_count: 0,
+    total: 0,
+    has_more: false,
+  });
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const closeNotifications = useCallback(() => setNotificationsOpen(false), []);
+  const [feedMeta, setFeedMeta] = useState<
+    Omit<FilingFeed, "items" | "routine_count">
+  >({});
+  const [loadingMore, setLoadingMore] = useState(false);
+  const feedVersion = useRef(0);
+  const feedQuery = useRef("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileFocus, setMobileFocus] = useState<"brief" | "market">("brief");
@@ -530,6 +551,8 @@ export default function Home() {
       })
       .catch((e) => {
         if (!cancelled) {
+          if (e instanceof ApiError && e.code === "SIGN_IN_REQUIRED")
+            setSessionLocked(true);
           setError(e.message);
           setDashboard(null);
         }
@@ -543,6 +566,8 @@ export default function Home() {
   }, [mode, generation]);
   useEffect(() => {
     let cancelled = false;
+    feedVersion.current++;
+    setLoadingMore(false);
     const params = new URLSearchParams({
       mode,
       window: windowValue,
@@ -555,11 +580,18 @@ export default function Home() {
       params.set("start", `${customStart}T00:00:00+05:30`);
       params.set("end", `${customEnd}T23:59:59+05:30`);
     }
-    api<{ items: Filing[]; routine_count: number }>(`/announcements?${params}`)
+    feedQuery.current = params.toString();
+    api<FilingFeed>(`/announcements?${params}`)
       .then((data) => {
         if (!cancelled) {
           setFilings(data.items);
           setRoutineCount(data.routine_count);
+          setFeedMeta({
+            total: data.total,
+            has_more: data.has_more,
+            next_offset: data.next_offset,
+            coverage: data.coverage,
+          });
         }
       })
       .catch((e) => {
@@ -596,6 +628,49 @@ export default function Home() {
     }, 2500);
     return () => clearInterval(timer);
   }, [refreshing, sync?.id, reload]);
+  useEffect(() => {
+    let cancelled = false;
+    const update = () =>
+      api<NotificationFeed>(`/notifications?mode=${mode}`)
+        .then((data) => {
+          if (!cancelled) setNotificationFeed(data);
+        })
+        .catch(() => {
+          /* Digest remains usable if notification history is temporarily unavailable. */
+        });
+    void update();
+    const timer = setInterval(() => void update(), 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [mode, generation]);
+  async function loadMoreFilings() {
+    if (loadingMore || feedMeta.next_offset == null) return;
+    const version = feedVersion.current;
+    setLoadingMore(true);
+    const params = new URLSearchParams(feedQuery.current);
+    params.set("offset", String(feedMeta.next_offset));
+    try {
+      const data = await api<FilingFeed>(`/announcements?${params}`);
+      if (version === feedVersion.current) {
+        setFilings((previous) => [
+          ...previous,
+          ...data.items.filter((f) => !previous.some((p) => p.id === f.id)),
+        ]);
+        setFeedMeta({
+          total: data.total,
+          has_more: data.has_more,
+          next_offset: data.next_offset,
+          coverage: data.coverage,
+        });
+      }
+    } catch (e) {
+      if (version === feedVersion.current) setError((e as Error).message);
+    } finally {
+      if (version === feedVersion.current) setLoadingMore(false);
+    }
+  }
   async function refresh() {
     setRefreshing(true);
     setError("");
@@ -700,6 +775,16 @@ export default function Home() {
   );
   const sourcedLabel = mode === "demo" ? "Demo replay" : "Sourced data";
 
+  if (sessionLocked)
+    return (
+      <AccessGate
+        onUnlocked={() => {
+          setSessionLocked(false);
+          setError("");
+          reload();
+        }}
+      />
+    );
   return (
     <div className="app-shell" data-view={view} data-mobile-focus={mobileFocus}>
       <a className="skip-link" href="#main-content">
@@ -831,11 +916,17 @@ export default function Home() {
             </span>
             <button
               className="icon-button notification-button"
-              aria-label="View signals and alerts"
-              onClick={() => navigate("signals")}
+              aria-label={`Notifications, ${notificationFeed.unread_count} unread`}
+              onClick={() => setNotificationsOpen(true)}
             >
               <Bell size={18} />
-              {!!alerts.length && <i />}
+              {notificationFeed.unread_count > 0 && (
+                <span className="unread-badge">
+                  {notificationFeed.unread_count > 99
+                    ? "99+"
+                    : notificationFeed.unread_count}
+                </span>
+              )}
             </button>
             <span className="avatar">ME</span>
           </div>
@@ -1382,6 +1473,35 @@ export default function Home() {
                             )}
                           </div>
                         )}
+                        {!savedOnly &&
+                          mode === "sourced" &&
+                          feedMeta.coverage && (
+                            <div
+                              className={`coverage-notice ${feedMeta.coverage.partial_coverage ? "partial" : ""}`}
+                              role="status"
+                            >
+                              <ShieldCheck size={16} />
+                              <div>
+                                <b>
+                                  {feedMeta.coverage.partial_coverage
+                                    ? "Partial filing coverage"
+                                    : "Source coverage"}
+                                </b>
+                                <p>{feedMeta.coverage.message}</p>
+                                {feedMeta.coverage.last_successful_fetch_at && (
+                                  <small>
+                                    Last successful exchange fetch:{" "}
+                                    {new Date(
+                                      feedMeta.coverage.last_successful_fetch_at,
+                                    ).toLocaleString("en-IN", {
+                                      timeZone: "Asia/Kolkata",
+                                    })}{" "}
+                                    IST
+                                  </small>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         <div className="signal-list">
                           {visibleFilings.map((f) => (
                             <SignalCard
@@ -1425,6 +1545,28 @@ export default function Home() {
                             </div>
                           )}
                         </div>
+                        {!savedOnly &&
+                          feedMeta.has_more &&
+                          view === "signals" && (
+                            <div className="load-more-filings">
+                              <p>
+                                Showing {filings.length} of {feedMeta.total}{" "}
+                                matching filings
+                              </p>
+                              <button
+                                className="btn"
+                                disabled={loadingMore}
+                                onClick={() => void loadMoreFilings()}
+                              >
+                                {loadingMore ? (
+                                  <Loader2 className="spin" size={15} />
+                                ) : (
+                                  <Plus size={15} />
+                                )}
+                                Load more filings
+                              </button>
+                            </div>
+                          )}
                         {!savedOnly && (
                           <button
                             className="routine-toggle"
@@ -1885,6 +2027,15 @@ export default function Home() {
             setCustomEnd(filters.end);
             setFiltersOpen(false);
           }}
+        />
+      )}
+      {notificationsOpen && (
+        <Notifications
+          feed={notificationFeed}
+          mode={mode}
+          onClose={closeNotifications}
+          onChanged={reload}
+          onResearch={research}
         />
       )}
       {settingsOpen && prefs && (

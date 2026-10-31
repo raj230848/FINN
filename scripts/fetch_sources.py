@@ -28,6 +28,8 @@ CATALOG = [
 
 def main():
     Base.metadata.create_all(engine)
+    from app.migrations import migrate_schema
+    migrate_schema(engine)
     with SessionLocal() as db:
         seed(db)
         # Issuer domains in the catalog are verified against their own sites;

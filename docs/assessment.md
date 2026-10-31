@@ -16,12 +16,12 @@ Implemented:
 - Persisted price/volume thresholds, lookback, monitored companies and announcement interests.
 - Generic company resolution, primary PDF discovery/import, page-preserving extraction, lexical retrieval and optional structured AI analysis.
 - Original cached documents for three research demonstrations: INFY, TCS and PERSISTENT.
-- Reviewed Infosys quarterly comparisons and four FY25 guidance revisions matched to the same actual outcome.
+- Reviewed Infosys and TCS quarterly comparisons and four FY25 guidance revisions matched to the same actual outcome.
 - Mobile navigation, desktop workspace, charts, empty/error/loading states, source inspector.
 
 Deliberately constrained:
 
-- Financial tables and guidance pairs use reviewed, sourced data for INFY. The retrieval/indexing engine generalises; automatic extraction of trustworthy accounting tables from arbitrary layouts does not.
+- Financial tables use reviewed, sourced data for INFY and TCS; guidance pairs remain focused on INFY. The retrieval/indexing engine generalises; automatic extraction of trustworthy accounting tables from arbitrary layouts does not.
 - Without a model key, research returns relevant source extracts and explicitly declines to synthesize conclusions. With a key, validated JSON and valid citation IDs are required. A valid ID is not proof that a model claim is entailed; human review still matters.
 - No trading, real-time market feed, multi-user accounts, browser notifications, executive profile scraping, OCR, or broker research.
 - Deployment configurations are prepared; a public hosting account and repository connection are still needed. No deployment is claimed.

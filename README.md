@@ -68,7 +68,7 @@ Run the backend from `backend` with `..\.venv\Scripts\python.exe -m uvicorn app.
 3. **Monitoring preferences:** save price threshold, volume multiplier, lookback, company scope and announcement interests. Alerts are recalculated in the backend. Volume baselines exclude the latest session.
 4. **Sourced data:** press Refresh sources to download actual EOD histories and NSE disclosures. Partial failures and original session dates remain visible. Cached source data is never relabelled as a current quote.
 5. **Research desk:** start with INFY, TCS or PERSISTENT. Ask a question; open the returned document/page evidence. The supplied original documents make those demonstrations usable offline.
-6. **Financial snapshot:** INFY's historical Q4 FY25, Q3 FY25 and Q4 FY24 are compared on the same IFRS consolidated basis. EBITDA remains unavailable. PAT is attributable to owners after minority interests.
+6. **Financial snapshot:** INFY and TCS have reviewed three-quarter comparisons. INFY's historical Q4 FY25, Q3 FY25 and Q4 FY24 are compared on the same IFRS consolidated basis. EBITDA remains unavailable. PAT is attributable to owners after minority interests.
 7. **Promise vs. reality:** compare four Infosys FY25 revenue-growth guidance revisions with 4.2% actual constant-currency growth. The final revision was missed by 0.3 percentage points even though the initial range was exceeded. Both sides have primary citations.
 8. **An unfamiliar ticker:** enter an NSE symbol such as POLYCAB, click Find company, then use Source library → Discover. Import a permitted issuer/exchange PDF and ask a question. There is no demo-company restriction in the research code. Availability depends on the actual provider and document size; absence produces an explicit error.
 
@@ -114,9 +114,9 @@ NSE's public announcements endpoint is a best-effort web integration, not a cont
 
 Primary research evidence comes from the issuer's own reports or exchange-hosted issuer documents. Screener is used solely to discover primary URLs. The document index never treats its standardised financial tables or external commentary as primary research. The source catalog includes original URLs, SHA-256 hashes, periods and physical PDF page counts. Original report copyrights remain with their issuers.
 
-No-key mode returns retrieved excerpts and explicitly labels them **extractive research**. To enable AI synthesis, set `OPENAI_API_KEY` and optionally `OPENAI_MODEL` in the project-root `.env`, then restart the backend. The optional provider client sends only relevant public passages and the research question. The result must validate against Pydantic and reference valid retrieved chunk IDs. Failures fall back to evidence with a visible limitation. Real model calls have not been verified without a supplied key; valid citations alone cannot guarantee claim entailment.
+No-key mode returns retrieved excerpts and explicitly labels them **extractive research**. To enable AI synthesis, set `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (default `gemini-3.5-flash-lite`) in the project-root `.env`, then restart the backend. The optional provider client sends only relevant public passages and the research question. The result must validate against Pydantic, cite supplied chunk IDs in each substantive segment, and use only numeric literals present in the excerpts. Requests have bounded retries/timeouts; invalid output falls back to excerpts. Failures fall back to evidence with a visible limitation. Real model calls have not been verified without a supplied key; valid citations alone cannot guarantee claim entailment.
 
-Financial arithmetic, scoring, thresholds, deduplication and guidance-range assessment run in deterministic Python. Structured financial tables/guidance pairs are reviewed for INFY; arbitrary PDF table extraction is deliberately not portrayed as solved. Research retrieval generalises to any available NSE issuer documents.
+Financial arithmetic, scoring, thresholds, deduplication and guidance-range assessment run in deterministic Python. Structured financial tables are reviewed for INFY and TCS; guidance pairs are reviewed for INFY; arbitrary PDF table extraction is deliberately not portrayed as solved. Research retrieval generalises to any available NSE issuer documents.
 
 ## Verification
 
@@ -125,6 +125,7 @@ From the project root:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest backend\tests -q
 Set-Location frontend
+npm.cmd run test:access
 npm.cmd run typecheck
 npm.cmd run build
 ```
@@ -144,7 +145,7 @@ Network checks deliberately write to the local research/price database and produ
 
 Set `ENABLE_SCHEDULER=true` for a bounded interval refresh (default every 60 minutes, minimum 30). Start **one backend worker**. The scheduler is off by default; the UI always supports manual refresh. Market alerts are EOD and do not imply instantaneous intraday monitoring. The SQLite file is `backend/data/finn.db`; preserve it across restarts. A host's ephemeral filesystem is insufficient for persistence.
 
-The prototype is one personal/shared desk. The optional `FINN_API_TOKEN` must match in root `.env` and `frontend/.env.local`. It protects the backend API but does not authenticate users of the frontend proxy. Use private hosting or whole-app authentication for an internet deployment. Do not expose a shared unauthenticated desk as a multi-user product.
+The prototype is one personal/shared desk. The optional `FINN_API_TOKEN` must match in root `.env` and `frontend/.env.local`. For an internet deployment, set `PUBLIC_DEPLOYMENT=true` on the backend and `FINN_PUBLIC_MODE=true`, `FINN_ACCESS_TOKEN` (at least 16 characters), and `FINN_SESSION_SECRET` (at least 32 characters) on the frontend. The hosted proxy requires an eight-hour signed HttpOnly session from the shared desk access code; credentials remain server-only. Vercel/Render also enable the gate automatically. Do not expose a shared unauthenticated desk as a multi-user product.
 
 ## Deploy
 
@@ -173,3 +174,7 @@ The covering email draft is [docs/covering-email.md](docs/covering-email.md). Th
 The challenge PDF explicitly asks for everything to be mobile-first. FINN therefore uses a distinct phone workflow: digest and priority inbox first, optional market exploration, touch-sized bottom navigation, and bottom sheets for filters, preferences and company details. The watchlist becomes individual company cards, and quarterly numbers become metric cards with both QoQ and YoY comparisons. Desktop tables and the wider workspace remain available at larger widths. Saved signals persist on the current device.
 
 The interface uses a black canvas with violet, cyan, lime and pink accents. Charts, menus, source panels and phone sheets share the same dark palette.
+
+## Roadmap implementation
+
+The [implementation record](docs/roadmap-implementation.md) covers Gemini, additive database migration, attachment-aware deduplication, durable notification history, filing coverage/pagination, TCS financial comparisons and hosted access controls. Use the bell to read important filing and threshold events; read state survives recalculation. Coverage describes successful fetch windows and does not guarantee an exhaustive exchange archive.

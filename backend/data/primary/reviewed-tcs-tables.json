@@ -1,0 +1,57 @@
+{
+  "review_note": "Numeric rows transcribed from original TCS consolidated IFRS statements. These are reported figures, not adjusted comparisons or EBITDA. HTML source sections use page 1 as the source-page anchor. Original full Q3 HTML is retained only in ignored local review artifacts.",
+  "tables": [
+    {
+      "source_url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q4-fy-2025",
+      "source_sha256": "3d8244c37715b5c24e8af6b2c15e8833415868cd79dc1a9810ff15a2468ca14f",
+      "currency": "USD million",
+      "basis": "Consolidated IFRS; net income after non-controlling interests",
+      "period_columns": [
+        "2024-Q4",
+        "2025-Q4"
+      ],
+      "rows": {
+        "Revenue": [
+          7363,
+          7465
+        ],
+        "Income before income taxes": [
+          2027,
+          1900
+        ],
+        "Net income": [
+          1496,
+          1418
+        ]
+      }
+    },
+    {
+      "source_url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q3-fy-2025",
+      "source_sha256": "edc3af29fd0acf6ddebc42b02fb30a14bb0be0436f195cd389d4ffe6a452657b",
+      "currency": "USD million",
+      "basis": "Consolidated IFRS; net income after non-controlling interests",
+      "period_columns": [
+        "2024-Q3-adjusted",
+        "2024-Q3-reported",
+        "2025-Q3"
+      ],
+      "rows": {
+        "Revenue": [
+          7281,
+          7281,
+          7539
+        ],
+        "Income before income taxes": [
+          1907,
+          1782,
+          1963
+        ],
+        "Net income": [
+          1410,
+          1329,
+          1458
+        ]
+      }
+    }
+  ]
+}

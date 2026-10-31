@@ -2,6 +2,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from ..models import Alert, Announcement, Company, Preference, Price
 from .calculations import percent_change, volume_ratio
+from .events import record_event
 
 def quotes(db: Session, mode: str, lookback: int = 20) -> list[dict]:
     result = []
@@ -36,6 +37,11 @@ def evaluate_alerts(db: Session, mode: str) -> int:
             title = f"{quote['ticker']}: {value:+.2f}% daily move" if kind == 'price' else f"{quote['ticker']}: {value:.2f}x usual volume"
             explanation = (f"Completed-session adjusted close changed {value:+.2f}% versus the preceding trading session; your threshold is +/-{threshold:g}%." if kind=='price' else f"Completed-session volume is {value:.2f} times the mean of the PRECEDING {pref.lookback} trading sessions (current day excluded); your threshold is {threshold:g}x.")
             db.add(Alert(key=f"{mode}:{quote['ticker']}:{quote['date']}:{kind}",ticker=quote['ticker'],kind=kind,title=title,explanation=explanation,value=value,threshold=threshold,date=date.fromisoformat(quote['date']),mode=mode,source_url=quote['source_url']))
+            from datetime import datetime
+            record_event(db,event_key=f"market:{mode}:{quote['ticker']}:{quote['date']}:{kind}",
+                         ticker=quote['ticker'],mode=mode,kind=kind,severity='high',title=title,
+                         explanation=explanation,occurred_at=datetime.fromisoformat(quote['date']),
+                         source_url=quote['source_url'])
             count += 1
     db.flush()
     return count

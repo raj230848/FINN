@@ -59,3 +59,5 @@ class ClassificationOut(BaseModel):
     category: Literal['results','M&A','fund_raise','management_change','litigation','insider_trading','earnings_call','investor_meetings','credit_rating','dividend','bonus_split','capex','press_release','postal_ballot','agm_egm','pledging','unclassified']
     summary: str = Field(min_length=10, max_length=900)
     why_matters: str = Field(min_length=10, max_length=900)
+    confidence: Literal['high','medium','low'] = 'low'
+    evidence_quote: str = Field(default='', max_length=500)
