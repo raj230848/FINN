@@ -52,3 +52,11 @@ The running Next.js frontend was exercised through the in-app browser against th
 - No public URL, remote GitHub repository or sent submission email is claimed. The local repository and covering draft are ready.
 - Reviewed numeric tables and guidance extraction are focused on INFY. Other companies use source retrieval until their accounting data is reviewed; no general-purpose extraction accuracy is claimed.
 - Source metadata/citations are validated, but semantic model entailment, exhaustive disclosure coverage and production multi-user security are not claimed.
+
+## Interactive UI refresh
+
+The later UI update retained the existing backend and primary sources. The final production build passed after the navy/lime workspace and interactive controls were added; the backend suite again passed all 42 tests. Frontend, backend and proxy responded with HTTP 200. The new `scripts/start-finn.ps1` launcher passed syntax validation and correctly reused both healthy running services.
+
+Browser checks confirmed price/volume switching, 1W/1M/3M chart ranges, selecting another chart company, opening company details and closing with Escape, saving a disclosure, preserving that bookmark after reload, filtering information-technology companies, sorting by daily gainers, and keyboard search for Infosys followed by its four guidance comparisons. Saved view disables date filtering because it explicitly spans all dates.
+
+The final phone check confirmed document width 341 CSS pixels within an actual 355-pixel viewport, with no horizontal page overflow. The full-width company brief and its chart were inspected at the same phone size. Desktop and phone screenshots are kept under `artifacts/screenshots` locally. Browser bookmarks are device-local and are not shared account preferences.

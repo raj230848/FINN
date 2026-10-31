@@ -20,3 +20,9 @@ This is a factual implementation decision log for the work in the current Codex 
 Final test/build/browser results and remaining verification limits are recorded in `verification.md`. Add future implementation decisions and actual deployment outcomes here without overwriting this history.
 
 The final sourced-feed review also improved the no-key disclosure summaries: original exchange descriptions are now extracted instead of repeating generic headlines, and newspaper republications are lowered to routine priority. Two regression cases extended the suite to 42 passing tests. Cached deterministic analysis is updated without creating duplicate events.
+
+## Interactive UI iteration
+
+The user subsequently requested a better-looking, more interactive interface and asked to restart and finish the full application. The existing working backend and sourced examples were retained. The workspace received a navy/lime visual system, an interactive price/volume explorer with 1W/1M/3M ranges, a company brief drawer, device-local saved announcements, keyboard company search, sector filters and watchlist sorting. Overview metrics became navigation controls. A single-command Windows launcher was added.
+
+Production compilation and type checking passed. Windows initially denied standalone-output creation and local sockets in the restricted execution context; the build and services were restarted with the required execution permissions. Frontend, backend and proxy health checks then returned HTTP 200. The 42 backend tests passed again. Browser checks exercised chart metric/range/company changes, drawer closing with Escape, bookmark persistence after reload, sector filtering, sorting, keyboard search and the source-backed guidance screen. A phone-layout check exposed an off-screen accessible label extending the page width; its containing block was corrected before final handoff.

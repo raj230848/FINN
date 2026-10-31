@@ -1,6 +1,6 @@
 # FINN
 
-**A clearer view of your portfolio.** A mobile-first investment intelligence prototype for the ENAM Holdings AI Engineer Build Challenge.
+**Your portfolio. In perspective.** A mobile-first investment intelligence prototype for the ENAM Holdings AI Engineer Build Challenge.
 
 FINN brings the daily workflow into one desk: prioritise disclosures, understand why a filing matters, monitor unusual end-of-day activity, and investigate a company through its own reports and earnings calls.
 
@@ -17,6 +17,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
 This installs the locked Python dependencies and `npm ci`, then copies environment examples only if local files do not already exist. It does not change your machine's execution policy permanently.
+
+Start both services with one command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-finn.ps1
+```
+
+The launcher reuses healthy running FINN services, builds the frontend when needed, and otherwise starts both services in the background. Logs are saved under `artifacts/runtime`. Open **http://127.0.0.1:3000**.
+
+For separate development terminals, use these commands instead:
 
 Terminal 1:
 
@@ -59,6 +69,15 @@ Run the backend from `backend` with `..\.venv\Scripts\python.exe -m uvicorn app.
 8. **An unfamiliar ticker:** enter an NSE symbol such as POLYCAB, click Find company, then use Source library → Discover. Import a permitted issuer/exchange PDF and ask a question. There is no demo-company restriction in the research code. Availability depends on the actual provider and document size; absence produces an explicit error.
 
 The full five-scenario evaluator walkthrough is in [docs/demo.md](docs/demo.md).
+
+### Interactive workspace
+
+- **Portfolio pulse:** select a company, switch price/volume, choose 1W/1M/3M, and inspect chart tooltips. Watchlist breadth uses actual latest-session movements from the selected data mode.
+- **Company briefs:** open a market-radar or watchlist company for a price chart, trading-volume metrics, source date and a direct research action.
+- **Saved signals:** bookmark an announcement and revisit it under Saved for later. Bookmarks persist on this device and remain separated by demonstration/sourced mode.
+- **Company search:** use Ctrl+K, search by name or ticker, navigate suggestions with arrow keys and open with Enter.
+- **Watchlist exploration:** filter sectors, search company names and sort by gainers, decliners or unusual volume.
+- **Actionable overview cards:** jump directly to high-priority disclosures, threshold crossings, routine filings or the watchlist.
 
 ## Stack and layout
 

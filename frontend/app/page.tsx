@@ -2,10 +2,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity,
-  ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
   Bell,
+  Bookmark,
   BookOpen,
   Check,
   ChevronDown,
@@ -14,7 +14,6 @@ import {
   Clock3,
   ExternalLink,
   FileText,
-  Filter,
   FlaskConical,
   LayoutDashboard,
   ListFilter,
@@ -41,15 +40,18 @@ import {
   label,
   Mode,
   money,
-  number,
   pct,
   Prefs,
-  Quote,
   shortDate,
   SyncRun,
 } from "@/lib/api";
 import { PriceChart, Sparkline } from "@/components/charts";
 import { ResearchWorkspace } from "@/components/research";
+import {
+  CompanyDrawer,
+  CompanySearch,
+  MarketExplorer,
+} from "@/components/market-explorer";
 
 type View = "home" | "signals" | "research" | "watchlist";
 const navigation = [
@@ -83,9 +85,13 @@ function CompanyMark({ ticker }: { ticker: string }) {
 function SignalCard({
   filing,
   onResearch,
+  saved,
+  onSave,
 }: {
   filing: Filing;
   onResearch: (t: string) => void;
+  saved: boolean;
+  onSave: (filing: Filing) => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -131,6 +137,14 @@ function SignalCard({
           <ChevronDown size={12} className={open ? "rotate" : ""} />
         </button>
         <div>
+          <button
+            className={`save-signal ${saved ? "saved" : ""}`}
+            aria-label={`${saved ? "Unsave" : "Save"} ${filing.ticker} signal`}
+            aria-pressed={saved}
+            onClick={() => onSave(filing)}
+          >
+            <Bookmark size={14} fill={saved ? "currentColor" : "none"} />
+          </button>
           {filing.mode === "demo" ? (
             <span className="fixture-label">
               <FlaskConical size={11} /> Simulated disclosure
@@ -420,7 +434,6 @@ export default function Home() {
   const [researchTicker, setResearchTicker] = useState("INFY");
   const [researchTab, setResearchTab] = useState("overview");
   const [chartTicker, setChartTicker] = useState("RELIANCE");
-  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sync, setSync] = useState<SyncRun | null>(null);
@@ -429,8 +442,60 @@ export default function Home() {
   const [mobileNav, setMobileNav] = useState(false);
   const [sourceDetails, setSourceDetails] = useState(false);
   const [watchSearch, setWatchSearch] = useState("");
+  const [watchSector, setWatchSector] = useState("");
+  const [watchSort, setWatchSort] = useState("ticker");
+  const [savedSignals, setSavedSignals] = useState<Filing[]>([]);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
+  const closeCompany = useCallback(() => setSelectedCompany(null), []);
   const reload = useCallback(() => setGeneration((g) => g + 1), []);
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem("finn.saved-signals.v1") || "[]",
+      );
+      if (Array.isArray(stored))
+        setSavedSignals(
+          stored.filter(
+            (f) =>
+              f &&
+              Number.isFinite(f.id) &&
+              typeof f.title === "string" &&
+              ["demo", "sourced"].includes(f.mode),
+          ),
+        );
+    } catch {
+      /* A storage restriction must not prevent opening the workspace. */
+    }
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 3500);
+    return () => clearTimeout(timer);
+  }, [toast]);
+  useEffect(() => setSelectedCompany(null), [mode]);
+  function toggleSaved(filing: Filing) {
+    const exists = savedSignals.some(
+      (f) => f.id === filing.id && f.mode === filing.mode,
+    );
+    const next = exists
+      ? savedSignals.filter(
+          (f) => !(f.id === filing.id && f.mode === filing.mode),
+        )
+      : [filing, ...savedSignals];
+    setSavedSignals(next);
+    try {
+      localStorage.setItem("finn.saved-signals.v1", JSON.stringify(next));
+      setToast(
+        exists ? "Removed from saved signals" : "Signal saved for later",
+      );
+    } catch {
+      setToast("Saved for this session. Browser storage is unavailable.");
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -538,6 +603,7 @@ export default function Home() {
   function navigate(id: View) {
     setView(id);
     setMobileNav(false);
+    setSavedOnly(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function research(ticker: string, tab = "overview") {
@@ -567,15 +633,55 @@ export default function Home() {
       (!prefs?.companies.length || prefs.companies.includes(f.ticker)),
   );
   const marketAlerts = alerts;
+  const feedItems = savedOnly
+    ? savedSignals.filter(
+        (f) =>
+          f.mode === mode &&
+          (!filterTicker || f.ticker === filterTicker) &&
+          (!category || f.category === category) &&
+          (!priority || f.priority === priority),
+      )
+    : filings;
   const visibleFilings =
-    view === "home" && !routine ? filings.slice(0, 4) : filings;
-  const watchlist = companies.filter(
-    (c) =>
-      !watchSearch ||
-      `${c.ticker} ${c.name} ${c.sector}`
-        .toLowerCase()
-        .includes(watchSearch.toLowerCase()),
+    view === "home" && !routine ? feedItems.slice(0, 4) : feedItems;
+  const watchlist = companies
+    .filter(
+      (c) =>
+        (!watchSector || c.sector === watchSector) &&
+        (!watchSearch ||
+          `${c.ticker} ${c.name} ${c.sector}`
+            .toLowerCase()
+            .includes(watchSearch.toLowerCase())),
+    )
+    .sort((a, b) => {
+      const qa = dashboard?.companies.find((q) => q.ticker === a.ticker),
+        qb = dashboard?.companies.find((q) => q.ticker === b.ticker);
+      if (watchSort === "gainers")
+        return (qb?.change_pct ?? -Infinity) - (qa?.change_pct ?? -Infinity);
+      if (watchSort === "decliners")
+        return (qa?.change_pct ?? Infinity) - (qb?.change_pct ?? Infinity);
+      if (watchSort === "volume")
+        return (
+          (qb?.volume_ratio ?? -Infinity) - (qa?.volume_ratio ?? -Infinity)
+        );
+      return a.ticker.localeCompare(b.ticker);
+    });
+  const selectedQuote = dashboard?.companies.find(
+    (q) => q.ticker === selectedCompany,
   );
+  function focusSignals(kind: "high" | "routine" | "market") {
+    navigate("signals");
+    setPriority(kind === "high" ? "high" : "");
+    setRoutine(kind === "routine");
+    setFilterTicker("");
+    setCategory("");
+    if (kind === "market")
+      requestAnimationFrame(() =>
+        document
+          .querySelector(".market-alerts")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+  }
   const syncErrors = Object.values(sync?.result.prices || {}).filter(
     (p) => !p.ok,
   );
@@ -621,6 +727,20 @@ export default function Home() {
             </button>
           ))}
         </nav>
+        <button
+          className={`saved-nav ${savedOnly ? "selected" : ""}`}
+          onClick={() => {
+            navigate("signals");
+            setSavedOnly(true);
+            setPriority("");
+            setCategory("");
+            setFilterTicker("");
+          }}
+        >
+          <Bookmark size={17} />
+          <span>Saved for later</span>
+          <b>{savedSignals.length}</b>
+        </button>
         <div className="sidebar-watch">
           <div className="nav-section-label">
             QUICK RESEARCH{" "}
@@ -688,29 +808,7 @@ export default function Home() {
             <ChevronRight size={12} />
             <b>{navigation.find((n) => n.id === view)?.title}</b>
           </div>
-          <form
-            className="global-search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (query.trim()) {
-                research(query.trim().toUpperCase().replace(/\.NS$/, ""));
-                setQuery("");
-              }
-            }}
-          >
-            <Search size={14} />
-            <label htmlFor="global-search" className="sr-only">
-              Research company by ticker
-            </label>
-            <input
-              id="global-search"
-              placeholder="Jump to a company…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              maxLength={24}
-            />
-            <kbd>↵</kbd>
-          </form>
+          <CompanySearch companies={companies} onSelect={research} />
           <div className="topbar-actions">
             <span className="eod-label">
               <i /> EOD intelligence
@@ -807,7 +905,7 @@ export default function Home() {
                   <h1>
                     {view === "home" ? (
                       <>
-                        A clearer view of your portfolio<span>.</span>
+                        Your portfolio. In perspective<span>.</span>
                       </>
                     ) : view === "signals" ? (
                       <>
@@ -884,7 +982,11 @@ export default function Home() {
                   {view === "home" && (
                     <>
                       <div className="stats-grid">
-                        <div className="stat-card">
+                        <button
+                          type="button"
+                          className="stat-card"
+                          onClick={() => navigate("watchlist")}
+                        >
                           <span className="stat-icon">
                             <Activity size={18} />
                           </span>
@@ -908,8 +1010,12 @@ export default function Home() {
                             {stats?.coverage || 0} with{" "}
                             {mode === "demo" ? "simulated" : "sourced"} EOD data
                           </div>
-                        </div>
-                        <div className="stat-card material">
+                        </button>
+                        <button
+                          type="button"
+                          className="stat-card material"
+                          onClick={() => focusSignals("high")}
+                        >
                           <span className="stat-icon">
                             <Radar size={18} />
                           </span>
@@ -925,8 +1031,12 @@ export default function Home() {
                             From {stats?.total_filings || 0} filings in the last
                             24h
                           </div>
-                        </div>
-                        <div className="stat-card">
+                        </button>
+                        <button
+                          type="button"
+                          className="stat-card"
+                          onClick={() => focusSignals("market")}
+                        >
                           <span className="stat-icon">
                             <TrendingUp size={18} />
                           </span>
@@ -943,8 +1053,12 @@ export default function Home() {
                             {stats?.volume_alerts || 0} volume ·{" "}
                             {stats?.price_alerts || 0} price alerts
                           </div>
-                        </div>
-                        <div className="stat-card">
+                        </button>
+                        <button
+                          type="button"
+                          className="stat-card"
+                          onClick={() => focusSignals("routine")}
+                        >
                           <span className="stat-icon">
                             <ListFilter size={18} />
                           </span>
@@ -959,7 +1073,7 @@ export default function Home() {
                             <Check size={11} />
                             Grouped away. Still one tap away.
                           </div>
-                        </div>
+                        </button>
                       </div>
                       <section className="daily-brief">
                         <span className="brief-icon">
@@ -967,7 +1081,7 @@ export default function Home() {
                         </span>
                         <div>
                           <div className="brief-label">
-                            THE DAILY BRIEF{" "}
+                            YOUR INTELLIGENCE BRIEF{" "}
                             <span>
                               {mode === "demo"
                                 ? "DEMO SCENARIO"
@@ -983,6 +1097,13 @@ export default function Home() {
                           <ArrowRight size={19} />
                         </button>
                       </section>
+                      <MarketExplorer
+                        quotes={
+                          dashboard?.mode === mode ? dashboard.companies : []
+                        }
+                        mode={mode}
+                        onInspect={setSelectedCompany}
+                      />
                     </>
                   )}
                   {(view === "home" || view === "signals") && (
@@ -993,18 +1114,26 @@ export default function Home() {
                             <h2>
                               {view === "home"
                                 ? "Your priority inbox"
-                                : "Announcements & alerts"}
+                                : savedOnly
+                                  ? "Saved for later"
+                                  : "Announcements & alerts"}
                               <span className="count-badge">
-                                {filings.length}
+                                {feedItems.length}
                               </span>
                             </h2>
-                            <p>Less scrolling. More signal.</p>
+                            <p>
+                              {savedOnly
+                                ? "Your saved signals, across all dates. Stored on this device."
+                                : "The developments worth a closer look."}
+                            </p>
                           </div>
                           <label className="window-select">
                             <Clock3 size={12} />
                             <span className="sr-only">Time window</span>
                             <select
                               value={windowValue}
+                              disabled={savedOnly}
+                              aria-label="Time window"
                               onChange={(e) => setWindowValue(e.target.value)}
                             >
                               <option value="24h">Last 24 hours</option>
@@ -1019,9 +1148,14 @@ export default function Home() {
                           <div className="filter-scroll">
                             <button
                               className={
-                                !priority ? "filter-chip active" : "filter-chip"
+                                !priority && !savedOnly
+                                  ? "filter-chip active"
+                                  : "filter-chip"
                               }
-                              onClick={() => setPriority("")}
+                              onClick={() => {
+                                setPriority("");
+                                setSavedOnly(false);
+                              }}
                             >
                               All signals
                             </button>
@@ -1036,6 +1170,19 @@ export default function Home() {
                               }
                             >
                               <span className="priority-dot" /> High priority
+                            </button>
+                            <button
+                              className={`filter-chip ${savedOnly ? "active" : ""}`}
+                              onClick={() => setSavedOnly(!savedOnly)}
+                              aria-pressed={savedOnly}
+                            >
+                              <Bookmark size={12} /> Saved{" "}
+                              <span>
+                                {
+                                  savedSignals.filter((f) => f.mode === mode)
+                                    .length
+                                }
+                              </span>
                             </button>
                             <label className="filter-select">
                               <span className="sr-only">Company filter</span>
@@ -1100,7 +1247,7 @@ export default function Home() {
                             <span>India Standard Time</span>
                           </div>
                         )}
-                        {view === "signals" && (
+                        {view === "signals" && !savedOnly && (
                           <div className="market-alerts">
                             <div className="section-title">
                               <h3>
@@ -1173,20 +1320,29 @@ export default function Home() {
                               filing={f}
                               key={`${mode}-${f.id}`}
                               onResearch={research}
+                              saved={savedSignals.some(
+                                (saved) =>
+                                  saved.id === f.id && saved.mode === f.mode,
+                              )}
+                              onSave={toggleSaved}
                             />
                           ))}
                           {!visibleFilings.length && (
                             <div className="empty-state">
                               <Radar size={29} />
                               <h3>
-                                {mode === "sourced"
-                                  ? "Your sourced inbox starts here."
-                                  : "A quiet corner of your watchlist."}
+                                {savedOnly
+                                  ? "Keep a good signal close."
+                                  : mode === "sourced"
+                                    ? "Your sourced inbox starts here."
+                                    : "A quiet corner of your watchlist."}
                               </h3>
                               <p>
-                                {mode === "sourced"
-                                  ? "Refresh sources to collect NSE filings. An empty inbox is never filled with invented announcements."
-                                  : "No disclosures match these filters. Try a wider window or another category."}
+                                {savedOnly
+                                  ? "Tap the bookmark on any announcement to find it here later. Saved signals are specific to the current data mode."
+                                  : mode === "sourced"
+                                    ? "Refresh sources to collect NSE filings. Original timestamps and source links stay with every update."
+                                    : "No disclosures match these filters. Try a wider window or another category."}
                               </p>
                               {mode === "sourced" && (
                                 <button
@@ -1201,38 +1357,42 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <button
-                          className="routine-toggle"
-                          onClick={() => setRoutine(!routine)}
-                          aria-expanded={routine}
-                        >
-                          <span className="routine-icon">
-                            <FileText size={14} />
-                          </span>
-                          <div>
-                            <b>
-                              {routine ? "Showing" : "Tucked away"}:{" "}
-                              {routineCount} routine filings
-                            </b>
-                            <span>
-                              Administrative updates, available when you need
-                              them
-                            </span>
-                          </div>
-                          <ChevronDown
-                            size={16}
-                            className={routine ? "rotate" : ""}
-                          />
-                        </button>
-                        {view === "home" && filings.length > 4 && (
+                        {!savedOnly && (
                           <button
-                            className="view-all"
-                            onClick={() => navigate("signals")}
+                            className="routine-toggle"
+                            onClick={() => setRoutine(!routine)}
+                            aria-expanded={routine}
                           >
-                            See all {filings.length} updates
-                            <ArrowRight size={14} />
+                            <span className="routine-icon">
+                              <FileText size={14} />
+                            </span>
+                            <div>
+                              <b>
+                                {routine ? "Showing" : "Tucked away"}:{" "}
+                                {routineCount} routine filings
+                              </b>
+                              <span>
+                                Administrative updates, available when you need
+                                them
+                              </span>
+                            </div>
+                            <ChevronDown
+                              size={16}
+                              className={routine ? "rotate" : ""}
+                            />
                           </button>
                         )}
+                        {view === "home" &&
+                          !savedOnly &&
+                          filings.length > 4 && (
+                            <button
+                              className="view-all"
+                              onClick={() => navigate("signals")}
+                            >
+                              See all {filings.length} updates
+                              <ArrowRight size={14} />
+                            </button>
+                          )}
                       </section>
                       <aside className="right-column">
                         <section className="panel radar-panel">
@@ -1259,6 +1419,7 @@ export default function Home() {
                                 key={q.ticker}
                                 onClick={() => {
                                   setChartTicker(q.ticker);
+                                  setSelectedCompany(q.ticker);
                                 }}
                               >
                                 <CompanyMark ticker={q.ticker} />
@@ -1422,6 +1583,47 @@ export default function Home() {
                           onChange={(e) => setWatchSearch(e.target.value)}
                         />
                       </label>
+                      <div className="watch-controls">
+                        <div
+                          className="sector-filters"
+                          aria-label="Watchlist sector"
+                        >
+                          <button
+                            className={!watchSector ? "active" : ""}
+                            onClick={() => setWatchSector("")}
+                          >
+                            All sectors
+                          </button>
+                          {Array.from(
+                            new Set(companies.map((c) => c.sector)),
+                          ).map((sector) => (
+                            <button
+                              key={sector}
+                              className={watchSector === sector ? "active" : ""}
+                              onClick={() =>
+                                setWatchSector(
+                                  watchSector === sector ? "" : sector,
+                                )
+                              }
+                            >
+                              {sector}
+                            </button>
+                          ))}
+                        </div>
+                        <label className="watch-sort">
+                          Sort by
+                          <select
+                            aria-label="Sort watchlist"
+                            value={watchSort}
+                            onChange={(e) => setWatchSort(e.target.value)}
+                          >
+                            <option value="ticker">Company A–Z</option>
+                            <option value="gainers">Top gainers</option>
+                            <option value="decliners">Top decliners</option>
+                            <option value="volume">Unusual volume</option>
+                          </select>
+                        </label>
+                      </div>
                       <div className="table-scroll">
                         <table className="watchlist-table">
                           <thead>
@@ -1445,7 +1647,13 @@ export default function Home() {
                                   <td>
                                     <button
                                       className="watch-company"
-                                      onClick={() => research(c.ticker)}
+                                      onClick={() => {
+                                        const q = dashboard?.companies.find(
+                                          (q) => q.ticker === c.ticker,
+                                        );
+                                        if (q) setSelectedCompany(c.ticker);
+                                        else research(c.ticker);
+                                      }}
                                     >
                                       <CompanyMark ticker={c.ticker} />
                                       <span>
@@ -1547,6 +1755,29 @@ export default function Home() {
           </button>
         ))}
       </nav>
+      {selectedQuote && (
+        <CompanyDrawer
+          quote={selectedQuote}
+          mode={mode}
+          onClose={closeCompany}
+          onResearch={(ticker) => {
+            closeCompany();
+            research(ticker);
+          }}
+        />
+      )}
+      {toast && (
+        <div className="action-toast" role="status">
+          <Check size={16} />
+          {toast}
+          <button
+            aria-label="Dismiss notification"
+            onClick={() => setToast("")}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       {settingsOpen && prefs && (
         <Preferences
           initial={prefs}
