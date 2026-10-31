@@ -49,7 +49,7 @@ The running Next.js frontend was exercised through the in-app browser against th
 
 - No actual OpenAI model request was made: no user API key was provided. The provider boundary and invalid-citation rejection have automated coverage, while live AI synthesis remains unverified.
 - Docker images, hosted deployment and remote CI were not executed; Docker/hosting credentials are not available on this machine. Their configuration is prepared and the exact steps are documented.
-- No public application URL or sent submission email is claimed. Source publication is verified below.
+- The public Sites demo is verified below. The live Python backend is not hosted publicly; no submission email has been sent.
 - Reviewed numeric tables and guidance extraction are focused on INFY. Other companies use source retrieval until their accounting data is reviewed; no general-purpose extraction accuracy is claimed.
 - Source metadata/citations are validated, but semantic model entailment, exhaustive disclosure coverage and production multi-user security are not claimed.
 
@@ -76,3 +76,9 @@ The colorful dark theme was visually checked in the browser on phone and desktop
 ## GitHub publication
 
 On 31 October 2026 IST, the user explicitly requested a public repository. `raj230848/FINN` was created with public visibility and the complete committed project history was pushed to `main`. The remote branch SHA matched local HEAD after the push. Runtime secrets, local databases, dependencies, screenshots and the supplied challenge PDFs remain excluded by Git. The connected GitHub service independently confirmed public visibility and push access. Repository: https://github.com/raj230848/FINN.
+
+## ChatGPT Sites public demo
+
+Published on 31 October 2026 at https://finn-investment-desk.justfrog26.chatgpt.site. Sites confirmed successful production deployment and public access. The deployed page loaded its synthetic 18-company portfolio and expanded signal context with no browser errors. The public-demo adapter passed checks for default alerts, threshold recalculation, company/date filtering and watchlist updates. Local browser checks also exercised the compact research extracts, source-page links, financial cards and four guidance revisions.
+
+An attempted runtime-database export was rejected by automatic approval review. The accepted alternative creates a fresh, memory-only synthetic seed, uses reviewed facts already in the public repository and extracts at most 160 words per original public document. No runtime database, local user preferences or complete research text is published. The full Next.js/FastAPI source remains in this repository; the Sites-compatible static variant is maintained in its separate Sites source repository.

@@ -38,3 +38,7 @@ The user requested a colorful interface on a black background. A final theme lay
 ## Public GitHub publication
 
 The user connected GitHub, completed the separate local Git authorization and requested public visibility. The public repository https://github.com/raj230848/FINN was created and the committed project history was pushed to `main`. GitHub visibility and the remote branch SHA were verified. The README, deployment guide and covering draft were updated with the real repository link; no application deployment or sent email is implied.
+
+## Public ChatGPT Sites demo
+
+At the user's explicit request, the colorful mobile interface was adapted into a static Sites deployment. It uses fresh synthetic fixtures, device-local state and bounded historical source extracts; live Python ingestion remains in the original app. Automatic approval review rejected exporting the runtime database, so the published variant never reads it and uses a fresh memory-only seed instead. Build, rule/filter/watchlist checks and browser research/financial/guidance checks passed. Sites reported successful public deployment at https://finn-investment-desk.justfrog26.chatgpt.site.

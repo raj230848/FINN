@@ -1,6 +1,6 @@
 # Deployment and repository publication
 
-Source is published in the public [raj230848/FINN](https://github.com/raj230848/FINN) repository. A public application deployment has not been performed. Docker is not installed on the build machine, so the container configuration has not been executed locally.
+Source is published in the public [raj230848/FINN](https://github.com/raj230848/FINN) repository. The [public ChatGPT Sites demo](https://finn-investment-desk.justfrog26.chatgpt.site) is deployed. It preserves the interactive UI using synthetic market fixtures, reviewed historical financial/guidance facts and bounded primary-source extracts. Preferences and watchlists are device-local. Live Python ingestion and new document imports are not hosted by Sites. Docker is not installed on the build machine, so the container configuration has not been executed locally.
 
 ## Local production mode
 

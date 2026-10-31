@@ -5,7 +5,7 @@ Dear ENAM team,
 
 Please find my FINN prototype, a mobile-first investment intelligence workspace that connects a prioritised portfolio digest with primary-source company research.
 
-Prototype: [INSERT VERIFIED DEPLOYED URL]
+Prototype: https://finn-investment-desk.justfrog26.chatgpt.site (public interactive demo; live ingestion/document imports require the full Python app)
 Repository: https://github.com/raj230848/FINN (public)
 AI build history: [INSERT REAL CONVERSATION EXPORT OR SHARE LINK]
 
