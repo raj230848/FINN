@@ -30,7 +30,7 @@ export function createSession(now = Date.now()) {
 }
 export function validSession(value: string, now = Date.now()) {
   try {
-    if (!(process.env.FINN_ACCESS_TOKEN || "").length || value.length > 512)
+    if ((process.env.FINN_ACCESS_TOKEN || "").length < 16 || value.length > 512)
       return false;
     const [payload, signature, ...extra] = value.split(".");
     if (!payload || !signature || extra.length) return false;

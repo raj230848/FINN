@@ -48,10 +48,12 @@ def store_document(db: Session, company: Company, title: str, period: str, kind:
         return existing
     pages = extract_pages(content)
     # An archive domain alone is insufficient: check that the issuer is named.
-    issuer = re.sub(r'[^a-z0-9 ]', ' ', company.name.lower()).split()
-    meaningful = [w for w in issuer if w not in {'limited','ltd','india','corporation','the','and','of'} and len(w) > 2]
     identity_text = ' '.join(pages[:5]).lower()
-    if company.ticker.lower() not in identity_text and not any(w in identity_text for w in meaningful):
+    normalize=lambda value:re.sub(r'[^a-z0-9]','',value.lower())
+    issuer_name=normalize(re.sub(r'\b(?:limited|ltd|corporation)\b','',company.name.lower()))
+    ticker=normalize(company.ticker)
+    ticker_token=re.search(r'(?<![a-z0-9])'+re.escape(company.ticker.lower())+r'(?![a-z0-9])',identity_text)
+    if not (ticker_token or (len(issuer_name)>=4 and issuer_name in normalize(identity_text)) or (len(ticker)>=5 and ticker in normalize(identity_text))):
         raise SourceError('The document does not identify the selected issuer in its first five pages. It was not indexed.')
     if existing:
         db.execute(delete(Chunk).where(Chunk.document_id == existing.id))
@@ -67,6 +69,9 @@ def store_document(db: Session, company: Company, title: str, period: str, kind:
     return doc
 
 def ingest_url(db: Session, company: Company, title: str, period: str, kind: str, url: str) -> Document:
+    # A viewer fragment does not identify a different source document.
+    try:url=urlparse(url.strip())._replace(fragment='').geturl()
+    except ValueError:raise SourceError('Malformed primary-document URL.') from None
     allowed = permitted_domains(company)
     content, final_url = fetch_public(url, allowed)
     # BSE's published AnnPdfOpen links sometimes return a viewer rather than

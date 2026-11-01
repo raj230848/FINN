@@ -18,7 +18,7 @@ def fetch_announcements(tickers: set[str], days: int = 7) -> list[dict]:
             if response.status_code != 200:
                 raise SourceError(f'NSE announcements returned HTTP {response.status_code}; automated access is restricted. Cached filings remain available.')
             raw = response.json()
-            if not isinstance(raw, list):
+            if not isinstance(raw, list) or any(not isinstance(row, dict) for row in raw):
                 raise SourceError('NSE returned an unexpected response format.')
     except (httpx.HTTPError, ValueError) as exc:
         if isinstance(exc, SourceError):

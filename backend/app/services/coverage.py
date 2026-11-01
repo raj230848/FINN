@@ -5,6 +5,7 @@ def describe_coverage(db, mode, tickers, start, end):
     if mode == 'demo':
         return {'partial_coverage':False,'kind':'synthetic_replay',
                 'message':'Fixed synthetic scenarios, not complete exchange history.'}
+    if not tickers:return {'partial_coverage':False,'kind':'empty_watchlist','message':'No watched companies match this request; no exchange coverage is asserted.','first_observed_at':None,'last_successful_fetch_at':None,'unknown_ingestion_dates':0}
     windows = list(db.scalars(select(IngestionCoverage).where(IngestionCoverage.ticker.in_(tickers))))
     complete = bool(tickers)
     for ticker in tickers:

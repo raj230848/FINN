@@ -1,7 +1,7 @@
 import math
 import re
 from typing import Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, StrictInt, StrictBool
 
 Mode = Literal['demo', 'sourced']
 
@@ -29,6 +29,11 @@ class ResearchIn(BaseModel):
     use_ai: bool = True
     refresh: bool = False
 
+    @field_validator('question',mode='before')
+    @classmethod
+    def clean_question(cls,value):
+        return value.strip() if isinstance(value,str) else value
+
     @field_validator('ticker')
     @classmethod
     def clean_symbol(cls, v):
@@ -42,6 +47,11 @@ class ImportDocumentIn(BaseModel):
     kind: Literal['annual_report', 'transcript', 'results', 'investor_presentation']
     # For a new company, its issuer domain must match the authoritative listing
     # from NSE. Exchange archive domains are independently accepted.
+
+    @field_validator('url','title','period',mode='before')
+    @classmethod
+    def clean_document_fields(cls,value):
+        return value.strip() if isinstance(value,str) else value
 
     @field_validator('ticker')
     @classmethod
@@ -60,17 +70,17 @@ class PushDisableIn(BaseModel):
 
 class AnalysisOut(BaseModel):
     answer: str = Field(min_length=10, max_length=6000)
-    evidence_ids: list[int] = Field(min_length=1, max_length=8)
+    evidence_ids: list[StrictInt] = Field(min_length=1, max_length=8)
     limitations: list[str] = Field(default_factory=list, max_length=8)
 
 class GroundingReviewOut(BaseModel):
-    supported: bool
+    supported: StrictBool
     unsupported_claims: list[str] = Field(default_factory=list, max_length=20)
     reason: str = Field(max_length=1200)
 
 class SynthesisClaim(BaseModel):
     text: str = Field(min_length=10,max_length=800)
-    evidence_ids: list[int] = Field(min_length=1,max_length=6)
+    evidence_ids: list[StrictInt] = Field(min_length=1,max_length=6)
 
 class SynthesisOut(BaseModel):
     claims: list[SynthesisClaim] = Field(min_length=1,max_length=8)

@@ -48,17 +48,25 @@ def structured_call(system: str, payload: dict, schema: type[BaseModel], *, atte
                 raise ProviderError('Gemini rejected the request. Check backend configuration.')
             try:
                 result = response.json()
-                choice = result['choices'][0]
+                if not isinstance(result,dict):raise ValueError('Invalid envelope')
+                choices=result.get('choices')
+                if not isinstance(choices,list) or not choices or not isinstance(choices[0],dict):raise ValueError('Invalid choices')
+                choice = choices[0]
                 if choice.get('finish_reason') not in (None, 'stop'):
                     raise ValueError('Incomplete response')
-                answer = choice['message']['content']
+                message=choice.get('message')
+                if not isinstance(message,dict):raise ValueError('Invalid message')
+                answer = message.get('content')
                 if not isinstance(answer,str) or not answer.strip() or len(answer)>18000:
                     raise ValueError('Invalid content')
                 parsed = schema.model_validate_json(answer)
             except (ValueError, TypeError, KeyError, IndexError, ValidationError):
                 raise ProviderError('Gemini returned an invalid structured response.') from None
-            usage = result.get('usage') or {}
+            usage = result.get('usage')
+            usage = usage if isinstance(usage,dict) else {}
+            token_count=usage.get('total_tokens')
+            token_count=token_count if type(token_count) is int and 0<=token_count<=1000000000 else 'unknown'
             log.info('gemini_call model=%s attempts=%d tokens=%s', settings.gemini_model,
-                     attempt+1, usage.get('total_tokens','unknown'))
+                     attempt+1, token_count)
             return parsed
     raise ProviderError('Gemini could not complete the request.')

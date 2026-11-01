@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { BodyReadError,readSmallJson } from "@/lib/request-body";
 import {
   createSession,
   matchesAccessToken,
@@ -29,9 +30,7 @@ export async function POST(request: NextRequest) {
   bucket.count++;
   attempts.set("desk", bucket);
   try {
-    if (Number(request.headers.get("content-length") || "0") > 2048)
-      throw new Error("Invalid input");
-    const body = await request.json();
+    const body = await readSmallJson(request);
     if (
       typeof body.access_code !== "string" ||
       !matchesAccessToken(body.access_code)
@@ -50,7 +49,8 @@ export async function POST(request: NextRequest) {
       maxAge: 8 * 60 * 60,
     });
     return response;
-  } catch {
+  } catch (error) {
+    if(error instanceof BodyReadError)return NextResponse.json({detail:error.message},{status:error.status});
     return NextResponse.json(
       {
         detail:

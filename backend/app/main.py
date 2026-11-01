@@ -4,7 +4,7 @@ import hmac
 import json
 import threading
 from typing import Annotated
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Path as ApiPath
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
@@ -80,7 +80,7 @@ app.add_middleware(CORSMiddleware,allow_origins=settings.cors_origins.split(',')
 async def token_guard(request: Request, call_next):
     if settings.finn_api_token and request.url.path.startswith('/api/') and request.url.path != '/api/health':
         supplied = request.headers.get('authorization','').removeprefix('Bearer ')
-        if not hmac.compare_digest(supplied,settings.finn_api_token):
+        if not hmac.compare_digest(supplied.encode('utf-8'),settings.finn_api_token.encode('utf-8')):
             return JSONResponse(status_code=401,content={'detail':'API token required.'})
     if settings.public_deployment and request.method == 'POST':
         path = request.url.path
@@ -94,6 +94,7 @@ async def source_error(request, exc):
     return JSONResponse(status_code=422,content={'detail':str(exc)})
 
 DB = Annotated[Session, Depends(get_db)]
+RecordId = Annotated[int, ApiPath(ge=1,le=9223372036854775807)]
 
 def symbol(value: str):
     try:
@@ -156,6 +157,8 @@ def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None
     clock = DEMO_CLOCK if mode=='demo' else datetime.now(timezone.utc).replace(tzinfo=None)
     if window not in {'24h','7d','30d','custom'}:
         raise HTTPException(422,'Choose 24h, 7d, 30d or custom.')
+    if category and category not in CATEGORIES:raise HTTPException(422,'Choose a supported filing category.')
+    if priority and priority not in {'high','medium','low'}:raise HTTPException(422,'Choose high, medium or low priority.')
     if window=='custom':
         if not start or not end:
             raise HTTPException(422,'Custom date range requires start and end timestamps.')
@@ -179,6 +182,7 @@ def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     items = [serial(a) for a in db.scalars(stmt.order_by(Announcement.score.desc(),Announcement.published_at.desc(),Announcement.id.desc()).offset(offset).limit(limit))]
     monitored = list(db.scalars(watched))
+    if ticker:monitored=[t for t in monitored if t==symbol(ticker)]
     return {'items':items,'routine_count':routine_count,'start':start.isoformat()+'Z','end':end.isoformat()+'Z','mode':mode,
             'total':total,'offset':offset,'has_more':offset+len(items)<total,
             'next_offset':offset+len(items) if offset+len(items)<total else None,
@@ -231,7 +235,7 @@ def push_status(db: DB,device_id: str=Query(pattern=r'^[A-Za-z0-9_-]{32,64}$')):
     return {'enabled':bool(recipient and recipient.enabled),'delivered':db.scalar(select(func.count()).select_from(PushDelivery).where(PushDelivery.recipient_id==device_id,PushDelivery.state=='sent'))}
 
 @app.get('/api/announcements/{filing_id}/context')
-def filing_context(filing_id: int,db: DB):
+def filing_context(filing_id: RecordId,db: DB):
     import re
     row=db.get(Announcement,filing_id)
     if not row:raise HTTPException(404,'Filing not found.')
@@ -258,7 +262,7 @@ def read_all_notifications(db: DB, mode: Mode='demo'):
     return {'status':'read'}
 
 @app.post('/api/notifications/{event_id}/read')
-def read_notification(event_id: int, db: DB):
+def read_notification(event_id: RecordId, db: DB):
     from .models import utcnow
     event = db.get(SignalEvent,event_id)
     if not event: raise HTTPException(404,'Notification not found.')
@@ -299,7 +303,7 @@ def sync(background: BackgroundTasks, db: DB, filing_days: int | None=Query(None
     return {'id':row.id,'status':'queued'}
 
 @app.get('/api/sync/{run_id}')
-def sync_status(run_id: int, db: DB):
+def sync_status(run_id: RecordId, db: DB):
     row = db.get(SyncRun,run_id)
     if not row:
         raise HTTPException(404,'Refresh not found.')

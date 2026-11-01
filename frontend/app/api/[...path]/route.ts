@@ -58,13 +58,11 @@ async function proxy(
         signal: AbortSignal.timeout(55000),
       },
     );
+    const forwarded:Record<string,string>={"Content-Type":response.headers.get("Content-Type") || "application/json","Cache-Control":"no-store"};
+    if(response.headers.get("Retry-After"))forwarded["Retry-After"]=response.headers.get("Retry-After")!;
     return new NextResponse(await response.text(), {
       status: response.status,
-      headers: {
-        "Content-Type":
-          response.headers.get("Content-Type") || "application/json",
-        "Cache-Control": "no-store",
-      },
+      headers: forwarded,
     });
   } catch {
     return NextResponse.json(

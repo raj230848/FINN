@@ -13,11 +13,14 @@ def fetch_prices(ticker: str) -> list[dict]:
     if frame.empty:
         raise SourceError(f'No market data returned for {ticker}.NS. Check the NSE symbol or retry after provider rate limits clear.')
     rows = []
-    for stamp, row in frame.iterrows():
-        day = stamp.date()
-        close, volume = float(row['Close']), float(row['Volume'])
-        if complete_session(day) and math.isfinite(close) and close > 0 and math.isfinite(volume) and volume >= 0:
-            rows.append({'date': day, 'close': close, 'volume': int(volume), 'source_url': f'https://finance.yahoo.com/quote/{ticker}.NS/history/'})
+    try:
+        for stamp, row in frame.iterrows():
+            day = stamp.date()
+            close, volume = float(row['Close']), float(row['Volume'])
+            if complete_session(day) and math.isfinite(close) and close > 0 and math.isfinite(volume) and volume >= 0:
+                rows.append({'date': day, 'close': close, 'volume': int(volume), 'source_url': f'https://finance.yahoo.com/quote/{ticker}.NS/history/'})
+    except (AttributeError, KeyError, TypeError, ValueError, OverflowError) as exc:
+        raise SourceError(f'Yahoo Finance returned an invalid price payload for {ticker}.NS ({type(exc).__name__}). Cached prices remain available.') from exc
     if len(rows) < 2:
         raise SourceError('Not enough completed trading sessions. Today is excluded until 18:30 IST.')
     return rows

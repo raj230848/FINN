@@ -1,0 +1,2853 @@
+{
+  "title": "FINN - Full Implementation and Integration Audit",
+  "audit_date": "2026-11-01",
+  "generated_at": "2026-11-01T14:01:38.441584+00:00",
+  "base_revision": "21f98d47a1c06146ee88fe652bdd1718527c5142",
+  "implementation": {
+    "exact_key_scan_matches": 0,
+    "env_ignored": true,
+    "application_files_hashed": 47,
+    "implementation_sha256": "b63acf103721fa1e70269eb568b73e4a238b6acb3021a7278b59c5cd26f1b00e",
+    "scan_scope": "publishable source; private .env intentionally excluded",
+    "hash_convention": "Sorted relative POSIX path + NUL + CRLF-normalized file bytes + NUL; application source roots only."
+  },
+  "summary": {
+    "backend_tests_passed": 227,
+    "backend_tests_failed": 0,
+    "frontend_unit_tests_passed": 6,
+    "backend_operations": 24,
+    "live_business_successes": 23,
+    "live_business_configuration_blocked": 1,
+    "live_http": {
+      "passed": 43,
+      "failed": 0,
+      "configuration_blocked": 1
+    },
+    "frontend_http": {
+      "passed": 18,
+      "failed": 0
+    },
+    "gemini": {
+      "all_three_call_sites_exercised": true,
+      "live_provider_calls": 4,
+      "accepted_research": true,
+      "limitations": "Synthetic classifier fixtures verify integration behavior, not real-world classification accuracy or semantic certainty."
+    },
+    "pre_fix_failed_regression_cases": 18,
+    "coverage": {
+      "covered_lines": 1333,
+      "num_statements": 1457,
+      "percent_covered": 88.56088560885608,
+      "percent_covered_display": "89",
+      "missing_lines": 124,
+      "excluded_lines": 0,
+      "percent_statements_covered": 91.48936170212765,
+      "percent_statements_covered_display": "91",
+      "num_branches": 440,
+      "num_partial_branches": 55,
+      "covered_branches": 347,
+      "missing_branches": 93,
+      "percent_branches_covered": 78.86363636363636,
+      "percent_branches_covered_display": "79"
+    }
+  },
+  "test_groups": {
+    "test_announcements": 14,
+    "test_api": 6,
+    "test_calculations": 13,
+    "test_comprehensive_audit": 100,
+    "test_documents_research": 5,
+    "test_feed_contracts": 23,
+    "test_financials": 5,
+    "test_remaining_plan": 17,
+    "test_roadmap_reliability": 44
+  },
+  "backend_endpoints": [
+    {
+      "method": "GET",
+      "route": "/api/health",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/companies",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "PATCH",
+      "route": "/api/companies/{ticker}",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/dashboard",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/announcements",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/alerts",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/notifications",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/push/config",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/push/subscribe",
+      "controlled": "passed",
+      "live_http_status": 503,
+      "live_status": "configuration_blocked"
+    },
+    {
+      "method": "POST",
+      "route": "/api/push/unsubscribe",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/push/status",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/announcements/{filing_id}/context",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/notifications/read-all",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/notifications/{event_id}/read",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/preferences",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "PUT",
+      "route": "/api/preferences",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/sync",
+      "controlled": "passed",
+      "live_http_status": 202,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/sync/{run_id}",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/companies/{ticker}/discover",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/companies/{ticker}/documents",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/documents",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "POST",
+      "route": "/api/research",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/companies/{ticker}/financials",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    },
+    {
+      "method": "GET",
+      "route": "/api/companies/{ticker}/guidance",
+      "controlled": "passed",
+      "live_http_status": 200,
+      "live_status": "passed"
+    }
+  ],
+  "coverage_modules": [
+    {
+      "module": "ai/client.py",
+      "covered_lines": 58,
+      "num_statements": 61,
+      "percent_covered": 95.29411764705883,
+      "percent_covered_display": "95",
+      "missing_lines": 3,
+      "excluded_lines": 0,
+      "percent_statements_covered": 95.08196721311475,
+      "percent_statements_covered_display": "95",
+      "num_branches": 24,
+      "num_partial_branches": 1,
+      "covered_branches": 23,
+      "missing_branches": 1,
+      "percent_branches_covered": 95.83333333333333,
+      "percent_branches_covered_display": "96"
+    },
+    {
+      "module": "config.py",
+      "covered_lines": 18,
+      "num_statements": 18,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 0,
+      "num_partial_branches": 0,
+      "covered_branches": 0,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "database.py",
+      "covered_lines": 13,
+      "num_statements": 17,
+      "percent_covered": 73.6842105263158,
+      "percent_covered_display": "74",
+      "missing_lines": 4,
+      "excluded_lines": 0,
+      "percent_statements_covered": 76.47058823529412,
+      "percent_statements_covered_display": "76",
+      "num_branches": 2,
+      "num_partial_branches": 1,
+      "covered_branches": 1,
+      "missing_branches": 1,
+      "percent_branches_covered": 50.0,
+      "percent_branches_covered_display": "50"
+    },
+    {
+      "module": "ingestion/exchange.py",
+      "covered_lines": 43,
+      "num_statements": 43,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 18,
+      "num_partial_branches": 0,
+      "covered_branches": 18,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "ingestion/http.py",
+      "covered_lines": 40,
+      "num_statements": 47,
+      "percent_covered": 82.53968253968254,
+      "percent_covered_display": "83",
+      "missing_lines": 7,
+      "excluded_lines": 0,
+      "percent_statements_covered": 85.1063829787234,
+      "percent_statements_covered_display": "85",
+      "num_branches": 16,
+      "num_partial_branches": 4,
+      "covered_branches": 12,
+      "missing_branches": 4,
+      "percent_branches_covered": 75.0,
+      "percent_branches_covered_display": "75"
+    },
+    {
+      "module": "ingestion/market.py",
+      "covered_lines": 38,
+      "num_statements": 39,
+      "percent_covered": 96.07843137254902,
+      "percent_covered_display": "96",
+      "missing_lines": 1,
+      "excluded_lines": 0,
+      "percent_statements_covered": 97.43589743589743,
+      "percent_statements_covered_display": "97",
+      "num_branches": 12,
+      "num_partial_branches": 1,
+      "covered_branches": 11,
+      "missing_branches": 1,
+      "percent_branches_covered": 91.66666666666667,
+      "percent_branches_covered_display": "92"
+    },
+    {
+      "module": "main.py",
+      "covered_lines": 278,
+      "num_statements": 338,
+      "percent_covered": 77.55555555555556,
+      "percent_covered_display": "78",
+      "missing_lines": 60,
+      "excluded_lines": 0,
+      "percent_statements_covered": 82.24852071005917,
+      "percent_statements_covered_display": "82",
+      "num_branches": 112,
+      "num_partial_branches": 9,
+      "covered_branches": 71,
+      "missing_branches": 41,
+      "percent_branches_covered": 63.392857142857146,
+      "percent_branches_covered_display": "63"
+    },
+    {
+      "module": "migrations.py",
+      "covered_lines": 23,
+      "num_statements": 26,
+      "percent_covered": 84.21052631578948,
+      "percent_covered_display": "84",
+      "missing_lines": 3,
+      "excluded_lines": 0,
+      "percent_statements_covered": 88.46153846153847,
+      "percent_statements_covered_display": "88",
+      "num_branches": 12,
+      "num_partial_branches": 3,
+      "covered_branches": 9,
+      "missing_branches": 3,
+      "percent_branches_covered": 75.0,
+      "percent_branches_covered_display": "75"
+    },
+    {
+      "module": "models.py",
+      "covered_lines": 152,
+      "num_statements": 152,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 0,
+      "num_partial_branches": 0,
+      "covered_branches": 0,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "rate_limit.py",
+      "covered_lines": 15,
+      "num_statements": 16,
+      "percent_covered": 86.36363636363636,
+      "percent_covered_display": "86",
+      "missing_lines": 1,
+      "excluded_lines": 0,
+      "percent_statements_covered": 93.75,
+      "percent_statements_covered_display": "94",
+      "num_branches": 6,
+      "num_partial_branches": 2,
+      "covered_branches": 4,
+      "missing_branches": 2,
+      "percent_branches_covered": 66.66666666666667,
+      "percent_branches_covered_display": "67"
+    },
+    {
+      "module": "schemas.py",
+      "covered_lines": 74,
+      "num_statements": 74,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 2,
+      "num_partial_branches": 0,
+      "covered_branches": 2,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "seed.py",
+      "covered_lines": 55,
+      "num_statements": 55,
+      "percent_covered": 92.13483146067416,
+      "percent_covered_display": "92",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 34,
+      "num_partial_branches": 7,
+      "covered_branches": 27,
+      "missing_branches": 7,
+      "percent_branches_covered": 79.41176470588235,
+      "percent_branches_covered_display": "79"
+    },
+    {
+      "module": "services/alerts.py",
+      "covered_lines": 33,
+      "num_statements": 33,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 10,
+      "num_partial_branches": 0,
+      "covered_branches": 10,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "services/calculations.py",
+      "covered_lines": 27,
+      "num_statements": 27,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 10,
+      "num_partial_branches": 0,
+      "covered_branches": 10,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "services/coverage.py",
+      "covered_lines": 19,
+      "num_statements": 19,
+      "percent_covered": 96.7741935483871,
+      "percent_covered_display": "97",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 12,
+      "num_partial_branches": 1,
+      "covered_branches": 11,
+      "missing_branches": 1,
+      "percent_branches_covered": 91.66666666666667,
+      "percent_branches_covered_display": "92"
+    },
+    {
+      "module": "services/documents.py",
+      "covered_lines": 84,
+      "num_statements": 98,
+      "percent_covered": 84.0909090909091,
+      "percent_covered_display": "84",
+      "missing_lines": 14,
+      "excluded_lines": 0,
+      "percent_statements_covered": 85.71428571428571,
+      "percent_statements_covered_display": "86",
+      "num_branches": 34,
+      "num_partial_branches": 3,
+      "covered_branches": 27,
+      "missing_branches": 7,
+      "percent_branches_covered": 79.41176470588235,
+      "percent_branches_covered_display": "79"
+    },
+    {
+      "module": "services/events.py",
+      "covered_lines": 19,
+      "num_statements": 19,
+      "percent_covered": 100.0,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100.0,
+      "percent_statements_covered_display": "100",
+      "num_branches": 10,
+      "num_partial_branches": 0,
+      "covered_branches": 10,
+      "missing_branches": 0,
+      "percent_branches_covered": 100.0,
+      "percent_branches_covered_display": "100"
+    },
+    {
+      "module": "services/materiality.py",
+      "covered_lines": 58,
+      "num_statements": 60,
+      "percent_covered": 95.1219512195122,
+      "percent_covered_display": "95",
+      "missing_lines": 2,
+      "excluded_lines": 0,
+      "percent_statements_covered": 96.66666666666667,
+      "percent_statements_covered_display": "97",
+      "num_branches": 22,
+      "num_partial_branches": 2,
+      "covered_branches": 20,
+      "missing_branches": 2,
+      "percent_branches_covered": 90.9090909090909,
+      "percent_branches_covered_display": "91"
+    },
+    {
+      "module": "services/push.py",
+      "covered_lines": 70,
+      "num_statements": 77,
+      "percent_covered": 88.57142857142857,
+      "percent_covered_display": "89",
+      "missing_lines": 7,
+      "excluded_lines": 0,
+      "percent_statements_covered": 90.9090909090909,
+      "percent_statements_covered_display": "91",
+      "num_branches": 28,
+      "num_partial_branches": 5,
+      "covered_branches": 23,
+      "missing_branches": 5,
+      "percent_branches_covered": 82.14285714285714,
+      "percent_branches_covered_display": "82"
+    },
+    {
+      "module": "services/research.py",
+      "covered_lines": 117,
+      "num_statements": 124,
+      "percent_covered": 90.80459770114942,
+      "percent_covered_display": "91",
+      "missing_lines": 7,
+      "excluded_lines": 0,
+      "percent_statements_covered": 94.35483870967742,
+      "percent_statements_covered_display": "94",
+      "num_branches": 50,
+      "num_partial_branches": 9,
+      "covered_branches": 41,
+      "missing_branches": 9,
+      "percent_branches_covered": 82.0,
+      "percent_branches_covered_display": "82"
+    },
+    {
+      "module": "services/sync.py",
+      "covered_lines": 99,
+      "num_statements": 114,
+      "percent_covered": 82.85714285714286,
+      "percent_covered_display": "83",
+      "missing_lines": 15,
+      "excluded_lines": 0,
+      "percent_statements_covered": 86.84210526315789,
+      "percent_statements_covered_display": "87",
+      "num_branches": 26,
+      "num_partial_branches": 7,
+      "covered_branches": 17,
+      "missing_branches": 9,
+      "percent_branches_covered": 65.38461538461539,
+      "percent_branches_covered_display": "65"
+    }
+  ],
+  "live_http": {
+    "checked_at": "2026-11-01T13:23:45.427785+00:00",
+    "target": "http://127.0.0.1:8002",
+    "database": "private disposable copy",
+    "operations": [
+      {
+        "method": "GET",
+        "route": "/docs",
+        "scenario": "framework documentation",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 110,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/redoc",
+        "scenario": "framework documentation",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 0,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/openapi.json",
+        "scenario": "framework documentation",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 62,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/docs/oauth2-redirect",
+        "scenario": "framework documentation",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/health",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 0,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/companies",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/dashboard",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 110,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/dashboard",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 78,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 47,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 31,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 31,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/alerts",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/notifications",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/notifications/{event_id}/read",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 32,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/notifications/read-all",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 0,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/notifications",
+        "scenario": "read-all persisted",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 31,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements",
+        "scenario": "source context sample",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements/{filing_id}/context",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/preferences",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "PUT",
+        "route": "/api/preferences",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 265,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/notifications",
+        "scenario": "low threshold event count",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "PUT",
+        "route": "/api/preferences",
+        "scenario": "repeat calculation",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 172,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/notifications",
+        "scenario": "deduplication check",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "PUT",
+        "route": "/api/preferences",
+        "scenario": "restore QA preferences",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 109,
+        "status": "passed"
+      },
+      {
+        "method": "PATCH",
+        "route": "/api/companies/{ticker}",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 125,
+        "status": "passed"
+      },
+      {
+        "method": "PATCH",
+        "route": "/api/companies/{ticker}",
+        "scenario": "restore watched state",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 109,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/push/config",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/push/subscribe",
+        "scenario": "push requires configuration; no subscription sent",
+        "http_status": 503,
+        "expected_status": 200,
+        "elapsed_ms": 0,
+        "status": "configuration_blocked"
+      },
+      {
+        "method": "GET",
+        "route": "/api/push/status",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/push/unsubscribe",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/sync",
+        "scenario": "live happy path",
+        "http_status": 202,
+        "expected_status": 202,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/sync/{run_id}",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 47,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/companies/{ticker}/discover",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 3844,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/documents",
+        "scenario": "live new-issuer primary import",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 4875,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/companies/{ticker}/documents",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/research",
+        "scenario": "unseen issuer extractive research",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 47,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/documents",
+        "scenario": "live reviewed primary import",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 1969,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/companies/{ticker}/financials",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 31,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/companies/{ticker}/guidance",
+        "scenario": "live happy path",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/companies",
+        "scenario": "anonymous backend access",
+        "expected_status": 401,
+        "http_status": 401,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/sync/99999999999999999999999",
+        "scenario": "live invalid-input boundary",
+        "http_status": 422,
+        "expected_status": 422,
+        "elapsed_ms": 0,
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "route": "/api/announcements",
+        "scenario": "live invalid-input boundary",
+        "http_status": 422,
+        "expected_status": 422,
+        "elapsed_ms": 15,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/notifications/999999/read",
+        "scenario": "live invalid-input boundary",
+        "http_status": 404,
+        "expected_status": 404,
+        "elapsed_ms": 0,
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "route": "/api/research",
+        "scenario": "no indexed evidence",
+        "http_status": 200,
+        "expected_status": 200,
+        "elapsed_ms": 16,
+        "status": "passed"
+      }
+    ],
+    "observations": {
+      "health": {
+        "status": "ok",
+        "version": "1.0.0",
+        "ai_configured": true,
+        "ai_provider": "gemini",
+        "ai_model": "gemini-3.5-flash-lite",
+        "access_protected": true,
+        "scheduler_enabled": false,
+        "demo_clock": "2026-10-30T13:00:00Z"
+      },
+      "watched_companies": 18,
+      "digest_24h": {
+        "total": 1,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:06:29.684689Z",
+          "unknown_ingestion_dates": 67,
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      },
+      "digest_7d": {
+        "total": 64,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:06:29.684689Z",
+          "unknown_ingestion_dates": 67,
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      },
+      "digest_30d": {
+        "total": 66,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:06:29.684689Z",
+          "unknown_ingestion_dates": 67,
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      },
+      "read_all_unread_count": 0,
+      "duplicate_events_after_repeat": 0,
+      "push_configured": false,
+      "real_sync": {
+        "prices": {
+          "TCS": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "INFY": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "RELIANCE": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "HDFCBANK": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "ICICIBANK": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "ITC": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "BHARTIARTL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "SUNPHARMA": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "MARUTI": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "LT": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "HINDUNILVR": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "SBIN": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "WIPRO": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "TATASTEEL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "BAJFINANCE": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "PERSISTENT": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "KPRMILL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "CERA": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          }
+        },
+        "announcements": {
+          "ok": true,
+          "inserted": 2,
+          "matched": 8,
+          "requested_start": "2026-10-30T18:30:00Z",
+          "requested_end": "2026-11-01T13:23:51.775391Z",
+          "coverage_note": "Best-effort exchange response; requested dates are not a completeness guarantee."
+        },
+        "status": "complete"
+      },
+      "sync_completed": true,
+      "new_issuer": {
+        "ticker": "HCLTECH",
+        "candidate_count": 6,
+        "resolved": true,
+        "imported": {
+          "id": 14,
+          "title": "HCL Technologies Limited \u2014 Transcript (Oct 2026)",
+          "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=ccce0001-ff5d-4875-b1e5-5c558669f49c.pdf",
+          "pages": 26
+        },
+        "research_method": "extractive",
+        "citations": 6
+      }
+    },
+    "summary": {
+      "passed": 43,
+      "failed": 0,
+      "configuration_blocked": 1
+    }
+  },
+  "frontend_http": {
+    "checked_at": "2026-11-01T13:44:34.935321+00:00",
+    "target": "http://127.0.0.1:3004",
+    "scope": "local protected production-mode server; not a public HTTPS deployment",
+    "checks": [
+      {
+        "method": "GET",
+        "path": "/api/companies",
+        "scenario": "anonymous proxy blocked",
+        "http_status": 401,
+        "expected_status": 401,
+        "passed": true,
+        "elapsed_ms": 125
+      },
+      {
+        "method": "GET",
+        "path": "/api/session",
+        "scenario": "unsupported session method",
+        "http_status": 405,
+        "expected_status": 405,
+        "passed": true,
+        "elapsed_ms": 32
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "cross-origin sign-in blocked",
+        "http_status": 403,
+        "expected_status": 403,
+        "passed": true,
+        "elapsed_ms": 0
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "wrong access code",
+        "http_status": 401,
+        "expected_status": 401,
+        "passed": true,
+        "elapsed_ms": 31
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "invalid JSON",
+        "http_status": 400,
+        "expected_status": 400,
+        "passed": true,
+        "elapsed_ms": 0
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "oversized sign-in body",
+        "http_status": 413,
+        "expected_status": 413,
+        "passed": true,
+        "elapsed_ms": 16
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "chunked oversized sign-in body",
+        "http_status": 413,
+        "expected_status": 413,
+        "passed": true,
+        "elapsed_ms": 15
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "valid sign-in",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 16,
+        "http_only": true,
+        "same_site_strict": true
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies",
+        "scenario": "authenticated GET proxy",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 140
+      },
+      {
+        "method": "PUT",
+        "path": "/api/preferences",
+        "scenario": "authenticated PUT proxy",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 140
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/companies/INFY",
+        "scenario": "authenticated PATCH proxy",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 157
+      },
+      {
+        "method": "POST",
+        "path": "/api/research",
+        "scenario": "authenticated POST proxy",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 31
+      },
+      {
+        "method": "POST",
+        "path": "/api/research",
+        "scenario": "backend rate limit and Retry-After through proxy",
+        "http_status": 429,
+        "expected_status": 429,
+        "passed": true,
+        "retry_after": "60",
+        "attempt_statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          429
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/api/notifications/read-all?mode=demo",
+        "scenario": "cross-origin mutation blocked",
+        "http_status": 403,
+        "expected_status": 403,
+        "passed": true,
+        "elapsed_ms": 0
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/session",
+        "scenario": "cross-origin logout blocked",
+        "http_status": 403,
+        "expected_status": 403,
+        "passed": true,
+        "elapsed_ms": 15
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/session",
+        "scenario": "same-origin logout",
+        "http_status": 200,
+        "expected_status": 200,
+        "passed": true,
+        "elapsed_ms": 16
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies",
+        "scenario": "cookie invalidated after logout",
+        "http_status": 401,
+        "expected_status": 401,
+        "passed": true,
+        "elapsed_ms": 0
+      },
+      {
+        "method": "POST",
+        "path": "/api/session",
+        "scenario": "failed-login throttle",
+        "http_status": 429,
+        "expected_status": 429,
+        "passed": true,
+        "attempt_statuses": [
+          401,
+          401,
+          401,
+          401,
+          401,
+          429
+        ]
+      }
+    ],
+    "summary": {
+      "passed": 18,
+      "failed": 0
+    },
+    "exported_operations_verified": [
+      "GET proxy",
+      "POST proxy",
+      "PUT proxy",
+      "PATCH proxy",
+      "POST session",
+      "DELETE session"
+    ]
+  },
+  "gemini": {
+    "checked_at": "2026-11-01T13:29:04.801909+00:00",
+    "model": "gemini-3.5-flash-lite",
+    "key_configured": true,
+    "calls": [
+      {
+        "schema": "SynthesisOut",
+        "model": "gemini-3.5-flash-lite",
+        "status": "validated_live_response",
+        "elapsed_ms": 2797
+      },
+      {
+        "schema": "GroundingReviewOut",
+        "model": "gemini-3.5-flash-lite",
+        "status": "validated_live_response",
+        "supported": true,
+        "unsupported_claims": 0,
+        "elapsed_ms": 2265
+      },
+      {
+        "schema": "ClassificationOut",
+        "model": "gemini-3.5-flash-lite",
+        "status": "validated_live_response",
+        "category": "M&A",
+        "confidence": "high",
+        "elapsed_ms": 2672
+      },
+      {
+        "schema": "ClassificationOut",
+        "model": "gemini-3.5-flash-lite",
+        "status": "validated_live_response",
+        "category": "unclassified",
+        "confidence": "low",
+        "elapsed_ms": 2719
+      }
+    ],
+    "scenarios": [
+      {
+        "name": "fresh primary-source synthesis and support review",
+        "question": "What FY25 operating margin guidance did management provide?",
+        "method": "grounded_ai",
+        "cached": false,
+        "answer": "Management provided operating margin guidance of 20% to 22% for FY25 [30][91][150][201][3051].",
+        "sources": [
+          {
+            "id": 1,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 150,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf#page=7"
+          },
+          {
+            "id": 3051,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 91,
+            "page": 5,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=5"
+          },
+          {
+            "id": 201,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf#page=7"
+          },
+          {
+            "id": 30,
+            "page": 4,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf#page=4"
+          }
+        ]
+      },
+      {
+        "name": "research cache",
+        "cached": true,
+        "provider_calls": 0
+      },
+      {
+        "name": "no evidence",
+        "method": "insufficient_evidence",
+        "provider_calls": 0
+      },
+      {
+        "name": "evidence-rich ambiguous filing",
+        "fixture": "synthetic; not an actual issuer event",
+        "inserted": 1,
+        "category": "M&A",
+        "priority": "medium",
+        "needs_review": true,
+        "analysis_method": "Gemini classification; needs review",
+        "summary": "The board approved a material restructuring involving the transfer of the entire ownership of the network-services subsidiary to an external buyer.",
+        "provider_calls": 1,
+        "repeat_insertions": 0,
+        "repeat_provider_calls": 0
+      },
+      {
+        "name": "insufficient filing details",
+        "fixture": "synthetic; not an actual issuer event",
+        "inserted": 1,
+        "category": "unclassified",
+        "priority": "medium",
+        "needs_review": true,
+        "analysis_method": "Deterministic rules; exchange headline and description; Gemini unavailable or unverified",
+        "summary": "Exchange description (extract): A material matter was discussed. No further details have been disclosed.",
+        "provider_calls": 1,
+        "repeat_insertions": 0,
+        "repeat_provider_calls": 0
+      }
+    ],
+    "summary": {
+      "all_three_call_sites_exercised": true,
+      "live_provider_calls": 4,
+      "accepted_research": true,
+      "limitations": "Synthetic classifier fixtures verify integration behavior, not real-world classification accuracy or semantic certainty."
+    }
+  },
+  "test_cases": [
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[CFO resignation effective immediately-management_change-high]",
+      "seconds": "0.117",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Acquisition of subsidiary-M&A-high]",
+      "seconds": "0.044",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Quarterly financial results-results-high]",
+      "seconds": "0.022",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Credit rating reaffirmed-credit_rating-medium]",
+      "seconds": "0.035",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Dividend declared-dividend-medium]",
+      "seconds": "0.010",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Compliance certificate for transfer facility-unclassified-low]",
+      "seconds": "0.088",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Board meeting to consider financial results-results-low]",
+      "seconds": "0.014",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Earnings call transcript-earnings_call-medium]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[New plant capacity expansion-capex-medium]",
+      "seconds": "0.007",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_classification_and_explanation[Copy of newspaper publication of dividend record date-dividend-low]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_distinct_attachments_survive_and_exact_duplicates_collapse",
+      "seconds": "1.906",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_default_window_priority_routine_and_mode_isolation",
+      "seconds": "1.984",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_custom_dates_and_invalid_range",
+      "seconds": "1.815",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_announcements",
+      "name": "test_exchange_description_is_extracted_without_invented_summary",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_dashboard_real_backend_contract",
+      "seconds": "2.560",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_preferences_persist_and_recalculate_without_duplicates",
+      "seconds": "2.774",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_watchlist_changes_monitoring",
+      "seconds": "2.487",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_unseen_ticker_discovery_generalises",
+      "seconds": "1.589",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_provider_errors_and_invalid_inputs",
+      "seconds": "1.594",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_api",
+      "name": "test_optional_shared_api_token",
+      "seconds": "1.902",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[1070-1000-7]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[900-1000--10]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[0-100--100]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[0-0-None]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[100-None-None]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[None-100-None]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[-50--100-50]",
+      "seconds": "0.008",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[50--50-200]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[nan-100-None]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_percent_change[100-inf-None]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_volume_excludes_current_and_requires_full_history",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_incomplete_candle_is_excluded_until_buffer",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_calculations",
+      "name": "test_guidance_range_not_midpoint_and_pp_not_percent",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_huge_record_ids_are_validation_errors[/api/announcements/999999999999999999999999999999/context]",
+      "seconds": "1.530",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_huge_record_ids_are_validation_errors[/api/sync/999999999999999999999999999999]",
+      "seconds": "1.568",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_whitespace_question_is_invalid",
+      "seconds": "1.536",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_unknown_filing_filters_are_invalid[category=not-a-category]",
+      "seconds": "1.691",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_unknown_filing_filters_are_invalid[priority=urgent]",
+      "seconds": "1.504",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_malformed_url_is_source_error[https://www.infosys.com:notaport/report.pdf]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_malformed_url_is_source_error[https://[invalid/report.pdf]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_generic_services_word_is_not_issuer_identity",
+      "seconds": "1.554",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_fiscal_aliases_use_ending_year[FY2024-2025-expected0]",
+      "seconds": "0.023",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_fiscal_aliases_use_ending_year[FY2024-25-expected1]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_fiscal_aliases_use_ending_year[Q2FY25-expected2]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_fiscal_aliases_use_ending_year[FY25Q2-expected3]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_malformed_provider_envelope_is_sanitized[malformed0]",
+      "seconds": "0.016",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_malformed_provider_envelope_is_sanitized[malformed1]",
+      "seconds": "0.008",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_audit_regression_malformed_provider_envelope_is_sanitized[malformed2]",
+      "seconds": "0.009",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/health]",
+      "seconds": "1.615",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/companies]",
+      "seconds": "1.768",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[PATCH /api/companies/{ticker}]",
+      "seconds": "1.819",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/dashboard]",
+      "seconds": "2.304",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/announcements]",
+      "seconds": "1.649",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/alerts]",
+      "seconds": "1.618",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/notifications]",
+      "seconds": "1.805",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/push/config]",
+      "seconds": "1.597",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/push/subscribe]",
+      "seconds": "1.593",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/push/unsubscribe]",
+      "seconds": "1.631",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/push/status]",
+      "seconds": "1.757",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/announcements/{filing_id}/context]",
+      "seconds": "1.611",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/notifications/read-all]",
+      "seconds": "1.642",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/notifications/{event_id}/read]",
+      "seconds": "1.612",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/preferences]",
+      "seconds": "1.817",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[PUT /api/preferences]",
+      "seconds": "1.784",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/sync]",
+      "seconds": "1.642",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/sync/{run_id}]",
+      "seconds": "1.637",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/companies/{ticker}/discover]",
+      "seconds": "1.615",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/companies/{ticker}/documents]",
+      "seconds": "2.260",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/documents]",
+      "seconds": "1.634",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[POST /api/research]",
+      "seconds": "1.484",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/companies/{ticker}/financials]",
+      "seconds": "0.614",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_all_business_endpoints[GET /api/companies/{ticker}/guidance]",
+      "seconds": "0.527",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_inventory_has_no_uncovered_business_routes",
+      "seconds": "0.072",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[0 GET /api/dashboard?mode=wrong]",
+      "seconds": "0.601",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[1 GET /api/alerts?mode=wrong]",
+      "seconds": "0.565",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[2 GET /api/notifications?offset=-1]",
+      "seconds": "0.715",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[3 GET /api/notifications?limit=101]",
+      "seconds": "0.696",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[4 GET /api/announcements?limit=301]",
+      "seconds": "0.648",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[5 GET /api/announcements?window=custom]",
+      "seconds": "0.565",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[6 GET /api/announcements?window=custom&start=2026-11-02&end=2026-11-01]",
+      "seconds": "0.641",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[7 GET /api/announcements?window=custom&start=2020-01-01&end=2026-11-01]",
+      "seconds": "0.559",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[8 GET /api/announcements/0/context]",
+      "seconds": "0.509",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[9 GET /api/announcements/999999/context]",
+      "seconds": "0.532",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[10 POST /api/notifications/999999/read]",
+      "seconds": "0.528",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[11 GET /api/sync/999999]",
+      "seconds": "0.528",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[12 POST /api/sync?filing_days=32]",
+      "seconds": "0.603",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[13 POST /api/sync?filing_days=0]",
+      "seconds": "0.531",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[14 GET /api/push/status?device_id=short]",
+      "seconds": "0.512",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[15 POST /api/push/subscribe]",
+      "seconds": "0.565",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[16 PATCH /api/companies/UNKNOWN]",
+      "seconds": "0.569",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[17 GET /api/companies/UNKNOWN/documents]",
+      "seconds": "0.511",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[18 GET /api/companies/INFY/financials?period=2025-Q9]",
+      "seconds": "0.622",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[19 GET /api/companies/INFY/financials?period=2020-Q1]",
+      "seconds": "0.510",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[20 POST /api/research]",
+      "seconds": "0.601",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[21 POST /api/research]",
+      "seconds": "0.461",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[22 POST /api/research]",
+      "seconds": "0.504",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[23 PUT /api/preferences]",
+      "seconds": "0.553",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[24 PUT /api/preferences]",
+      "seconds": "0.527",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[25 PUT /api/preferences]",
+      "seconds": "0.647",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[26 PUT /api/preferences]",
+      "seconds": "0.564",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[27 PUT /api/preferences]",
+      "seconds": "0.595",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[28 POST /api/documents]",
+      "seconds": "0.583",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_endpoint_negative_cases[29 POST /api/health]",
+      "seconds": "0.666",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_non_ascii_bearer_is_rejected_without_server_error",
+      "seconds": "0.670",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_filtered_coverage_uses_selected_company_only",
+      "seconds": "0.827",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_no_watchlist_is_not_falsely_reported_as_fetched_history",
+      "seconds": "0.753",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_llm_citation_identifiers_must_be_integer_tokens[True]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_llm_citation_identifiers_must_be_integer_tokens[1.5]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_llm_citation_identifiers_must_be_integer_tokens[1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_classifier_rejects_invented_numeric_summary",
+      "seconds": "0.731",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[None]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope1]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope2]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope3]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope4]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope5]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope6]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope7]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope8]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope9]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_provider_rejects_empty_truncated_refused_or_wrong_schema_reply[envelope10]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_usage_metadata_cannot_log_arbitrary_provider_text",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_no_key_and_oversized_input_never_open_a_provider_connection",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[127.0.0.1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[10.0.0.1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[169.254.169.254]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[192.0.2.1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[::1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_resolver_rejects_non_global_addresses[fc00::1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_source_fetch_checks_each_redirect_and_download_size",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_encrypted_and_over_limit_pdfs_are_not_indexed",
+      "seconds": "0.175",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_sync_partial_failures_keep_source_errors_and_release_lock",
+      "seconds": "0.736",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_comprehensive_audit",
+      "name": "test_sync_busy_is_conflict_and_public_startup_requires_token",
+      "seconds": "0.664",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_documents_research",
+      "name": "test_malformed_empty_and_scanned_documents",
+      "seconds": "0.009",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_documents_research",
+      "name": "test_primary_sources_page_citations_cache_and_no_outside_knowledge",
+      "seconds": "0.678",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_documents_research",
+      "name": "test_model_fabricated_citation_rejected",
+      "seconds": "0.830",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_documents_research",
+      "name": "test_primary_url_guards",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_documents_research",
+      "name": "test_discovery_actual_directory_classes_and_transcript_dates",
+      "seconds": "1.271",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_window_bounds[0]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_window_bounds[32]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_bad_envelope_is_source_error[payload0-200-False]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_bad_envelope_is_source_error[payload1-200-False]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_bad_envelope_is_source_error[payload2-200-False]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_bad_envelope_is_source_error[payload3-403-False]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_bad_envelope_is_source_error[payload4-200-True]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_supported_dates_and_primary_identity[30-Oct-2026 12:30:00]",
+      "seconds": "0.008",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_supported_dates_and_primary_identity[30-10-2026 12:30:00]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_supported_dates_and_primary_identity[2026-10-30 12:30:00]",
+      "seconds": "0.007",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_supported_dates_and_primary_identity[30-Oct-2026 12:30]",
+      "seconds": "0.007",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_exchange_never_invents_date_or_title",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_prices_exclude_incomplete_and_nonfinite_rows",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_malformed_or_insufficient_prices_are_source_errors[frame0]",
+      "seconds": "0.001",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_malformed_or_insufficient_prices_are_source_errors[frame1]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_malformed_or_insufficient_prices_are_source_errors[frame2]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_malformed_or_insufficient_prices_are_source_errors[frame3]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_market_network_failure_is_sanitized",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_unverified_company_is_rejected[info0]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_unverified_company_is_rejected[info1]",
+      "seconds": "0.001",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_unverified_company_is_rejected[info2]",
+      "seconds": "0.001",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_unverified_company_is_rejected[None]",
+      "seconds": "0.001",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_feed_contracts",
+      "name": "test_verified_nse_company_metadata",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_financials",
+      "name": "test_quarter_comparisons_and_missing_ebitda",
+      "seconds": "0.680",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_financials",
+      "name": "test_financials_do_not_compare_different_accounting_basis",
+      "seconds": "0.697",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_financials",
+      "name": "test_guidance_revisions_compare_same_period_and_currency",
+      "seconds": "0.613",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_financials",
+      "name": "test_reviewed_values_exist_in_actual_pdf_rows",
+      "seconds": "0.164",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_financials",
+      "name": "test_second_company_uses_reported_tcs_usd_tables",
+      "seconds": "1.484",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_push_opt_in_history_retry_and_opt_out",
+      "seconds": "0.713",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_push_retry_is_bounded_and_disabled_recipient_cancels",
+      "seconds": "0.660",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_push_rejects_private_or_untrusted_endpoints_and_short_keys",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_push_enable_does_not_replay_history_or_send_demo",
+      "seconds": "0.640",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_push_respects_selected_tickers_and_categories",
+      "seconds": "0.690",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_wipro_five_quarters_pending_guidance_and_accounting_notes",
+      "seconds": "0.859",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_claim_numbers_must_exist_in_the_actual_cited_passage",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_reported_range_separators_and_decimal_format_keep_the_same_values",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_period_aware_retrieval_filters_wrong_year_and_quarter",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_recording_is_not_relabelled_as_new_results",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_colon_does_not_bypass_claim_citations",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_missing_quarters_and_currency_mismatch_stay_unavailable",
+      "seconds": "1.061",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_false_but_cited_claim_fails_model_support_review",
+      "seconds": "1.091",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_explicit_refresh_calls_provider_again_and_replaces_one_cache_row",
+      "seconds": "0.724",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_material_order_examples_do_not_hide_as_routine[Receipt of order worth INR 500 crore]",
+      "seconds": "0.013",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_material_order_examples_do_not_hide_as_routine[Award of contract for infrastructure project]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_remaining_plan",
+      "name": "test_material_order_examples_do_not_hide_as_routine[Letter of award received for power project]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Resignation of Chief Financial Officer-management_change]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Appointment of Independent Director-management_change]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Cessation of company secretary-management_change]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Retirement of Managing Director-management_change]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Change in Key Managerial Personnel-management_change]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Promoter acquires 1 lakh shares-insider_trading]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Shares sold by designated person-insider_trading]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Disclosure under PIT Regulations-insider_trading]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Merger of subsidiary approved-M&A]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Scheme of amalgamation-M&A]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Regulatory penalty imposed-litigation]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Rights issue approved-fund_raise]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Audited consolidated financial results-results]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[QIP allotment approved-fund_raise]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Downgrade of long-term credit rating-credit_rating]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Reaffirmation of credit rating-credit_rating]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Interim dividend declared-dividend]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Stock split approved-bonus_split]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Sub-division of equity shares-bonus_split]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[New plant capacity expansion-capex]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Earnings call transcript-earnings_call]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Schedule of analyst meet-investor_meetings]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Press release on new product-press_release]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Postal ballot voting notice-postal_ballot]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Annual general meeting notice-agm_egm]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Promoter share pledging disclosure-pledging]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_materiality_varied_wording[Compliance certificate for transfer facility-unclassified]",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_uncertain_material_items_are_not_hidden",
+      "seconds": "0.002",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_identity_uses_attachment_id_and_content",
+      "seconds": "0.762",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_sqlite_transition_preserves_legacy_data_and_unknown_observed_date",
+      "seconds": "0.038",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_notification_history_survives_recalculation_and_read_state",
+      "seconds": "0.962",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_sourced_pagination_and_coverage_are_explicit",
+      "seconds": "1.487",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_coverage_detects_gaps_and_missing_companies",
+      "seconds": "0.614",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_gemini_boundary_uses_requested_model_and_schema",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_provider_failure_is_bounded_and_redacted[401-1]",
+      "seconds": "0.003",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_provider_failure_is_bounded_and_redacted[403-1]",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_provider_failure_is_bounded_and_redacted[404-1]",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_provider_failure_is_bounded_and_redacted[429-3]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_provider_failure_is_bounded_and_redacted[503-3]",
+      "seconds": "0.005",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_retry_success_invalid_json_and_timeout",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_claim_validation_and_transient_fallback_not_cached",
+      "seconds": "0.719",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_transport_timeouts_are_bounded",
+      "seconds": "0.004",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_proposed_appointment_is_reviewable_without_claiming_completion",
+      "seconds": "0.006",
+      "status": "passed"
+    },
+    {
+      "group": "backend.tests.test_roadmap_reliability",
+      "name": "test_public_expensive_routes_require_token_and_rate_limit",
+      "seconds": "1.186",
+      "status": "passed"
+    }
+  ]
+}

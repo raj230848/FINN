@@ -1,0 +1,4 @@
+# Optional measurement/report tools; runtime dependencies remain separately locked.
+-r requirements.lock.txt
+coverage==7.17.0
+reportlab==4.4.9

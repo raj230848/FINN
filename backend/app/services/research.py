@@ -11,7 +11,7 @@ from ..config import settings
 from ..models import Chunk, Document, ResearchCache, utcnow
 from ..schemas import AnalysisOut, GroundingReviewOut, SynthesisOut
 
-PROMPT_VERSION = 'gemini-research-v4-cited-claims'
+PROMPT_VERSION = 'gemini-research-v5-fiscal-aliases'
 
 STOP = set('the a an and or to of is are was were in for on at with what how do does did company its it this that from have has us can please'.split())
 SYNONYMS = {'guidance':'outlook expect growth margin', 'cash':'cash flow conversion operations', 'business':'services products segments clients', 'risk':'risk uncertainty adverse litigation', 'debt':'borrowings liabilities leverage', 'profit':'profit income margin operating', 'revenue':'revenue sales growth'}
@@ -20,18 +20,25 @@ def tokens(text: str) -> list[str]:
     return [t for t in re.findall(r'[a-z0-9]+', text.lower()) if t not in STOP and len(t) > 1]
 
 def fiscal_years(text: str) -> set[int]:
-    years = {int(y) if len(y)==4 else 2000+int(y) for y in re.findall(r'\bFY\s*[-\']?\s*(20\d{2}|\d{2})\b',text,re.I)}
-    years.update(2000+int(end) for _,end in re.findall(r'\b(20\d{2})\s*[-/]\s*(\d{2})\b',text))
+    years=set()
+    def range_year(match):
+        start,end=match.group(1),match.group(2)
+        start=int(start) if len(start)==4 else 2000+int(start)
+        end=int(end) if len(end)==4 else 2000+int(end)
+        if end==start+1:years.add(end);return ' '
+        return match.group(0)
+    text=re.sub(r'\b(?:FY\s*)?(20\d{2}|\d{2})\s*[-/]\s*(20\d{2}|\d{2})\b',range_year,text,flags=re.I)
+    years.update(int(y) if len(y)==4 else 2000+int(y) for y in re.findall(r'(?<![A-Za-z])FY\s*[-\']?\s*(20\d{2}|\d{2})(?=Q[1-4]|\b)',text,re.I))
     years.update(int(y) for y in re.findall(r'\b(?:financial|fiscal) year (?:ended |ending )?(?:March 31,? )?(20\d{2})\b',text,re.I))
     return years
 
 def matches_period(question, chunk, doc):
     years = fiscal_years(question)
-    quarters = set(re.findall(r'\bQ([1-4])\b',question,re.I))
+    quarters = set(re.findall(r'(?<![A-Za-z])Q([1-4])(?=FY|\b)',question,re.I))
     context = f'{doc.period} {doc.title} {chunk.text}'
     if years and not years.intersection(fiscal_years(context)):
         return False
-    if quarters and not quarters.intersection(re.findall(r'\bQ([1-4])\b',context,re.I)):
+    if quarters and not quarters.intersection(re.findall(r'(?<![A-Za-z])Q([1-4])(?=FY|\b)',context,re.I)):
         return False
     return True
 
@@ -72,16 +79,16 @@ def retrieve(db: Session, ticker: str, question: str, limit: int = 6) -> list[di
             break
     return evidence
 
+def numeric_literals(text):
+    # Range separators are not negative upper bounds; 5 and 5.0 are equal.
+    text=text.replace('\u2212','-')
+    text=re.sub(r'\(-\)\s*(\d)',r'-\1',text)
+    text=re.sub(r'(\d%?)\s*[-\u2013\u2014]\s*(?=\d)',r'\1 to ',text)
+    return {Decimal(x.replace(',','')) for x in re.findall(r'(?<![A-Za-z0-9])[-+]?\d[\d,]*(?:\.\d+)?(?![A-Za-z0-9])',text)}
+
 def validate_claims(answer: str, evidence: list[dict]):
     # Validate the cited passages for each claim, not numbers elsewhere in retrieval.
     passages = {e['id']:e['excerpt'] for e in evidence}
-    def numeric(text):
-        # Issuer ranges such as 20%-22% use a separator, not a negative
-        # upper bound. Decimal equality also treats 5 and 5.0 identically.
-        text=text.replace('\u2212','-')
-        text=re.sub(r'\(-\)\s*(\d)',r'-\1',text)
-        text=re.sub(r'(\d%?)\s*[-\u2013\u2014]\s*(?=\d)',r'\1 to ',text)
-        return {Decimal(x.replace(',','')) for x in re.findall(r'(?<![A-Za-z0-9])[-+]?\d[\d,]*(?:\.\d+)?(?![A-Za-z0-9])',text)}
     for line in re.split(r'(?<=[.!?])\s+(?=[A-Z])|\n+',answer):
         if not line.strip():
             continue
@@ -90,7 +97,7 @@ def validate_claims(answer: str, evidence: list[dict]):
         ids = [int(x) for x in re.findall(r'\[(\d+)\]',line)]
         if any(i not in passages for i in ids): raise ValueError('Unknown citation')
         source = ' '.join(passages[i] for i in ids)
-        if not numeric(re.sub(r'\[\d+\]','',line)) <= numeric(source):
+        if not numeric_literals(re.sub(r'\[\d+\]','',line)) <= numeric_literals(source):
             raise ValueError('Unsupported numeric literal in cited passage')
 
 

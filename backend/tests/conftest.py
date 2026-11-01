@@ -10,6 +10,15 @@ from app.database import Base, get_db
 from app.main import app
 from app.seed import seed
 from app.services.alerts import evaluate_alerts
+from app.config import settings
+
+@pytest.fixture(autouse=True)
+def isolated_runtime_settings(monkeypatch):
+    # Unit tests must not consume real keys or deliver notifications.
+    for name in ('gemini_api_key','finn_api_token','vapid_private_key','vapid_public_key','vapid_subject'):
+        monkeypatch.setattr(settings,name,'')
+    monkeypatch.setattr(settings,'public_deployment',False)
+    monkeypatch.setattr(settings,'enable_scheduler',False)
 
 @pytest.fixture
 def db(tmp_path):

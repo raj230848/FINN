@@ -116,9 +116,11 @@ Primary research evidence comes from the issuer's own reports or exchange-hosted
 
 No-key mode returns retrieved excerpts and explicitly labels them **extractive research**. To enable AI synthesis, set `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (default `gemini-3.5-flash-lite`) in the project-root `.env`, then restart the backend. The optional provider client sends only relevant public passages and the research question. The result must validate against Pydantic, cite supplied chunk IDs in each substantive segment, and use only numeric literals present in the excerpts. Requests have bounded retries/timeouts; invalid output falls back to excerpts. Failures fall back to evidence with a visible limitation. Two genuine uncached source-grounded Gemini answers have now been verified with a supplied key (see docs/gemini-live-verification.json); valid citations alone cannot guarantee claim entailment.
 
-Financial arithmetic, scoring, thresholds, deduplication and guidance-range assessment run in deterministic Python. Structured financial tables are reviewed for INFY and TCS; guidance pairs are reviewed for INFY; arbitrary PDF table extraction is deliberately not portrayed as solved. Research retrieval generalises to any available NSE issuer documents.
+Financial arithmetic, scoring, thresholds, deduplication and guidance-range assessment run in deterministic Python. Structured financial tables are reviewed for INFY, TCS and WIPRO (11 rows); guidance covers four INFY revisions and four Wipro quarterly targets, including one pending outcome. Arbitrary PDF table extraction is deliberately not portrayed as solved. Research retrieval generalises to any available NSE issuer documents.
 
 ## Verification
+
+The latest [full implementation and integration audit](docs/comprehensive-audit.md) records **227 passing backend tests**, **6 passing frontend tests**, all **24 backend business operations**, **18 protected frontend HTTP checks**, and **4 genuine Gemini calls across all three LLM call sites**. All 18 watched Yahoo feeds and the NSE adapter worked in the live QA run. Real push delivery, public Python hosting and physical-device acceptance remain unverified. Machine-readable evidence is in [docs/comprehensive-audit.json](docs/comprehensive-audit.json).
 
 From the project root:
 

@@ -14,9 +14,13 @@ def domain(url: str) -> str:
     return (urlparse(url).hostname or '').lower().removeprefix('www.')
 
 def validate_url(url: str, allowed_domains: set[str]) -> None:
-    parsed = urlparse(url)
-    host = (parsed.hostname or '').lower()
-    if parsed.scheme != 'https' or parsed.username or parsed.password or parsed.port not in (None, 443):
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or '').lower()
+        port = parsed.port
+    except ValueError:
+        raise SourceError('Malformed primary-document URL.') from None
+    if parsed.scheme != 'https' or parsed.username or parsed.password or port not in (None, 443):
         raise SourceError('Only public HTTPS primary-document URLs on port 443 are accepted.')
     if not any(host == d or host.endswith('.' + d) for d in allowed_domains):
         raise SourceError('Use a company-issued document on its verified website or an NSE/BSE archive.')
@@ -42,7 +46,7 @@ def fetch_public(url: str, allowed_domains: set[str], max_bytes: int = 20_000_00
                     for part in response.iter_bytes():
                         content.extend(part)
                         if len(content) > max_bytes:
-                            raise SourceError('Document exceeds the 20 MB prototype download limit.')
+                            raise SourceError(f'Source exceeds the configured {max_bytes:,}-byte download limit.')
                     return bytes(content), url
             except httpx.HTTPError as exc:
                 raise SourceError(f'Source unavailable ({type(exc).__name__}). Retry or use a primary document from another permitted issuer URL.') from exc

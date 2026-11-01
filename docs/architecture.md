@@ -44,14 +44,15 @@ The journey is digest → reason → original filing → company research → pa
 
 - `companies`: issuer identifiers, domain, verification flag, watched flag.
 - `prices`: unique `(ticker, date, mode)`, adjusted close, volume, source and fetch time.
-- `announcements`: unique normalised issuer/title/day/mode fingerprint; UTC date, score, factors, source and method. Re-publication under a new attachment does not duplicate an event. A materially amended filing with the same headline/day can be merged by this conservative MVP key; revision-aware content hashes are a future improvement.
+- `announcements`: source filing/attachment identity and content-sensitive fingerprint; UTC date, observation date, score, factors, source and method. Exact identities collapse while distinct attachments and materially changed text remain separately traceable.
 - `preferences`: one shared local desk, thresholds, lookback and scope.
 - `alerts`: unique `(mode, ticker, session, kind)` key, computed value and threshold.
 - `documents` → `chunks`: primary source URL and SHA-256 content checksum, source period, physical PDF page. Chunks reference documents via a foreign key.
-- `financials`: unique company/period/reporting-basis/mode; reviewed metric values and primary page. FY2025-Q4 means the Indian financial year ending March 2025. PAT is attributable to owners, after minority interests.
+- `financials`: unique company/period/reporting-basis/mode; reviewed metric values and primary page. FY2025-Q4 means the Indian financial year ending March 2025. INFY/TCS PAT is attributable to owners; Wipro uses group PAT including non-controlling interests and labels the basis explicitly.
 - `guidance`: reviewed original range, metric/currency basis, target period and two source references.
 - `research_cache`: deterministic content-sensitive key and validated result.
 - `sync_runs`: time-stamped partial successes and failures, not a single misleading healthy flag.
+- Notification events retain read history independently of current alert recalculation. Push recipients and an idempotent durable outbox support optional VAPID-backed browser delivery; real device delivery is a separate acceptance check.
 
 Composite mode/date/score indexing supports digest windows. Company and document foreign-key indexes support research. SQLite WAL allows reads during ingestion. Use one backend worker; scheduling/concurrency locks are process-local. PostgreSQL requires a driver and migrations plus a distributed job lock before multiple workers. Changing the connection URL alone is not a complete production migration.
 
@@ -76,4 +77,4 @@ OpenAPI and interactive request schemas are available at `http://127.0.0.1:8000/
 | `GET /api/companies/{ticker}/financials` | Reviewed comparable quarterly values and calculated growth |
 | `GET /api/companies/{ticker}/guidance` | Same-period guidance versus reported actuals |
 
-The frontend proxy reads `BACKEND_URL` and an optional shared backend token on the server. That token prevents direct unauthenticated backend access, but is **not end-user authentication**: visitors to an unprotected frontend can use the proxy. Keep the prototype local/private, or place host authentication in front of the entire application before exposing a shared desk publicly.
+The frontend proxy reads `BACKEND_URL` and the shared backend token on the server. In public mode, a separate access code establishes an eight-hour signed HttpOnly/SameSite=Strict session; mutation requests require a matching browser origin. Session JSON is limited to 2,048 bytes, failed sign-ins are throttled and backend rate-limit responses retain Retry-After. This protects one shared desk, without per-user data isolation. The complete tested endpoint inventory, including notification, context and push routes, is in [comprehensive-audit.md](comprehensive-audit.md).

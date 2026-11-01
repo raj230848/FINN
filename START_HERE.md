@@ -12,4 +12,6 @@ The source distribution contains no private runtime database. A fresh install se
 
 Read `docs/remaining-plan-audit.md` for every PDF item and its evidence or remaining external dependency. `docs/verification.md` records testing. `docs/deployment.md` covers hosting the full Python app; the public ChatGPT Site is a separate static demonstration.
 
+The latest full-project report is `audit/FINN-Full-Audit-Report.pdf` in the ZIP, with a text copy at `docs/comprehensive-audit.md`. It includes all 24 backend endpoints, every Gemini call site, 227 passing backend tests, coverage, corrected defects and remaining external acceptance checks. Credential-free raw evidence is under `audit/`.
+
 The ZIP's `submission/AI_BUILD_HISTORY_REDACTED.md` is an actual saved chat text export, not a fabricated decision log. Review it and the covering-email draft before submitting. No email has been sent.
