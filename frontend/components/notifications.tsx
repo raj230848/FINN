@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Bell, Check, ExternalLink, X } from "lucide-react";
-import { api, Mode, NotificationFeed, shortDate } from "@/lib/api";
+import { api, Mode, NotificationFeed, NotificationEvent, shortDate } from "@/lib/api";
+import { BrowserPush } from "./browser-push";
 
 export function Notifications({
   feed,
@@ -19,6 +20,14 @@ export function Notifications({
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [extra,setExtra]=useState<NotificationEvent[]>([]);
+  const [hasMore,setHasMore]=useState(feed.has_more);
+  useEffect(()=>{setExtra([]);setHasMore(feed.has_more);},[feed,mode]);
+  async function loadMore(){
+    setBusy(true);setError("");
+    try{const next=await api<NotificationFeed>(`/notifications?mode=${mode}&offset=${feed.items.length+extra.length}`);setExtra(prev=>[...prev,...next.items.filter(n=>!feed.items.some(f=>f.id===n.id)&&!prev.some(p=>p.id===n.id))]);setHasMore(next.has_more);}
+    catch(e){setError((e as Error).message);}finally{setBusy(false);}
+  }
   useEffect(() => {
     const previous = document.activeElement as HTMLElement;
     const old = document.body.style.overflow;
@@ -93,6 +102,7 @@ export function Notifications({
             ? "These are simulated scenarios."
             : "Original event dates are shown."}
         </p>
+        <BrowserPush />
         <button
           className="text-button"
           disabled={busy || !feed.unread_count}
@@ -115,7 +125,7 @@ export function Notifications({
             </p>
           </div>
         )}
-        {feed.items.map((n) => (
+        {[...feed.items,...extra].map((n) => (
           <article key={n.id} className={n.read_at ? "read" : "unread"}>
             <div>
               <span>
@@ -162,9 +172,10 @@ export function Notifications({
             </footer>
           </article>
         ))}
-        {feed.has_more && (
+        {hasMore && (
           <p>
-            Showing the latest {feed.items.length} of {feed.total} events.
+            Showing {feed.items.length+extra.length} of {feed.total} events.
+            <button className="text-button" disabled={busy} onClick={()=>void loadMore()}>Load earlier events</button>
           </p>
         )}
       </div>

@@ -107,6 +107,13 @@ function SignalCard({
   onSave: (filing: Filing) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [context,setContext]=useState<{message:string;excerpt?:string;comparison_period?:string}|null>(null);
+  useEffect(()=>{
+    if(!open || filing.mode!=="sourced" || !["management_change","results"].includes(filing.category))return;
+    let cancelled=false;
+    api<{message:string;excerpt?:string;comparison_period?:string}>(`/announcements/${filing.id}/context`).then(c=>{if(!cancelled)setContext(c);}).catch(()=>{if(!cancelled)setContext({message:"Source context is unavailable. Use the original filing link."});});
+    return()=>{cancelled=true;};
+  },[open,filing.id,filing.mode,filing.category]);
   return (
     <article
       className={`signal-card priority-${filing.priority} ${open ? "is-expanded" : ""}`}
@@ -200,6 +207,7 @@ function SignalCard({
             {filing.analysis_method}. A priority score measures review urgency,
             not expected stock performance.
           </small>
+          {context&&<aside className="filing-context"><p>{context.message}</p>{context.excerpt&&<blockquote>{context.excerpt}</blockquote>}{context.comparison_period&&<button className="text-button" onClick={()=>onResearch(filing.ticker)}>Review {context.comparison_period} comparisons</button>}</aside>}
         </div>
       )}
     </article>
@@ -671,11 +679,11 @@ export default function Home() {
       if (version === feedVersion.current) setLoadingMore(false);
     }
   }
-  async function refresh() {
+  async function refresh(filingDays?: number) {
     setRefreshing(true);
     setError("");
     try {
-      const result = await api<{ id: number }>("/sync", { method: "POST" });
+      const result = await api<{ id: number }>(`/sync${filingDays?`?filing_days=${filingDays}`:""}`, { method: "POST" });
       setSync({
         id: result.id,
         started_at: new Date().toISOString(),
@@ -1488,6 +1496,10 @@ export default function Home() {
                                     : "Source coverage"}
                                 </b>
                                 <p>{feedMeta.coverage.message}</p>
+                                <small>
+                                  First observed: {feedMeta.coverage.first_observed_at ? new Date(feedMeta.coverage.first_observed_at).toLocaleString("en-IN", {timeZone:"Asia/Kolkata"})+" IST" : "Unknown for legacy filings"}
+                                </small>
+                                {!!feedMeta.coverage.unknown_ingestion_dates&&<small>Observation dates remain unknown for {feedMeta.coverage.unknown_ingestion_dates} legacy filings.</small>}
                                 {feedMeta.coverage.last_successful_fetch_at && (
                                   <small>
                                     Last successful exchange fetch:{" "}
@@ -1499,6 +1511,8 @@ export default function Home() {
                                     IST
                                   </small>
                                 )}
+                                <small>Loaded {filings.length} of {feedMeta.total ?? filings.length} matching filings.</small>
+                                {feedMeta.coverage.partial_coverage&&<button className="text-button" disabled={refreshing} onClick={()=>void refresh(30)}>Fetch 30-day filing history</button>}
                               </div>
                             </div>
                           )}

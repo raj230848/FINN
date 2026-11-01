@@ -5,7 +5,7 @@ from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 CATEGORIES = ['results','M&A','fund_raise','management_change','litigation','insider_trading','earnings_call','investor_meetings','credit_rating','dividend','bonus_split','capex','press_release','postal_ballot','agm_egm','pledging','unclassified']
 RULES = [
-    ('earnings_call', r'transcript|earnings call|concall|conference call'),
+    ('earnings_call', r'transcript|earnings call|con\.?\s*call|conference call|audio recording|video recording'),
     ('management_change', r'(?:cfo|ceo|chief financial(?: officer)?|chief executive(?: officer)?|managing director|independent director|director|key managerial|\bkmp\b|company secretary).{0,90}(?:resign|appoint|retir|cessation|change)|(?:resign|appoint|retir|cessation|change).{0,90}(?:chief financial|chief executive|director|\bcfo\b|\bceo\b|key managerial|company secretary|\bkmp\b)'),
     ('insider_trading', r'insider trading|pit regulations|(?:promoter|insider|designated person).{0,90}(?:acquir|purchas|bought|sold|sale|sell|dispos|trading)|(?:acquir|purchas|sold|dispos).{0,90}(?:promoter|insider|designated person)'),
     ('pledging', r'pledg|encumbrance'),
@@ -20,7 +20,7 @@ RULES = [
     ('postal_ballot', r'postal ballot'),
     ('agm_egm', r'annual general meeting|extraordinary general meeting|\bagm\b|\begm\b'),
     ('investor_meetings', r'investor meet|analyst meet|investor conference|schedule.*analyst'),
-    ('press_release', r'press release|order win|new product|partnership'),
+    ('press_release', r'press release|order win|new product|partnership|(?:receipt|award|awarded|bagged).{0,50}(?:order|contract)|(?:order|contract).{0,50}(?:awarded|secured)|letter of award'),
 ]
 SIGNIFICANCE = {
     'management_change': 'Leadership changes can affect execution and capital allocation. Review the effective date and succession arrangements.',
@@ -38,6 +38,9 @@ def classify(title: str, text: str = '') -> dict:
     category = next((c for c, p in RULES if re.search(p, content)), 'unclassified')
     score = {'management_change': 85,'M&A': 83,'litigation': 80,'results': 78,'fund_raise': 64,'credit_rating': 62,'capex': 60,'pledging': 60,'dividend': 45,'bonus_split': 45,'earnings_call': 40,'press_release': 40,'insider_trading': 55}.get(category, 15)
     factors = [f'Disclosure category: {category.replace("_", " ")} ({score} base points).']
+    if category=='press_release' and re.search(r'order win|letter of award|(?:order|contract).{0,50}(?:awarded|secured)|(?:receipt|award|awarded|bagged).{0,50}(?:order|contract)',content):
+        score=60
+        factors.append('Order or contract disclosure merits review. Size relative to the issuer and revenue recognition are not established.')
     if re.search(r'resign|downgrad|default|insolvency', content):
         score = min(100, score + 10)
         factors.append('Departure, downgrade or distress language adds 10 points; verify the document context.')

@@ -13,6 +13,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: "FINN — A clearer view of your portfolio",
   description:
     "Evidence-first investment intelligence. Know what changed, understand why it matters, and follow the source.",

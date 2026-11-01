@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-30T18:36:26.497258+00:00",
+  "checked_at": "2026-11-01T06:06:22.670565+00:00",
   "sources": {
     "nse_listing": {
       "ok": true,
@@ -7,101 +7,104 @@
     },
     "sync": {
       "prices": {
-        "RELIANCE": {
+        "INFY": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "TCS": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
-        "INFY": {
+        "RELIANCE": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
-        },
-        "HDFCBANK": {
-          "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
-        },
-        "ICICIBANK": {
-          "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "ITC": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
+        },
+        "HDFCBANK": {
+          "ok": true,
+          "sessions": 126,
+          "latest_session": "2026-10-30"
+        },
+        "ICICIBANK": {
+          "ok": true,
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "BHARTIARTL": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "MARUTI": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "SUNPHARMA": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "LT": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "HINDUNILVR": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "SBIN": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "WIPRO": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "TATASTEEL": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "BAJFINANCE": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
-        },
-        "CERA": {
-          "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
-        },
-        "KPRMILL": {
-          "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         },
         "PERSISTENT": {
           "ok": true,
-          "sessions": 125,
-          "latest_session": "2026-10-29"
+          "sessions": 126,
+          "latest_session": "2026-10-30"
+        },
+        "KPRMILL": {
+          "ok": true,
+          "sessions": 126,
+          "latest_session": "2026-10-30"
+        },
+        "CERA": {
+          "ok": true,
+          "sessions": 126,
+          "latest_session": "2026-10-30"
         }
       },
       "announcements": {
         "ok": true,
-        "inserted": 67,
-        "matched": 72
+        "inserted": 73,
+        "matched": 73,
+        "requested_start": "2026-10-24T18:30:00Z",
+        "requested_end": "2026-11-01T06:06:29.684689Z",
+        "coverage_note": "Best-effort exchange response; requested dates are not a completeness guarantee."
       },
       "status": "complete"
     }

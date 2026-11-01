@@ -126,6 +126,9 @@ export type Research = {
   cached: boolean;
 };
 export type Financials = {
+  periods?: string[];
+  review_flags?: string[];
+  history?: {period: string; basis: string; currency: string; metrics: Record<string, unknown>; source_url: string; page: number}[];
   rows: {
     metric: string;
     current: number | null;
@@ -152,17 +155,19 @@ export type GuidanceItem = {
   unit: string;
   low: number;
   high: number;
-  actual: number;
+  actual: number | null;
   statement: string;
   guidance_url: string;
   guidance_page: number;
-  actual_url: string;
-  actual_page: number;
+  actual_url: string | null;
+  actual_page: number | null;
   status: string;
-  deviation_pp: number;
-  midpoint_deviation_pp: number;
+  deviation_pp: number | null;
+  midpoint_deviation_pp: number | null;
+  basis?: string;
 };
 export type Coverage = {
+  unknown_ingestion_dates?: number;
   partial_coverage: boolean;
   kind: string;
   message: string;

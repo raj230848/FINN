@@ -10,6 +10,8 @@ def record_event(db, *, event_key, ticker, mode, kind, severity, title,
                        severity=severity,title=title,explanation=explanation,
                        occurred_at=occurred_at,source_url=source_url))
     db.flush()
+    from .push import queue_event
+    queue_event(db, db.scalar(select(SignalEvent).where(SignalEvent.event_key==event_key)))
 
 def record_filing_events(db):
     pref = db.get(Preference,1)

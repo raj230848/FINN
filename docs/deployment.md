@@ -67,3 +67,9 @@ GitHub Actions are configured to run the isolated backend suite and frontend typ
 - Review and personalise `covering-email.md`, including the real links and your name.
 - Send to `assessment@enam.com` with subject `ENAM - IIT screening - 2027` before the stated deadline, 1 November 2026.
 - No email is sent automatically by the build scripts.
+
+## Remaining-plan release checks
+
+Run `python scripts/verify_release.py --backend-url https://YOUR_BACKEND --frontend-url https://YOUR_FRONTEND --refresh --gemini --out artifacts/hosted-acceptance.json` after configuring server-only secrets. The script rejects non-HTTPS remote targets and never saves tokens/cookies. Also perform actual access-code login, original source-link, incognito, second-device and restart/persistence checks on that host; HTTP health alone is insufficient. Do not run `--threshold-check` on a shared production desk; it is intended for an isolated QA database.
+
+For optional delivery, add backend VAPID settings as described in browser-push.md. Keep the one-worker scheduler/outbox assumption. New tables are created additively at startup; back up the private database before upgrading. A real hosting account and its configuration are required; this repository does not turn the static Sites demo into a publicly hosted Python backend.

@@ -1,0 +1,190 @@
+{
+  "review_note": "Source-checked five-quarter consolidated IFRS INR tables. Full new reports remain private; use original URLs. Indian financial-year ending year in period labels. Group PAT includes non-controlling interests.",
+  "tables": [
+    {
+      "period": "2026-Q2",
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q2fy26/consolidated-financial-statement-q2fy26.pdf",
+      "source_sha256": "4740908068af5d9a973146b9ed9f0e7c960a7d552d3a4614eaf0be9f2238077c",
+      "page": 3,
+      "currency": "INR million",
+      "column_order": "prior-year quarter INR, current quarter INR; convenience USD excluded",
+      "rows": {
+        "Revenues": [
+          223016,
+          226973
+        ],
+        "Profit before tax": [
+          42778,
+          42824
+        ],
+        "Profit for the period": [
+          32266,
+          32624
+        ]
+      },
+      "metrics": {
+        "ebitda": null,
+        "revenue": 226973,
+        "pbt": 42824,
+        "pat": 32624,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      }
+    },
+    {
+      "period": "2026-Q3",
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q3fy26/consolidated-financial-statement-q3fy26.pdf",
+      "source_sha256": "e33cf19ab0db0054453c7bd33ad2058155434f3e31253c36d53801de8c0ecf0d",
+      "page": 3,
+      "currency": "INR million",
+      "column_order": "prior-year quarter INR, current quarter INR; convenience USD excluded",
+      "rows": {
+        "Revenues": [
+          223188,
+          235558
+        ],
+        "Profit before tax": [
+          44533,
+          41339
+        ],
+        "Profit for the period": [
+          33667,
+          31450
+        ]
+      },
+      "metrics": {
+        "ebitda": null,
+        "revenue": 235558,
+        "pbt": 41339,
+        "pat": 31450,
+        "_review_flags": [
+          "Reported group PAT includes non-controlling interests; it differs from owners-only net income in the press release.",
+          "Labour Code past-service cost of INR 3,028 million is included; see note 31, page 35. No adjusted PAT is substituted.",
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      }
+    },
+    {
+      "period": "2026-Q4",
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q4fy26/consolidated-financial-statement-q4fy26.pdf",
+      "source_sha256": "ac8390e23ab02d0b331a1e339e19cc11d144afbd5f54350c5949df27d7dc600d",
+      "page": 3,
+      "currency": "INR million",
+      "column_order": "prior-year quarter INR, current quarter INR; convenience USD excluded",
+      "rows": {
+        "Revenues": [
+          225042,
+          242363
+        ],
+        "Profit before tax": [
+          47430,
+          46676
+        ],
+        "Profit for the period": [
+          35881,
+          35216
+        ]
+      },
+      "metrics": {
+        "ebitda": null,
+        "revenue": 242363,
+        "pbt": 46676,
+        "pat": 35216,
+        "_review_flags": [
+          "Labour Code remeasurement benefit of INR 272 million in this quarter; see page 25. No adjusted PAT is substituted.",
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      }
+    },
+    {
+      "period": "2027-Q1",
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q1fy27/consolidated-financial-statement-q1fy27.pdf",
+      "source_sha256": "e6c820658d0628655ea79c128b635fba337b307082e36352833a19a48fc26795",
+      "page": 3,
+      "currency": "INR million",
+      "column_order": "prior-year quarter INR, current quarter INR; convenience USD excluded",
+      "rows": {
+        "Revenues": [
+          221346,
+          244786
+        ],
+        "Profit before tax": [
+          42583,
+          43345
+        ],
+        "Profit for the period": [
+          33365,
+          33563
+        ]
+      },
+      "metrics": {
+        "ebitda": null,
+        "revenue": 244786,
+        "pbt": 43345,
+        "pat": 33563,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      }
+    },
+    {
+      "period": "2027-Q2",
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q2fy27/consolidated-financial-statement-q2fy27.pdf",
+      "source_sha256": "5eef0107f6b52869a2c78f7c38dbebc1abc887b1dfa2aab547ef88f9c9e1b5ea",
+      "page": 3,
+      "currency": "INR million",
+      "column_order": "prior-year quarter INR, current quarter INR; convenience USD excluded",
+      "rows": {
+        "Revenues": [
+          226973,
+          247527
+        ],
+        "Profit before tax": [
+          42824,
+          42047
+        ],
+        "Profit for the period": [
+          32624,
+          31997
+        ]
+      },
+      "metrics": {
+        "ebitda": null,
+        "revenue": 247527,
+        "pbt": 42047,
+        "pat": 31997,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      }
+    }
+  ],
+  "guidance_sources": [
+    {
+      "url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q2fy27/press-release-q2fy27.pdf",
+      "sha256": "cdd73e071c6920b79327d7d85d2c37140c52b5b75d7674fd7499180cca99852c",
+      "pages": 11
+    },
+    {
+      "url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q1fy27/press-release-q1fy27.pdf",
+      "sha256": "d14f2adab999ccbc742accc636e5d5167290370145937ddb3e0bf0f720645771",
+      "pages": 12
+    },
+    {
+      "url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q4fy26/press-release-q4fy26.pdf",
+      "sha256": "afed28ae575b64cedd7b91a430935808ef9c449f22f0cd976de989cfcade5089",
+      "pages": 13
+    },
+    {
+      "url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q3fy26/press-release-q3fy26.pdf",
+      "sha256": "164798d388be7a7ca3bb71030ac6ba8a84d6947299b0282757157bf2ed8de4a0",
+      "pages": 12
+    },
+    {
+      "url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q2fy26/press-release-q2fy26.pdf",
+      "sha256": "944b528bdca4b902ef2384dfd864ae66380fa5c54b21812801387d606b7ae64b",
+      "pages": 12
+    }
+  ]
+}

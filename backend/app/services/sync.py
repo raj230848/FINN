@@ -62,7 +62,7 @@ def save_announcements(db, rows: list[dict]) -> int:
     db.flush()
     return inserted
 
-def run_sync(run_id: int | None = None):
+def run_sync(run_id: int | None = None, filing_days: int | None = None):
     if not SYNC_LOCK.acquire(blocking=False):
         return
     try:
@@ -97,7 +97,7 @@ def run_sync(run_id: int | None = None):
                     run.result = dict(result)
                     db.commit()
             try:
-                days = max(1,min(31,settings.filing_lookback_days))
+                days = max(1,min(31,filing_days or settings.filing_lookback_days))
                 window_end = utcnow()
                 local_start = datetime.now(ZoneInfo('Asia/Kolkata')).replace(hour=0,minute=0,second=0,microsecond=0)-timedelta(days=days)
                 window_start = local_start.astimezone(ZoneInfo('UTC')).replace(tzinfo=None)

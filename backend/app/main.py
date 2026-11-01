@@ -11,8 +11,9 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from .config import ROOT, settings
 from .database import Base, engine, get_db, SessionLocal
-from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent
-from .schemas import ImportDocumentIn, Mode, PreferencesIn, ResearchIn, WatchIn, normalize_ticker
+from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent, PushRecipient, PushDelivery
+from .schemas import ImportDocumentIn, Mode, PreferencesIn, ResearchIn, WatchIn, normalize_ticker, PushSubscriptionIn, PushDisableIn
+from .services.push import configured as push_configured, validate_subscription, deliver_pending
 from .seed import DEMO_CLOCK, seed
 from .migrations import migrate_schema
 from .services.coverage import describe_coverage
@@ -60,10 +61,13 @@ def initialize():
 async def lifespan(app: FastAPI):
     initialize()
     scheduler = None
-    if settings.enable_scheduler:
+    if settings.enable_scheduler or push_configured():
         from apscheduler.schedulers.background import BackgroundScheduler
         scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
-        scheduler.add_job(run_sync,'interval',minutes=max(settings.sync_interval_minutes,30),max_instances=1,coalesce=True)
+        if settings.enable_scheduler:
+            scheduler.add_job(run_sync,'interval',minutes=max(settings.sync_interval_minutes,30),max_instances=1,coalesce=True)
+        if push_configured():
+            scheduler.add_job(deliver_pending,'interval',seconds=30,max_instances=1,coalesce=True)
         scheduler.start()
     yield
     if scheduler:
@@ -193,6 +197,58 @@ def notifications(db: DB, mode: Mode='demo', unread_only: bool=False, offset: in
     items = [serial(e) for e in db.scalars(base.order_by(SignalEvent.created_at.desc(),SignalEvent.id.desc()).offset(offset).limit(limit))]
     return {'items':items,'unread_count':unread,'total':total,'has_more':offset+len(items)<total}
 
+@app.get('/api/push/config')
+def push_config():
+    return {'available':push_configured(),'public_key':settings.vapid_public_key if push_configured() else None}
+
+@app.post('/api/push/subscribe')
+def subscribe_push(body: PushSubscriptionIn,db: DB):
+    if not push_configured():raise HTTPException(503,'Browser push is not configured on this server.')
+    try:subscription=validate_subscription(body.subscription)
+    except ValueError as error:raise HTTPException(422,str(error)) from None
+    recipient=db.get(PushRecipient,body.device_id)
+    if not recipient:
+        recipient=PushRecipient(id=body.device_id,subscription=subscription);db.add(recipient)
+    else:
+        from .models import utcnow
+        if not recipient.enabled:recipient.enabled_at=utcnow()
+        recipient.subscription=subscription;recipient.enabled=True
+    db.commit()
+    return {'enabled':True,'enabled_at':recipient.enabled_at.isoformat()+'Z'}
+
+@app.post('/api/push/unsubscribe')
+def unsubscribe_push(body: PushDisableIn,db: DB):
+    from sqlalchemy import update
+    recipient=db.get(PushRecipient,body.device_id)
+    if recipient:recipient.enabled=False
+    db.execute(update(PushDelivery).where(PushDelivery.recipient_id==body.device_id,PushDelivery.state.in_(['pending','retry'])).values(state='cancelled'))
+    db.commit()
+    return {'enabled':False}
+
+@app.get('/api/push/status')
+def push_status(db: DB,device_id: str=Query(pattern=r'^[A-Za-z0-9_-]{32,64}$')):
+    recipient=db.get(PushRecipient,device_id)
+    return {'enabled':bool(recipient and recipient.enabled),'delivered':db.scalar(select(func.count()).select_from(PushDelivery).where(PushDelivery.recipient_id==device_id,PushDelivery.state=='sent'))}
+
+@app.get('/api/announcements/{filing_id}/context')
+def filing_context(filing_id: int,db: DB):
+    import re
+    row=db.get(Announcement,filing_id)
+    if not row:raise HTTPException(404,'Filing not found.')
+    if row.mode=='demo':return {'status':'demo','message':'Simulated filing. No executive background or reported result is asserted.'}
+    text=row.title+' '+row.text
+    if row.category=='management_change':
+        found=re.search(r'brief profile|professional background|previously served|years of experience',row.text,re.I)
+        if found:return {'status':'source_excerpt','message':'Issuer-provided excerpt. Person identity and current role still require review of the original filing.','excerpt':row.text[max(0,found.start()-100):found.start()+650],'source_url':row.source_url}
+        return {'status':'requires_review','message':'No attributable executive background is present in the exchange description. Review the original filing; no biography or identity was inferred.','source_url':row.source_url}
+    if row.category=='results':
+        match=re.search(r'\bQ([1-4])\s*FY\s*(20\d{2}|\d{2})\b',text,re.I)
+        period=f'{int(match[2]) if len(match[2])==4 else 2000+int(match[2])}-Q{match[1]}' if match else None
+        if period and db.scalar(select(Financial.id).where(Financial.ticker==row.ticker,Financial.period==period)):
+            return {'status':'reviewed_comparison','comparison_period':period,'message':f'Reviewed {period} numbers are available. Open financial research to check the original period, basis and sources.','source_url':row.source_url}
+        return {'status':'requires_review','message':'The filing description has no matched reviewed quarter. Select a reviewed period in financial research; no historical snapshot is represented as this filing’s results.','source_url':row.source_url}
+    return {'status':'source_only','message':'Read the original filing to assess the terms and materiality.','source_url':row.source_url}
+
 @app.post('/api/notifications/read-all')
 def read_all_notifications(db: DB, mode: Mode='demo'):
     from sqlalchemy import update
@@ -232,14 +288,14 @@ def update_preferences(body: PreferencesIn, db: DB):
     return serial(pref)
 
 @app.post('/api/sync',status_code=202)
-def sync(background: BackgroundTasks, db: DB):
+def sync(background: BackgroundTasks, db: DB, filing_days: int | None=Query(None,ge=1,le=31)):
     latest = db.scalar(select(SyncRun).where(SyncRun.completed_at.is_(None)).order_by(SyncRun.id.desc()).limit(1))
     if SYNC_LOCK.locked() or (latest and datetime.now(timezone.utc).replace(tzinfo=None)-latest.started_at<timedelta(minutes=10)):
         raise HTTPException(409,'A source refresh is already running.')
     row = SyncRun(result={'status':'queued'})
     db.add(row)
     db.commit()
-    background.add_task(run_sync,row.id)
+    background.add_task(run_sync,row.id,filing_days)
     return {'id':row.id,'status':'queued'}
 
 @app.get('/api/sync/{run_id}')
@@ -288,12 +344,13 @@ def ask(body: ResearchIn, db: DB):
     return result
 
 @app.get('/api/companies/{ticker}/financials')
-def financials(ticker: str, db: DB):
+def financials(ticker: str, db: DB, period: str | None=Query(None,pattern=r'^20\d{2}-Q[1-4]$')):
     company = require_company(db,ticker)
     rows = list(db.scalars(select(Financial).where(Financial.ticker==company.ticker,Financial.mode=='sourced').order_by(Financial.period.desc())))
     if not rows:
         return {'rows':[],'message':'No reviewed quarterly metrics are indexed. Research can retrieve source passages; numeric tables are never guessed.'}
-    current = rows[0]
+    current = next((r for r in rows if r.period==period),None) if period else rows[0]
+    if not current:raise HTTPException(404,'That quarter has not been reviewed for this issuer.')
     by_period = {r.period:r for r in rows if r.basis==current.basis and r.currency==current.currency}
     # Period format YYYY-Qn uses Indian financial-year ending year.
     year, quarter = int(current.period[:4]),int(current.period[-1])
@@ -305,10 +362,16 @@ def financials(ticker: str, db: DB):
         prev = previous.metrics.get(metric) if previous else None
         yoy = last_year.metrics.get(metric) if last_year else None
         output.append({'metric':metric,'current':val,'previous':prev,'last_year':yoy,'qoq':percent_change(val,prev),'yoy':percent_change(val,yoy),'calculated':False})
-    return {'rows':output,'current_period':current.period,'previous_period':previous_period,'last_year_period':f'{year-1}-Q{quarter}','basis':current.basis,'currency':current.currency,'sources':[serial(r) for r in rows],'note':'EBITDA is unavailable unless explicitly reported or supported by a reviewed reconciliation. Growth uses absolute prior values for negative bases; zero bases are unavailable.'}
+    return {'rows':output,'current_period':current.period,'previous_period':previous_period,'last_year_period':f'{year-1}-Q{quarter}','basis':current.basis,'currency':current.currency,'periods':list(by_period),'review_flags':current.metrics.get('_review_flags',[]),'sources':[serial(r) for r in rows],'history':[{'period':r.period,'metrics':r.metrics,'basis':r.basis,'currency':r.currency,'source_url':r.source_url,'page':r.page} for r in rows if r.basis==current.basis and r.currency==current.currency],'note':'EBITDA is unavailable unless explicitly reported or supported by a reviewed reconciliation. Growth uses absolute prior values for negative bases; zero bases are unavailable. Missing quarters are not replaced by the next available quarter.'}
 
 @app.get('/api/companies/{ticker}/guidance')
 def guidance(ticker: str, db: DB):
     company = require_company(db,ticker)
     rows = [g.data for g in db.scalars(select(Guidance).where(Guidance.ticker==company.ticker).order_by(Guidance.id))]
-    return {'items':[{**r,**guidance_comparison(r['low'],r['high'],r['actual'])} for r in rows],'note':'Compare the same metric, currency basis and target period. Each revision is assessed against the same final full-year result; revisions are not four independent promises.'}
+    items=[]
+    for row in rows:
+        if any(row.get(a,row.get(b))!=row.get(b) for a,b in [('actual_period','target_period'),('actual_metric','metric'),('actual_unit','unit'),('actual_basis','basis')]):
+            continue
+        comparison=guidance_comparison(row['low'],row['high'],row['actual']) if row.get('actual') is not None else {'status':'pending','deviation_pp':None,'midpoint_deviation_pp':None}
+        items.append({**row,**comparison})
+    return {'items':items,'distinct_targets':len({(r['target_period'],r['metric'],r.get('basis'),r['unit']) for r in items}),'note':'Compare matching metrics, units, accounting/currency bases and target periods. Revisions share one target; distinct quarterly targets are counted separately. Future outcomes remain pending. No executive intent or credibility score is inferred.'}

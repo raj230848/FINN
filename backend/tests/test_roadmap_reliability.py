@@ -167,7 +167,9 @@ def test_claim_validation_and_transient_fallback_not_cached(db,monkeypatch):
     citation=evidence[0]['id']
     monkeypatch.setattr(settings,'gemini_api_key','test-key')
     attempts=[]
-    def generate(*args):
+    def generate(*args,**kwargs):
+        from app.schemas import GroundingReviewOut
+        if args[2] is GroundingReviewOut:return GroundingReviewOut(supported=True,reason='Exact reported value',unsupported_claims=[])
         attempts.append(1)
         if len(attempts)==1: raise provider.ProviderError('Temporary failure')
         return AnalysisOut(answer=f'Revenue grew 4.2 percent [{citation}].',evidence_ids=[citation])

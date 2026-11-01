@@ -7,12 +7,12 @@ from pydantic import BaseModel, ValidationError
 from ..config import settings
 
 GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
-log = logging.getLogger(__name__)
+log = logging.getLogger('uvicorn.error.finn.ai')
 
 class ProviderError(RuntimeError):
     pass
 
-def structured_call(system: str, payload: dict, schema: type[BaseModel]) -> BaseModel:
+def structured_call(system: str, payload: dict, schema: type[BaseModel], *, attempts: int=3, timeout_seconds: float=12) -> BaseModel:
     if not settings.gemini_api_key:
         raise ProviderError('Gemini is not configured.')
     content = json.dumps(payload, ensure_ascii=False)
@@ -23,20 +23,20 @@ def structured_call(system: str, payload: dict, schema: type[BaseModel]) -> Base
             'response_format':{'type':'json_schema','json_schema':{
                 'name':schema.__name__,'strict':False,'schema':schema.model_json_schema()}},
             'max_tokens':1600}
-    # All attempts plus backoff remain below the frontend proxy timeout.
-    with httpx.Client(timeout=12) as client:
-        for attempt in range(3):
+    attempts = max(1,min(3,attempts))
+    with httpx.Client(timeout=max(1,min(12,timeout_seconds))) as client:
+        for attempt in range(attempts):
             try:
                 response = client.post(GEMINI_URL, headers={
                     'Authorization':f'Bearer {settings.gemini_api_key}',
                     'Content-Type':'application/json'}, json=body)
             except (httpx.TimeoutException, httpx.TransportError):
-                if attempt == 2:
+                if attempt == attempts-1:
                     raise ProviderError('Gemini could not be reached.') from None
                 time.sleep(0.5 * (attempt + 1))
                 continue
             if response.status_code == 429 or 500 <= response.status_code < 600:
-                if attempt == 2:
+                if attempt == attempts-1:
                     raise ProviderError('Gemini is temporarily unavailable or rate limited.')
                 try:
                     delay = min(2, max(0, float(response.headers.get('Retry-After', '0.5'))))

@@ -1,0 +1,222 @@
+{
+  "checked_at": "2026-11-01T06:19:31.345061+00:00",
+  "checks": {
+    "backend": {
+      "status": "passed",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "ai_configured": false,
+      "access_protected": false
+    },
+    "refresh": {
+      "run_id": 4,
+      "result": {
+        "prices": {
+          "INFY": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "RELIANCE": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "TCS": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "HDFCBANK": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "ICICIBANK": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "ITC": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "BHARTIARTL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "SUNPHARMA": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "MARUTI": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "LT": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "HINDUNILVR": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "SBIN": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "WIPRO": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "TATASTEEL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "BAJFINANCE": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "PERSISTENT": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "KPRMILL": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          },
+          "CERA": {
+            "ok": true,
+            "sessions": 126,
+            "latest_session": "2026-10-30"
+          }
+        },
+        "announcements": {
+          "ok": true,
+          "inserted": 162,
+          "matched": 235,
+          "requested_start": "2026-10-01T18:30:00Z",
+          "requested_end": "2026-11-01T06:19:34.498978Z",
+          "coverage_note": "Best-effort exchange response; requested dates are not a completeness guarantee."
+        },
+        "status": "complete"
+      }
+    },
+    "prices": {
+      "status": "passed",
+      "count": 18,
+      "sessions": {
+        "BAJFINANCE": "2026-10-30",
+        "BHARTIARTL": "2026-10-30",
+        "CERA": "2026-10-30",
+        "HDFCBANK": "2026-10-30",
+        "HINDUNILVR": "2026-10-30",
+        "ICICIBANK": "2026-10-30",
+        "INFY": "2026-10-30",
+        "ITC": "2026-10-30",
+        "KPRMILL": "2026-10-30",
+        "LT": "2026-10-30",
+        "MARUTI": "2026-10-30",
+        "PERSISTENT": "2026-10-30",
+        "RELIANCE": "2026-10-30",
+        "SBIN": "2026-10-30",
+        "SUNPHARMA": "2026-10-30",
+        "TATASTEEL": "2026-10-30",
+        "TCS": "2026-10-30",
+        "WIPRO": "2026-10-30"
+      },
+      "source_urls": {
+        "BAJFINANCE": "https://finance.yahoo.com/quote/BAJFINANCE.NS/history/",
+        "BHARTIARTL": "https://finance.yahoo.com/quote/BHARTIARTL.NS/history/",
+        "CERA": "https://finance.yahoo.com/quote/CERA.NS/history/",
+        "HDFCBANK": "https://finance.yahoo.com/quote/HDFCBANK.NS/history/",
+        "HINDUNILVR": "https://finance.yahoo.com/quote/HINDUNILVR.NS/history/",
+        "ICICIBANK": "https://finance.yahoo.com/quote/ICICIBANK.NS/history/",
+        "INFY": "https://finance.yahoo.com/quote/INFY.NS/history/",
+        "ITC": "https://finance.yahoo.com/quote/ITC.NS/history/",
+        "KPRMILL": "https://finance.yahoo.com/quote/KPRMILL.NS/history/",
+        "LT": "https://finance.yahoo.com/quote/LT.NS/history/",
+        "MARUTI": "https://finance.yahoo.com/quote/MARUTI.NS/history/",
+        "PERSISTENT": "https://finance.yahoo.com/quote/PERSISTENT.NS/history/",
+        "RELIANCE": "https://finance.yahoo.com/quote/RELIANCE.NS/history/",
+        "SBIN": "https://finance.yahoo.com/quote/SBIN.NS/history/",
+        "SUNPHARMA": "https://finance.yahoo.com/quote/SUNPHARMA.NS/history/",
+        "TATASTEEL": "https://finance.yahoo.com/quote/TATASTEEL.NS/history/",
+        "TCS": "https://finance.yahoo.com/quote/TCS.NS/history/",
+        "WIPRO": "https://finance.yahoo.com/quote/WIPRO.NS/history/"
+      }
+    },
+    "digests": {
+      "24h": {
+        "count": 3,
+        "loaded": 3,
+        "has_more": false,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:19:34.498978Z",
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      },
+      "7d": {
+        "count": 40,
+        "loaded": 40,
+        "has_more": false,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:19:34.498978Z",
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      },
+      "30d": {
+        "count": 98,
+        "loaded": 98,
+        "has_more": false,
+        "coverage": {
+          "partial_coverage": true,
+          "kind": "best_effort_exchange",
+          "first_observed_at": "2026-11-01T06:06:30.401495Z",
+          "last_successful_fetch_at": "2026-11-01T06:19:34.498978Z",
+          "message": "Requested dates are not fully covered by successful fetches; missing filings may exist."
+        }
+      }
+    },
+    "thresholds": {
+      "status": "passed",
+      "real_eod_alerts": 21,
+      "duplicate_events": 0
+    },
+    "gemini": {
+      "status": "blocked",
+      "reason": "A rotated server-side key and --gemini are required. Configuration alone is not provider proof."
+    },
+    "unknown_ticker": {
+      "status": "passed",
+      "http_status": 404
+    }
+  },
+  "limits": [
+    "A push-service acceptance is not proof of device display.",
+    "Physical-device, incognito hosted login and hosting restart tests require the actual target environment."
+  ],
+  "target": {
+    "backend": "http://127.0.0.1:8001",
+    "frontend": null,
+    "disposable_threshold_check": true
+  }
+}

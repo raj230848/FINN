@@ -73,6 +73,8 @@ export function ResearchWorkspace({
   const requestVersion = useRef(0);
   const company = companies.find((c) => c.ticker === ticker);
   const activeTicker = useRef(ticker);
+  const quarterRequest = useRef(0);
+  const targetCount = new Set(guidance.map(g=>g.target_period)).size;
   activeTicker.current = ticker;
 
   useEffect(() => {
@@ -82,6 +84,7 @@ export function ResearchWorkspace({
   useEffect(() => setTab(initialTab), [initialTab]);
   useEffect(() => {
     let cancelled = false;
+    quarterRequest.current++;
     setAnswer(null);
     setCandidates([]);
     setError("");
@@ -116,6 +119,17 @@ export function ResearchWorkspace({
       requestVersion.current++;
     };
   }, [ticker, generation]);
+
+  async function chooseQuarter(period: string) {
+    const version=++quarterRequest.current;
+    const issuer=ticker;
+    setBusy("quarter");setError("");
+    try {
+      const result=await api<Financials>(`/companies/${ticker}/financials?period=${encodeURIComponent(period)}`);
+      if(version===quarterRequest.current && issuer===activeTicker.current)setFinancials(result);
+    } catch(e){if(version===quarterRequest.current)setError((e as Error).message);}
+    finally{if(version===quarterRequest.current)setBusy("");}
+  }
 
   async function discover() {
     const symbol = search.trim().toUpperCase().replace(/\.NS$/, "");
@@ -492,6 +506,13 @@ export function ResearchWorkspace({
                 {financials.basis} · Historical, reviewed source figures.
                 Percentages calculated in Python.
               </p>
+              {!!financials.periods?.length && <label className="quarter-select">Reviewed quarter
+                <select aria-label="Reviewed quarter" value={financials.current_period} disabled={busy==="quarter"} onChange={e=>void chooseQuarter(e.target.value)}>
+                  {financials.periods.map(period=><option key={period} value={period}>{period}</option>)}
+                </select>
+                <small>{financials.periods.length} reviewed quarters · fiscal-year ending year</small>
+              </label>}
+              {!!financials.review_flags?.length && <aside className="review-flags" aria-label="Accounting review notes"><b>Read these numbers in context</b>{financials.review_flags.map(flag=><p key={flag}>{flag}</p>)}</aside>}
               <div className="phone-financials">
                 {financials.rows.map((r) => (
                   <article key={r.metric}>
@@ -632,20 +653,18 @@ export function ResearchWorkspace({
             <>
               <div className="guidance-outcome">
                 <div>
-                  <span>ACTUAL {guidance[0].target_period} RESULT</span>
+                  <span>{targetCount===1?`ACTUAL ${guidance[0].target_period} RESULT`:"DISTINCT TARGET PERIODS"}</span>
                   <strong>
-                    {guidance[0].actual.toFixed(1)}
-                    <small>%</small>
+                    {targetCount===1 ? (guidance[0].actual===null?"Pending":guidance[0].actual.toFixed(1)) : targetCount}
+                    <small>{targetCount===1?"%":"targets"}</small>
                   </strong>
                   <p>{guidance[0].metric}</p>
                 </div>
                 <div className="guidance-outcome-copy">
                   <ShieldCheck size={22} />
-                  <h3>One year. Four revisions. A complete picture.</h3>
+                  <h3>{targetCount===1?"One target. Every revision.":"Each quarter has its own outcome."}</h3>
                   <p>
-                    Read each revision in context. Guidance narrowed during the
-                    year; the final outcome can exceed the original range and
-                    miss the latest one.
+                    {targetCount===1?"Read each revision in context. All revisions refer to one target period; the same final outcome can exceed an early range and miss a later one.":"Only the same metric, period and currency basis are compared. Future guidance remains pending until its outcome is reported."}
                   </p>
                 </div>
               </div>
@@ -656,6 +675,7 @@ export function ResearchWorkspace({
                     <div className="guidance-revision">
                       <b>{g.revision}</b>
                       <span>{g.statement_date}</span>
+                      <small>Target: {g.target_period}</small>
                     </div>
                     <div className="guidance-range">
                       <span>GUIDANCE</span>
@@ -665,12 +685,13 @@ export function ResearchWorkspace({
                       <div className="guidance-track">
                         <i
                           style={{
-                            left: `${(g.low / 6) * 100}%`,
-                            width: `${Math.max(((g.high - g.low) / 6) * 100, 2)}%`,
+                            left: `${((g.low-Math.min(g.low,g.actual??0,0)+0.5)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100}%`,
+                            width: `${Math.max(((g.high-g.low)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100,2)}%`,
                           }}
                         />
-                        <em style={{ left: `${(g.actual / 6) * 100}%` }} />
+                        {g.actual!==null && <em style={{left:`${((g.actual-Math.min(g.low,g.actual,0)+0.5)/(Math.max(g.high,g.actual,0)-Math.min(g.low,g.actual,0)+1))*100}%`}} />}
                       </div>
+                      <small>{g.actual===null?"Actual: pending":`Actual: ${g.actual.toFixed(1)}%`}</small>
                     </div>
                     <div className="guidance-status">
                       <span className={`outcome ${g.status}`}>
@@ -684,8 +705,7 @@ export function ResearchWorkspace({
                         {label(g.status)}
                       </span>
                       <small>
-                        {g.deviation_pp > 0 ? "+" : ""}
-                        {g.deviation_pp.toFixed(1)} pp from range
+                        {g.deviation_pp===null?"Awaiting reported outcome":`${g.deviation_pp>0?"+":""}${g.deviation_pp.toFixed(1)} pp from range`}
                       </small>
                     </div>
                     <details className="guidance-evidence">
@@ -693,22 +713,23 @@ export function ResearchWorkspace({
                         <Link2 size={14} /> Evidence
                       </summary>
                       <p>{g.statement}</p>
+                      {g.basis&&<p>Basis: {g.basis}</p>}
                       <a
                         href={`${g.guidance_url}#page=${g.guidance_page}`}
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Original call · p. {g.guidance_page}
+                        Original guidance · p. {g.guidance_page}
                         <ExternalLink size={12} />
                       </a>
-                      <a
+                      {g.actual_url && <a
                         href={`${g.actual_url}#page=${g.actual_page}`}
                         target="_blank"
                         rel="noreferrer"
                       >
                         Reported result · p. {g.actual_page}
                         <ExternalLink size={12} />
-                      </a>
+                      </a>}
                     </details>
                   </div>
                 ))}

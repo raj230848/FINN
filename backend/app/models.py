@@ -140,6 +140,25 @@ class IngestionCoverage(Base):
     end_at: Mapped[datetime] = mapped_column(DateTime)
     completed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
+class PushRecipient(Base):
+    __tablename__ = 'push_recipients'
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    subscription: Mapped[dict] = mapped_column(JSON)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    enabled_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+class PushDelivery(Base):
+    __tablename__ = 'push_deliveries'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    recipient_id: Mapped[str] = mapped_column(ForeignKey('push_recipients.id'), index=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey('signal_events.id'), index=True)
+    state: Mapped[str] = mapped_column(String(20), default='pending')
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    __table_args__ = (UniqueConstraint('recipient_id','event_id'),)
+
 class SyncRun(Base):
     __tablename__ = 'sync_runs'
     id: Mapped[int] = mapped_column(primary_key=True)

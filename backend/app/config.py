@@ -14,5 +14,8 @@ class Settings(BaseSettings):
     sync_interval_minutes: int = 60
     filing_lookback_days: int = 7
     public_deployment: bool = False
+    vapid_private_key: str = ''
+    vapid_public_key: str = ''
+    vapid_subject: str = ''
 
 settings = Settings()

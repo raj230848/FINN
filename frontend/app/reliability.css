@@ -232,6 +232,15 @@
   font-size: 13px;
   color: #ceb4e2;
 }
+.browser-push-settings {padding:16px;border:1px solid #41314e;background:#18131f;border-radius:15px;margin:14px 0 20px;}
+.browser-push-settings p {font-size:12px;line-height:1.6;color:#b7a8c4;}
+.browser-push-settings button {margin-top:8px;min-height:44px;}
+.quarter-select {display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0;color:#d5c7e4;}
+.quarter-select select {background:#17121e;border:1px solid #604177;border-radius:10px;padding:10px;color:#f7efff;font:inherit;min-height:44px;}
+.review-flags {border-left:3px solid #e7bd68;padding:10px 14px;background:#211c12;color:#ead9b6;margin:16px 0;font-size:13px;line-height:1.6;}
+.review-flags p {margin:6px 0;}
+.filing-context {padding:14px;border-radius:12px;border:1px solid #4d385c;background:#1c1526;margin-top:12px;font-size:13px;line-height:1.6;}
+.coverage-notice small {display:block;margin-top:6px;}
 .access-gate input {
   font-size: 16px;
   min-height: 48px;

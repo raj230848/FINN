@@ -178,3 +178,9 @@ The interface uses a black canvas with violet, cyan, lime and pink accents. Char
 ## Roadmap implementation
 
 The [implementation record](docs/roadmap-implementation.md) covers Gemini, additive database migration, attachment-aware deduplication, durable notification history, filing coverage/pagination, TCS financial comparisons and hosted access controls. Use the bell to read important filing and threshold events; read state survives recalculation. Coverage describes successful fetch windows and does not guarantee an exhaustive exchange archive.
+
+## Remaining-plan delivery
+
+Start with [START_HERE.md](START_HERE.md) and the [item-by-item audit](docs/remaining-plan-audit.md). This update adds optional [Web Push](docs/browser-push.md), complete notification-history paging, explicit observation/coverage metadata and a 30-day backfill action. WIPRO has five reviewed IFRS quarters with accounting notes and a quarter selector, three completed distinct guidance targets and one pending outcome. Research now filters explicit fiscal periods and applies a separate model support review after citation/numeric checks.
+
+Live Yahoo/NSE and unseen-POLYCAB verification reports are included. `scripts/verify_release.py` reruns acceptance checks and explicitly reports missing model configuration; `scripts/export_build_history.py` exports real saved chat messages into a private submission attachment. The supplied ZIP includes that redacted export. Full Python hosting, real Gemini authentication and physical push/device verification remain external acceptance steps.

@@ -85,6 +85,7 @@ def seed(db):
         for row in data.get('financials',[]):
             if not db.scalar(select(Financial.id).where(Financial.ticker==row['ticker'],Financial.period==row['period'],Financial.mode=='sourced')):
                 db.add(Financial(mode='sourced',**row))
-        if not db.scalar(select(Guidance.id).limit(1)):
-            db.add_all([Guidance(ticker=row['ticker'],data=row) for row in data.get('guidance',[])])
+        for row in data.get('guidance',[]):
+            if not any(g.data.get('statement_date')==row['statement_date'] and g.data.get('target_period')==row['target_period'] and g.data.get('metric')==row['metric'] for g in db.scalars(select(Guidance).where(Guidance.ticker==row['ticker']))):
+                db.add(Guidance(ticker=row['ticker'],data=row))
     db.commit()

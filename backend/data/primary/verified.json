@@ -84,6 +84,94 @@
       },
       "source_url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q3-fy-2025",
       "page": 1
+    },
+    {
+      "ticker": "WIPRO",
+      "period": "2026-Q2",
+      "basis": "Consolidated IFRS; PAT includes non-controlling interests",
+      "currency": "INR million",
+      "metrics": {
+        "ebitda": null,
+        "revenue": 226973,
+        "pbt": 42824,
+        "pat": 32624,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      },
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q2fy26/consolidated-financial-statement-q2fy26.pdf",
+      "page": 3
+    },
+    {
+      "ticker": "WIPRO",
+      "period": "2026-Q3",
+      "basis": "Consolidated IFRS; PAT includes non-controlling interests",
+      "currency": "INR million",
+      "metrics": {
+        "ebitda": null,
+        "revenue": 235558,
+        "pbt": 41339,
+        "pat": 31450,
+        "_review_flags": [
+          "Reported group PAT includes non-controlling interests; it differs from owners-only net income in the press release.",
+          "Labour Code past-service cost of INR 3,028 million is included; see note 31, page 35. No adjusted PAT is substituted.",
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      },
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q3fy26/consolidated-financial-statement-q3fy26.pdf",
+      "page": 3
+    },
+    {
+      "ticker": "WIPRO",
+      "period": "2026-Q4",
+      "basis": "Consolidated IFRS; PAT includes non-controlling interests",
+      "currency": "INR million",
+      "metrics": {
+        "ebitda": null,
+        "revenue": 242363,
+        "pbt": 46676,
+        "pat": 35216,
+        "_review_flags": [
+          "Labour Code remeasurement benefit of INR 272 million in this quarter; see page 25. No adjusted PAT is substituted.",
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      },
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q4fy26/consolidated-financial-statement-q4fy26.pdf",
+      "page": 3
+    },
+    {
+      "ticker": "WIPRO",
+      "period": "2027-Q1",
+      "basis": "Consolidated IFRS; PAT includes non-controlling interests",
+      "currency": "INR million",
+      "metrics": {
+        "ebitda": null,
+        "revenue": 244786,
+        "pbt": 43345,
+        "pat": 33563,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      },
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q1fy27/consolidated-financial-statement-q1fy27.pdf",
+      "page": 3
+    },
+    {
+      "ticker": "WIPRO",
+      "period": "2027-Q2",
+      "basis": "Consolidated IFRS; PAT includes non-controlling interests",
+      "currency": "INR million",
+      "metrics": {
+        "ebitda": null,
+        "revenue": 247527,
+        "pbt": 42047,
+        "pat": 31997,
+        "_review_flags": [
+          "EBITDA has not been reviewed; operating profit is not substituted."
+        ]
+      },
+      "source_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q2fy27/consolidated-financial-statement-q2fy27.pdf",
+      "page": 3
     }
   ],
   "guidance": [
@@ -150,6 +238,90 @@
       "guidance_page": 4,
       "actual_url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf",
       "actual_page": 1
+    },
+    {
+      "ticker": "WIPRO",
+      "revision": "Quarterly outlook",
+      "statement_date": "2026-01-16",
+      "target_period": "2026-Q4",
+      "metric": "IT Services sequential revenue growth in constant currency",
+      "unit": "percent",
+      "basis": "IT Services segment; non-GAAP constant currency",
+      "low": 0,
+      "high": 2,
+      "actual": 0.2,
+      "actual_period": "2026-Q4",
+      "actual_metric": "IT Services sequential revenue growth in constant currency",
+      "actual_unit": "percent",
+      "actual_basis": "IT Services segment; non-GAAP constant currency",
+      "statement": "Wipro guided for 0% to 2% sequential IT Services growth in constant currency for 2026-Q4. This is a paraphrase; read the original outlook.",
+      "guidance_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q3fy26/press-release-q3fy26.pdf",
+      "guidance_page": 1,
+      "actual_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q4fy26/press-release-q4fy26.pdf",
+      "actual_page": 1
+    },
+    {
+      "ticker": "WIPRO",
+      "revision": "Quarterly outlook",
+      "statement_date": "2026-04-16",
+      "target_period": "2027-Q1",
+      "metric": "IT Services sequential revenue growth in constant currency",
+      "unit": "percent",
+      "basis": "IT Services segment; non-GAAP constant currency",
+      "low": -2,
+      "high": 0,
+      "actual": -1.2,
+      "actual_period": "2027-Q1",
+      "actual_metric": "IT Services sequential revenue growth in constant currency",
+      "actual_unit": "percent",
+      "actual_basis": "IT Services segment; non-GAAP constant currency",
+      "statement": "Wipro guided for -2% to 0% sequential IT Services growth in constant currency for 2027-Q1. This is a paraphrase; read the original outlook.",
+      "guidance_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2025-2026/q4fy26/press-release-q4fy26.pdf",
+      "guidance_page": 2,
+      "actual_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q1fy27/press-release-q1fy27.pdf",
+      "actual_page": 1
+    },
+    {
+      "ticker": "WIPRO",
+      "revision": "Quarterly outlook",
+      "statement_date": "2026-07-16",
+      "target_period": "2027-Q2",
+      "metric": "IT Services sequential revenue growth in constant currency",
+      "unit": "percent",
+      "basis": "IT Services segment; non-GAAP constant currency",
+      "low": -1.5,
+      "high": 0.5,
+      "actual": 0.0,
+      "actual_period": "2027-Q2",
+      "actual_metric": "IT Services sequential revenue growth in constant currency",
+      "actual_unit": "percent",
+      "actual_basis": "IT Services segment; non-GAAP constant currency",
+      "statement": "Wipro guided for -1.5% to 0.5% sequential IT Services growth in constant currency for 2027-Q2. This is a paraphrase; read the original outlook.",
+      "guidance_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q1fy27/press-release-q1fy27.pdf",
+      "guidance_page": 1,
+      "actual_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q2fy27/press-release-q2fy27.pdf",
+      "actual_page": 1
+    },
+    {
+      "ticker": "WIPRO",
+      "revision": "Quarterly outlook",
+      "statement_date": "2026-10-15",
+      "target_period": "2027-Q3",
+      "metric": "IT Services sequential revenue growth in constant currency",
+      "unit": "percent",
+      "basis": "IT Services segment; non-GAAP constant currency",
+      "low": -1.5,
+      "high": 0.5,
+      "actual": null,
+      "actual_period": "2027-Q3",
+      "actual_metric": "IT Services sequential revenue growth in constant currency",
+      "actual_unit": "percent",
+      "actual_basis": "IT Services segment; non-GAAP constant currency",
+      "statement": "Wipro guided for -1.5% to 0.5% sequential IT Services growth in constant currency for 2027-Q3. This is a paraphrase; read the original outlook.",
+      "guidance_url": "https://www.wipro.com/content/dam/nexus/en/investor/quarterly-results/2026-2027/q2fy27/press-release-q2fy27.pdf",
+      "guidance_page": 1,
+      "actual_url": null,
+      "actual_page": null
     }
   ]
 }
