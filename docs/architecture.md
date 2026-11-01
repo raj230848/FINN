@@ -52,6 +52,7 @@ The journey is digest → reason → original filing → company research → pa
 - `guidance`: reviewed original range, metric/currency basis, target period and two source references.
 - `research_cache`: deterministic content-sensitive key and validated result.
 - `sync_runs`: time-stamped partial successes and failures, not a single misleading healthy flag.
+- Startup marks unfinished sync runs `interrupted`, retains partial results and saved source data, and allows a new refresh. The one-worker prototype does not silently claim background jobs resumed after a process restart.
 - Notification events retain read history independently of current alert recalculation. Push recipients and an idempotent durable outbox support optional VAPID-backed browser delivery; real device delivery is a separate acceptance check.
 
 Composite mode/date/score indexing supports digest windows. Company and document foreign-key indexes support research. SQLite WAL allows reads during ingestion. Use one backend worker; scheduling/concurrency locks are process-local. PostgreSQL requires a driver and migrations plus a distributed job lock before multiple workers. Changing the connection URL alone is not a complete production migration.
@@ -63,6 +64,7 @@ OpenAPI and interactive request schemas are available at `http://127.0.0.1:8000/
 | Endpoint | Purpose |
 | --- | --- |
 | `GET /api/health` | Version, model/scheduler flags, fixed demo clock |
+| `GET /api/operations` | Protected source freshness, last sync, bounded process metrics and push outbox counts |
 | `GET /api/companies?q=` | Persisted company search |
 | `PATCH /api/companies/{ticker}` | Add/remove an indexed company from the watchlist |
 | `GET /api/dashboard?mode=demo|sourced` | Stats, company histories, freshness, refresh status |
@@ -78,3 +80,5 @@ OpenAPI and interactive request schemas are available at `http://127.0.0.1:8000/
 | `GET /api/companies/{ticker}/guidance` | Same-period guidance versus reported actuals |
 
 The frontend proxy reads `BACKEND_URL` and the shared backend token on the server. In public mode, a separate access code establishes an eight-hour signed HttpOnly/SameSite=Strict session; mutation requests require a matching browser origin. Session JSON is limited to 2,048 bytes, failed sign-ins are throttled and backend rate-limit responses retain Retry-After. This protects one shared desk, without per-user data isolation. The complete tested endpoint inventory, including notification, context and push routes, is in [comprehensive-audit.md](comprehensive-audit.md).
+
+The later verification-gap update adds an explicit trusted public origin (`FINN_PUBLIC_ORIGIN`, with Render's external URL as fallback) for proxy-terminated HTTPS origin checks and Secure cookies. A public minimal frontend `GET /api/ready` checks backend readiness without exposing desk data or credentials. The root container supervisor binds Python to loopback and exposes only Next.js. See [verification-gap-resolution.md](verification-gap-resolution.md) for current 25-operation/248-test evidence; the earlier full audit is retained as history.

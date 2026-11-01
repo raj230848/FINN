@@ -16,4 +16,6 @@ The durable outbox uses atomic claims, bounded retries and sanitized status code
 
 Controlled sender tests passed; a real opt-in and device display have not been verified in this environment. No notification permission is requested automatically on page load.
 
+The verification-gap update generated a VAPID pair only in the private local `.env`; none is distributed. A production host needs those values in its own secrets. The browser now checks the subscription's application-server key before reusing it: a changed key unsubscribes the old subscription before a new user-initiated subscription is created, and a failed removal stops the replacement. After deliberate VAPID rotation, disable and re-enable browser alerts on each device. A denied permission explains the browser-settings recovery path. These code/controlled-test results do not establish real service-worker delivery on a phone.
+
 References: [pywebpush](https://github.com/web-push-libs/pywebpush), [browser subscription API](https://developer.mozilla.org/en-US/docs/Web/API/PushManager/subscribe).

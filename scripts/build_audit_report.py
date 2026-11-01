@@ -65,6 +65,8 @@ def main():
         source_paths.extend(p for p in (ROOT / folder).rglob('*') if p.is_file() and p.suffix in {'.py', '.ts', '.tsx', '.css', '.json', '.js', '.svg', '.webmanifest'} and '__pycache__' not in p.parts)
     for path in sorted(source_paths, key=lambda p: p.relative_to(ROOT).as_posix()):
         current_digest.update(path.relative_to(ROOT).as_posix().encode() + b'\0' + path.read_bytes().replace(b'\r\n', b'\n') + b'\0')
+    if current_digest.hexdigest()!=security['implementation_sha256']:
+        raise SystemExit('The original audit evidence belongs to an earlier implementation. Preserve it as history; use build_gap_report.py for the verification-gap release rather than relabelling old measurements.')
     security.update(application_files_hashed=len(source_paths), implementation_sha256=current_digest.hexdigest(), hash_convention='Sorted relative POSIX path + NUL + CRLF-normalized file bytes + NUL; application source roots only.')
     (EVIDENCE / 'security.json').write_text(json.dumps(security, indent=2) + '\n', encoding='utf-8')
     totals = coverage['totals']

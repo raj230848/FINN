@@ -1,0 +1,15 @@
+{
+  "status": "not_verified",
+  "checked_at": null,
+  "actual_frontend_url": null,
+  "device_os_browser": null,
+  "installed_pwa": null,
+  "login_reload_renew_logout": null,
+  "touch_scroll_source_links": null,
+  "sourced_refresh_and_new_issuer": null,
+  "slow_network_recovery": null,
+  "push_provider_accepted_at": null,
+  "notification_seen_on_device_at": null,
+  "permission_rotation_and_opt_out": null,
+  "evidence_notes": "Complete only after observing the actual physical device; browser emulation and a push-provider 2xx are insufficient."
+}

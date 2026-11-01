@@ -120,7 +120,9 @@ Financial arithmetic, scoring, thresholds, deduplication and guidance-range asse
 
 ## Verification
 
-The latest [full implementation and integration audit](docs/comprehensive-audit.md) records **227 passing backend tests**, **6 passing frontend tests**, all **24 backend business operations**, **18 protected frontend HTTP checks**, and **4 genuine Gemini calls across all three LLM call sites**. All 18 watched Yahoo feeds and the NSE adapter worked in the live QA run. Real push delivery, public Python hosting and physical-device acceptance remain unverified. Machine-readable evidence is in [docs/comprehensive-audit.json](docs/comprehensive-audit.json).
+The [verification-gap update](docs/verification-gap-resolution.md) adds single-origin full-stack hosting, restart recovery, operational visibility and hosting/push hardening. The current suite passes **248 backend tests** and **11 frontend tests**; actual local process tests verify persistence and two-session proxy outage/recovery. Public hosting, physical-device delivery and credential rotation remain separate acceptance gates. See [the hosted/device runbook](docs/hosted-acceptance.md).
+
+The earlier [full implementation and integration audit](docs/comprehensive-audit.md) records the previous 227-test source revision, all original 24 backend business operations, 18 protected frontend HTTP checks, and four genuine Gemini calls across all three LLM call sites. All 18 watched Yahoo feeds and the NSE adapter worked in that live QA run. These are historical measurements; they are not relabelled as deployed-host results. Raw evidence for both revisions is included in the updated ZIP.
 
 From the project root:
 

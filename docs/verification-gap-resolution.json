@@ -1,0 +1,952 @@
+{
+  "title": "FINN - Verification Gap Resolution",
+  "generated_at": "2026-11-01T16:09:25.086604+00:00",
+  "reviewed_document": "FINN_Verification_Gaps_and_Required_Changes_2026-11-01.pdf (6 pages)",
+  "implementation_commit": "8407d083a048bcfdce1870c81351f2b570790818",
+  "security": {
+    "implementation_sha256": "ca9ebcb79f22b43298872b819a6e0d08c873fee3622f77e3089e4dac857da827",
+    "application_files_hashed": 51,
+    "hash_convention": "Sorted relative POSIX path + NUL + CRLF-normalized bytes + NUL; application roots only.",
+    "exact_secret_matches": 0,
+    "env_ignored": true
+  },
+  "summary": {
+    "backend_tests_passed": 248,
+    "frontend_tests_passed": 11,
+    "backend_operations_controlled": 25,
+    "local_restart_checks_passed": 7,
+    "local_resilience_checks_passed": 9,
+    "container_checks_passed": 35,
+    "container_operations_exercised": 20,
+    "container_operations_not_verified": 5,
+    "statement_coverage_percent": 91.74372523117569,
+    "branch_coverage_percent": 79.24107142857143,
+    "production_build": "passed locally and in CI",
+    "typecheck": "passed locally and in CI",
+    "public_full_stack_deployed": false,
+    "physical_device_verified": false,
+    "post_rotation_gemini_verified": false,
+    "real_push_display_verified": false
+  },
+  "gap_matrix": [
+    {
+      "item": "P0.1 / public stack",
+      "status": "Code + container verified; public host pending",
+      "resolution": "Root Dockerfile/Render Blueprint host both services on one origin, persistent disk and one worker. Backend is loopback-only. Real host account/URL not provided."
+    },
+    {
+      "item": "P0.2 / deployed operations",
+      "status": "Checker + CI verified; target HTTPS pending",
+      "resolution": "Same-origin sign-in, cookie flags, schema fields, saved side effects, renewal/logout and 25-operation inventory. CI: 35 checks pass; 20 operations exercised; 5 explicitly not verified."
+    },
+    {
+      "item": "P0.3 / actual phone",
+      "status": "Browser checks pass; physical device pending",
+      "resolution": "New panel checked at 360px/390px without horizontal overflow. Physical Android/iOS, slow network and installed PWA runbook/template supplied."
+    },
+    {
+      "item": "P0.4 / key rotation",
+      "status": "Account-owner action pending",
+      "resolution": "Exposed-key rotation is not confirmed. Current secret remains private. Earlier four real Gemini calls remain historical evidence; no post-rotation call is claimed."
+    },
+    {
+      "item": "P0.5 / submission",
+      "status": "Package/repo/draft ready; final details pending",
+      "resolution": "Matching full ZIP, manifest/checksum, raw evidence and actual redacted visible-chat export. Actual hosted URL, owner/contact and email submission remain unfinished. No email sent."
+    },
+    {
+      "item": "P1 / browser push",
+      "status": "Private local setup + code tests; device pending",
+      "resolution": "VAPID pair generated privately; public-key configuration available locally. Key mismatch replaces an old subscription only on user opt-in; failed unsubscribe stops replacement. Permission-denial recovery text added."
+    },
+    {
+      "item": "P1 / durability",
+      "status": "Local processes + CI volume verified",
+      "resolution": "Seven real SQLite restart checks pass. Unfinished jobs become interrupted with partial data retained. CI container restart retains saved preference. Target-host disk test still required."
+    },
+    {
+      "item": "P1 / monitoring",
+      "status": "Implemented and tested",
+      "resolution": "Protected operations endpoint and mobile status panel: source age/session/coverage, last sync, bounded model latency/token/outcome metadata, auth/rate counters, push outbox counts. Counters reset per process."
+    },
+    {
+      "item": "P1 / security",
+      "status": "Code/controlled/local checks; target-host pending",
+      "resolution": "Trusted public origin for TLS-terminating proxy and Secure cookie selection; readiness returns no desk/internal data. Existing SSRF/resource/origin/rate guards retained. Public HTTPS/egress/load acceptance remains."
+    },
+    {
+      "item": "P2 / broader accounting",
+      "status": "Deferred scoped enhancement",
+      "resolution": "Keep 11 reviewed financial rows, explicit units/PAT bases and unavailable EBITDA. No unreviewed general extraction or invented metrics added."
+    },
+    {
+      "item": "P2 / broad classifier score",
+      "status": "Not claimed",
+      "resolution": "Existing synthetic integration checks and deterministic regression cases retained; no expert-adjudicated precision/recall dataset or broad accuracy claim."
+    },
+    {
+      "item": "P2 / parser scale",
+      "status": "Existing limits retained; more hardening future",
+      "resolution": "Bounded downloads/pages, unsupported PDF failure and private-address/redirect checks remain tested. No new OCR, parser sandbox or large-volume guarantee claimed."
+    }
+  ],
+  "api_inventory": [
+    {
+      "method": "GET",
+      "path": "/api/alerts",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/announcements",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/announcements/{filing_id}/context",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/companies",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/companies/{ticker}/documents",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/companies/{ticker}/financials",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/companies/{ticker}/guidance",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/operations",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/preferences",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/push/config",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/push/status",
+      "status": "passed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sync/{run_id}",
+      "status": "not_verified"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/companies/{ticker}",
+      "status": "passed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/companies/{ticker}/discover",
+      "status": "not_verified"
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents",
+      "status": "not_verified"
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/read-all",
+      "status": "passed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/{event_id}/read",
+      "status": "passed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/push/subscribe",
+      "status": "not_verified"
+    },
+    {
+      "method": "POST",
+      "path": "/api/push/unsubscribe",
+      "status": "passed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/research",
+      "status": "passed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sync",
+      "status": "not_verified"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/preferences",
+      "status": "passed"
+    }
+  ],
+  "local_restart": {
+    "checked_at": "2026-11-01T15:45:24.611934+00:00",
+    "scope": "actual local process stop/start; isolated SQLite database; not a host-disk acceptance test",
+    "checks": {
+      "preference_retained": true,
+      "watchlist_retained": true,
+      "read_state_retained": true,
+      "documents_and_chunks_retained": true,
+      "partial_refresh_marked_interrupted": true,
+      "completed_sync_retained": true,
+      "sqlite_wal_enabled": true
+    },
+    "row_counts_before": {
+      "companies": 18,
+      "documents": 11,
+      "chunks": 3071,
+      "signal_events": 10
+    },
+    "row_counts_after": {
+      "companies": 18,
+      "documents": 11,
+      "chunks": 3071,
+      "signal_events": 10
+    },
+    "passed": true,
+    "external_provider_calls": 0
+  },
+  "local_resilience": {
+    "checked_at": "2026-11-01T15:53:00.395510+00:00",
+    "scope": "actual local production Next.js proxy, two independent HTTP cookie jars and real FastAPI process stop/start; no public HTTPS or physical-device claim",
+    "checks": {
+      "not_ready_without_backend": true,
+      "backend_outage_recovers_cleanly": true,
+      "ready_after_backend_start": true,
+      "existing_session_survives_outage": true,
+      "two_active_sessions": true,
+      "logout_is_device_local": true,
+      "readiness_detects_lost_backend": true,
+      "proxy_reports_lost_backend": true,
+      "same_session_recovers_after_restart": true
+    },
+    "passed": true,
+    "external_provider_calls": 0
+  },
+  "ci": {
+    "implementation_commit": "8407d083a048bcfdce1870c81351f2b570790818",
+    "run_id": 41323904107,
+    "url": "https://github.com/raj230848/FINN/actions/runs/41323904107",
+    "jobs": {
+      "backend": "success",
+      "frontend": "success",
+      "full-stack-container": "success"
+    },
+    "container_acceptance": {
+      "checks_passed": 35,
+      "checks_failed": 0,
+      "business_operations": 25,
+      "operations_not_verified": 5
+    },
+    "docker_build": true,
+    "container_readiness": true,
+    "protected_frontend_acceptance": true,
+    "restart_persisted_marker": 6.75,
+    "artifact_id": 13090377923,
+    "source": "GitHub connector job steps and container-job logs; no paid provider or push calls"
+  },
+  "container_acceptance": {
+    "checked_at": "2026-11-01T15:59:59.511958+00:00",
+    "frontend_origin": "http://127.0.0.1:8080",
+    "isolated_qa_acknowledged": true,
+    "checks": [
+      {
+        "scenario": "frontend loads",
+        "method": "GET",
+        "path": "/",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "public readiness",
+        "method": "GET",
+        "path": "/api/ready",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "anonymous desk blocked",
+        "method": "GET",
+        "path": "/api/companies",
+        "expected": 401,
+        "http_status": 401,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "HTTPS-aware sign-in",
+        "method": "POST",
+        "path": "/api/session",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed",
+        "http_only": true,
+        "same_site_strict": true,
+        "secure": false
+      },
+      {
+        "scenario": "/api/companies",
+        "method": "GET",
+        "path": "/api/companies",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/health",
+        "method": "GET",
+        "path": "/api/health",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/dashboard?mode=sourced",
+        "method": "GET",
+        "path": "/api/dashboard",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/operations",
+        "method": "GET",
+        "path": "/api/operations",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/announcements?mode=demo&window=7d",
+        "method": "GET",
+        "path": "/api/announcements",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/alerts?mode=sourced",
+        "method": "GET",
+        "path": "/api/alerts",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications?mode=demo",
+        "method": "GET",
+        "path": "/api/notifications",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/preferences",
+        "method": "GET",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/config",
+        "method": "GET",
+        "path": "/api/push/config",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/status?device_id=qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+        "method": "GET",
+        "path": "/api/push/status",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/documents",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/documents",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/financials",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/financials",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/guidance",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/guidance",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/announcements/1/context",
+        "method": "GET",
+        "path": "/api/announcements/{filing_id}/context",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/preferences",
+        "method": "PUT",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "preference side effect persists",
+        "method": "GET",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "preference persisted value",
+        "status": "passed"
+      },
+      {
+        "scenario": "restore QA preferences",
+        "method": "PUT",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY",
+        "method": "PATCH",
+        "path": "/api/companies/{ticker}",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "watchlist value persists",
+        "method": "GET",
+        "path": "/api/companies",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "watchlist side effect",
+        "status": "passed"
+      },
+      {
+        "scenario": "restore QA watchlist",
+        "method": "PATCH",
+        "path": "/api/companies/INFY",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications/10/read",
+        "method": "POST",
+        "path": "/api/notifications/{event_id}/read",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications/read-all?mode=demo",
+        "method": "POST",
+        "path": "/api/notifications/read-all",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "read state persists",
+        "method": "GET",
+        "path": "/api/notifications",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "read-all persisted value",
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/unsubscribe",
+        "method": "POST",
+        "path": "/api/push/unsubscribe",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/research",
+        "method": "POST",
+        "path": "/api/research",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "session renewal",
+        "method": "POST",
+        "path": "/api/session",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed",
+        "http_only": true,
+        "same_site_strict": true,
+        "secure": false
+      },
+      {
+        "scenario": "logout",
+        "method": "DELETE",
+        "path": "/api/session",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "logout removes access",
+        "method": "GET",
+        "path": "/api/companies",
+        "expected": 401,
+        "http_status": 401,
+        "schema_valid": true,
+        "status": "passed"
+      }
+    ],
+    "operations": [
+      {
+        "scenario": "/api/companies",
+        "method": "GET",
+        "path": "/api/companies",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/health",
+        "method": "GET",
+        "path": "/api/health",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/dashboard?mode=sourced",
+        "method": "GET",
+        "path": "/api/dashboard",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/operations",
+        "method": "GET",
+        "path": "/api/operations",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/announcements?mode=demo&window=7d",
+        "method": "GET",
+        "path": "/api/announcements",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/alerts?mode=sourced",
+        "method": "GET",
+        "path": "/api/alerts",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications?mode=demo",
+        "method": "GET",
+        "path": "/api/notifications",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/preferences",
+        "method": "GET",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/config",
+        "method": "GET",
+        "path": "/api/push/config",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/status?device_id=qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+        "method": "GET",
+        "path": "/api/push/status",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/documents",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/documents",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/financials",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/financials",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY/guidance",
+        "method": "GET",
+        "path": "/api/companies/{ticker}/guidance",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/announcements/1/context",
+        "method": "GET",
+        "path": "/api/announcements/{filing_id}/context",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/preferences",
+        "method": "PUT",
+        "path": "/api/preferences",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/companies/INFY",
+        "method": "PATCH",
+        "path": "/api/companies/{ticker}",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications/10/read",
+        "method": "POST",
+        "path": "/api/notifications/{event_id}/read",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/notifications/read-all?mode=demo",
+        "method": "POST",
+        "path": "/api/notifications/read-all",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/push/unsubscribe",
+        "method": "POST",
+        "path": "/api/push/unsubscribe",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      },
+      {
+        "scenario": "/api/research",
+        "method": "POST",
+        "path": "/api/research",
+        "expected": 200,
+        "http_status": 200,
+        "schema_valid": true,
+        "status": "passed"
+      }
+    ],
+    "limits": [
+      "Physical-device display, provider semantic correctness and hosting-disk durability require separate acceptance.",
+      "Push subscribe needs an actual browser-generated subscription; this script never fabricates one."
+    ],
+    "operation_inventory": [
+      {
+        "method": "GET",
+        "path": "/api/alerts",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/announcements",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/announcements/{filing_id}/context",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies/{ticker}/documents",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies/{ticker}/financials",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/companies/{ticker}/guidance",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/dashboard",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/notifications",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/operations",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/preferences",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/push/config",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/push/status",
+        "status": "passed"
+      },
+      {
+        "method": "GET",
+        "path": "/api/sync/{run_id}",
+        "status": "not_verified"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/companies/{ticker}",
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "path": "/api/companies/{ticker}/discover",
+        "status": "not_verified"
+      },
+      {
+        "method": "POST",
+        "path": "/api/documents",
+        "status": "not_verified"
+      },
+      {
+        "method": "POST",
+        "path": "/api/notifications/read-all",
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "path": "/api/notifications/{event_id}/read",
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "path": "/api/push/subscribe",
+        "status": "not_verified"
+      },
+      {
+        "method": "POST",
+        "path": "/api/push/unsubscribe",
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "path": "/api/research",
+        "status": "passed"
+      },
+      {
+        "method": "POST",
+        "path": "/api/sync",
+        "status": "not_verified"
+      },
+      {
+        "method": "PUT",
+        "path": "/api/preferences",
+        "status": "passed"
+      }
+    ],
+    "summary": {
+      "passed": 35,
+      "failed": 0,
+      "business_operations": 25,
+      "operations_not_verified": 5
+    }
+  },
+  "mobile_browser": {
+    "scope": "browser viewport emulation; not a physical device",
+    "checks": [
+      {
+        "requested_width": 390,
+        "viewport_width": 390,
+        "document_width": 375,
+        "horizontal_overflow": false,
+        "service_status_loaded": true
+      },
+      {
+        "requested_width": 360,
+        "viewport_width": 360,
+        "document_width": 345,
+        "horizontal_overflow": false
+      }
+    ],
+    "screenshot": "mobile-service-status.png",
+    "temporary_viewport_reset": true
+  },
+  "test_groups": {
+    "backend.tests.test_announcements": 14,
+    "backend.tests.test_api": 6,
+    "backend.tests.test_calculations": 13,
+    "backend.tests.test_comprehensive_audit": 101,
+    "backend.tests.test_documents_research": 5,
+    "backend.tests.test_feed_contracts": 23,
+    "backend.tests.test_financials": 5,
+    "backend.tests.test_hosted_acceptance": 8,
+    "backend.tests.test_remaining_plan": 17,
+    "backend.tests.test_roadmap_reliability": 44,
+    "backend.tests.test_verification_gaps": 12
+  },
+  "historical_evidence": "docs/comprehensive-audit.json belongs to previous ea67269 revision; original live provider data is preserved, not re-labelled as hosted verification."
+}
