@@ -4,7 +4,7 @@ import pytest
 from app.config import settings
 from app.ingestion.http import SourceError, validate_url
 from app.models import Company, Document
-from app.schemas import AnalysisOut
+from app.schemas import AnalysisOut, SynthesisOut, SynthesisClaim
 from app.services.documents import extract_pages, store_document
 from app.services.research import research
 
@@ -38,7 +38,7 @@ def test_model_fabricated_citation_rejected(db,monkeypatch):
     from app.services import research as module
     store_document(db,db.get(Company,'INFY'),'Test financial report','FY25','results','https://www.infosys.com/test.pdf',sample_pdf())
     monkeypatch.setattr(settings,'gemini_api_key','test-key')
-    monkeypatch.setattr(module,'structured_call',lambda *args: AnalysisOut(answer='Invented claim [999999]',evidence_ids=[999999],limitations=[]))
+    monkeypatch.setattr(module,'structured_call',lambda *args: SynthesisOut(claims=[SynthesisClaim(text='Invented financial claim.',evidence_ids=[999999])]))
     result=module.research(db,'INFY','What is revenue outlook?',True)
     assert result['method']=='extractive'
     assert any('validation failed' in l for l in result['limitations'])

@@ -218,5 +218,10 @@
     "backend": "http://127.0.0.1:8001",
     "frontend": null,
     "disposable_threshold_check": true
+  },
+  "subsequent_gemini_verification": {
+    "status": "passed",
+    "report": "gemini-live-verification.json",
+    "note": "Original checks above are the earlier no-key snapshot."
   }
 }

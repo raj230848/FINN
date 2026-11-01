@@ -27,6 +27,7 @@ class ResearchIn(BaseModel):
     ticker: str
     question: str = Field(min_length=4, max_length=1200)
     use_ai: bool = True
+    refresh: bool = False
 
     @field_validator('ticker')
     @classmethod
@@ -66,6 +67,14 @@ class GroundingReviewOut(BaseModel):
     supported: bool
     unsupported_claims: list[str] = Field(default_factory=list, max_length=20)
     reason: str = Field(max_length=1200)
+
+class SynthesisClaim(BaseModel):
+    text: str = Field(min_length=10,max_length=800)
+    evidence_ids: list[int] = Field(min_length=1,max_length=6)
+
+class SynthesisOut(BaseModel):
+    claims: list[SynthesisClaim] = Field(min_length=1,max_length=8)
+    limitations: list[str] = Field(default_factory=list,max_length=8)
 
 class ClassificationOut(BaseModel):
     category: Literal['results','M&A','fund_raise','management_change','litigation','insider_trading','earnings_call','investor_meetings','credit_rating','dividend','bonus_split','capex','press_release','postal_ballot','agm_egm','pledging','unclassified']

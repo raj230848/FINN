@@ -1,0 +1,198 @@
+{
+  "checked_at": "2026-11-01T07:21:54.178910+00:00",
+  "model": "gemini-3.5-flash-lite",
+  "credential_source": "Earlier user-provided PDF, explicitly authorized for this test",
+  "credential_excluded": true,
+  "basic_google_probe": {
+    "key_configured": true,
+    "model": "gemini-3.5-flash-lite",
+    "working": true,
+    "http_status": 200,
+    "tokens": 9,
+    "result": "Google accepted the request and returned a model response."
+  },
+  "successful_fresh_backend_research": [
+    {
+      "question": "What FY25 growth guidance did management provide?",
+      "method": "grounded_ai",
+      "cached": false,
+      "grounding": "claim_support_review",
+      "citations": [
+        {
+          "id": 150,
+          "page": 7,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf#page=7"
+        },
+        {
+          "id": 1,
+          "page": 1,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf#page=1"
+        },
+        {
+          "id": 3051,
+          "page": 1,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf#page=1"
+        },
+        {
+          "id": 91,
+          "page": 5,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=5"
+        },
+        {
+          "id": 135,
+          "page": 25,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=25"
+        },
+        {
+          "id": 38,
+          "page": 7,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf#page=7"
+        }
+      ],
+      "answer": "For FY25, Infosys initially provided an expected revenue growth guidance of 1% to 3% in constant currency terms and an operating margin guidance of 20% to 22% [38].\n\nFollowing Q1 FY25, management revised the FY25 revenue growth guidance to 3% to 4% in constant currency while keeping the operating margin guidance at 20% to 22% [91].\n\nFollowing Q2 FY25, management further revised the FY25 revenue growth guidance to 3.75% to 4.5% in constant currency terms while maintaining the operating margin guidance at 20% to 22% [150].\n\nFor Q3 FY25, the guidance for FY25 included revenue growth of 4.5% to 5.0% in constant currency and an operating margin of 20% to 22% [3051].",
+      "cited_ids": [
+        38,
+        91,
+        150,
+        3051
+      ],
+      "frontend_proxy_verified": true,
+      "cached_on_proxy_read": true
+    },
+    {
+      "question": "What FY25 operating margin guidance did management provide?",
+      "method": "grounded_ai",
+      "cached": false,
+      "grounding": "claim_support_review",
+      "citations": [
+        {
+          "id": 1,
+          "page": 1,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf#page=1"
+        },
+        {
+          "id": 150,
+          "page": 7,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf#page=7"
+        },
+        {
+          "id": 3051,
+          "page": 1,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf#page=1"
+        },
+        {
+          "id": 91,
+          "page": 5,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=5"
+        },
+        {
+          "id": 201,
+          "page": 7,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf#page=7"
+        },
+        {
+          "id": 30,
+          "page": 4,
+          "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf#page=4"
+        }
+      ],
+      "answer": "Management provided FY25 operating margin guidance of 20% to 22% [30][91][150][201][3051].",
+      "cited_ids": [
+        30,
+        91,
+        150,
+        201,
+        3051
+      ],
+      "frontend_proxy_verified": true,
+      "cached_on_proxy_read": true
+    }
+  ],
+  "fresh_http_attempts": {
+    "status": "not_verified",
+    "requests": [
+      {
+        "question": "What FY25 growth guidance did management provide?",
+        "method": "extractive",
+        "cached": false,
+        "grounding": null,
+        "citations": [
+          {
+            "id": 150,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf#page=7"
+          },
+          {
+            "id": 1,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 3051,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 91,
+            "page": 5,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=5"
+          },
+          {
+            "id": 135,
+            "page": 25,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=25"
+          },
+          {
+            "id": 38,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf#page=7"
+          }
+        ]
+      },
+      {
+        "question": "What FY25 operating margin guidance did management provide?",
+        "method": "grounded_ai",
+        "cached": false,
+        "grounding": "claim_support_review",
+        "citations": [
+          {
+            "id": 1,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 150,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf#page=7"
+          },
+          {
+            "id": 3051,
+            "page": 1,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/ifrs-inr-press-release.pdf#page=1"
+          },
+          {
+            "id": 91,
+            "page": 5,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf#page=5"
+          },
+          {
+            "id": 201,
+            "page": 7,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf#page=7"
+          },
+          {
+            "id": 30,
+            "page": 4,
+            "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf#page=4"
+          }
+        ]
+      }
+    ]
+  },
+  "status": "passed",
+  "notes": [
+    "Two uncached source-grounded synthesis responses passed claim-support checks.",
+    "A separate fresh attempt fell back to extracts after validation rejected its output; this is expected fail-closed behavior.",
+    "The supplied credential was exposed earlier and should be rotated after testing."
+  ]
+}

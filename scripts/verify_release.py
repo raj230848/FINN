@@ -67,8 +67,8 @@ with httpx.Client(base_url=args.backend_url.rstrip('/')+'/api/',headers=headers,
         finally:call('PUT','preferences',json=original)
     ai=[]
     if args.gemini and health.get('ai_configured'):
-        for question in ['What FY25 growth guidance did management provide?','What does the FY25 report say about operating cash flow?']:
-            result=call('POST','research',json={'ticker':'INFY','question':question,'use_ai':True})
+        for question in ['What FY25 growth guidance did management provide?','What FY25 operating margin guidance did management provide?']:
+            result=call('POST','research',json={'ticker':'INFY','question':question,'use_ai':True,'refresh':True})
             ai.append({'question':question,'method':result['method'],'cached':result['cached'],'grounding':result.get('grounding'),'citations':[{'id':e['id'],'page':e['page'],'url':e['url']} for e in result['evidence']]})
         report['checks']['gemini']={'status':'passed' if all(a['method']=='grounded_ai' and a['citations'] and not a['cached'] for a in ai) else 'not_verified','requests':ai}
     else:

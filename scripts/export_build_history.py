@@ -12,8 +12,19 @@ parser.add_argument('--session',required=True,type=Path)
 parser.add_argument('--out',type=Path,default=Path('artifacts/submission/AI_BUILD_HISTORY_REDACTED.md'))
 args=parser.parse_args()
 redactions=0
+known_secrets=[]
+env=Path(__file__).resolve().parents[1]/'.env'
+if env.exists():
+    for line in env.read_text(encoding='utf-8-sig').splitlines():
+        name,separator,value=line.partition('=')
+        if separator and name.strip().endswith(('_KEY','_TOKEN','_SECRET')):
+            value=value.strip().strip('\"\'')
+            if len(value)>=16:known_secrets.append(value)
 def clean(text):
     global redactions
+    for secret in known_secrets:
+        count=text.count(secret)
+        if count:text=text.replace(secret,'[REDACTED CREDENTIAL]');redactions+=count
     for tag in ('environment_context','in-app-browser-context','external_codex_apps_open_page'):
         text=re.sub(r'<'+tag+r'\b[^>]*>[\s\S]*?</'+tag+r'>','',text)
     patterns=[r'AIza[0-9A-Za-z_-]{20,}',r'gh[pousr]_[A-Za-z0-9_]{20,}',r'sk-[A-Za-z0-9_-]{20,}',r'(?i)(?:Bearer\s+)[A-Za-z0-9_.-]{24,}',r'(?im)(?:GEMINI_API_KEY|OPENAI_API_KEY|FINN_API_TOKEN|FINN_ACCESS_TOKEN|FINN_SESSION_SECRET|VAPID_PRIVATE_KEY)\s*[:=]\s*[\"\']?[^\s\"\']{16,}']

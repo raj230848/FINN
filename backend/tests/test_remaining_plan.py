@@ -8,7 +8,7 @@ from app.services.push import validate_subscription,process_pending,queue_event
 from app.services.sync import save_announcements
 from app.services.materiality import classify
 from app.services.research import validate_claims,matches_period
-from app.schemas import GroundingReviewOut,AnalysisOut
+from app.schemas import GroundingReviewOut,AnalysisOut,SynthesisOut,SynthesisClaim
 from app.config import settings
 
 def subscription():
@@ -87,6 +87,11 @@ def test_claim_numbers_must_exist_in_the_actual_cited_passage():
     with pytest.raises(ValueError):validate_claims('Revenue grew 99 percent [1].',evidence)
     validate_claims('Revenue grew 4.2 percent [1].',evidence)
 
+def test_reported_range_separators_and_decimal_format_keep_the_same_values():
+    evidence=[{'id':1,'excerpt':'Revenue growth outlook is 4.5%-5.0%, with operating margin of 20%-22%.'}]
+    validate_claims('Revenue growth guidance is 4.5% to 5%, with margin of 20% to 22% [1].',evidence)
+    with pytest.raises(ValueError):validate_claims('Revenue growth guidance is -4.5% to 5% [1].',evidence)
+
 def test_period_aware_retrieval_filters_wrong_year_and_quarter():
     doc=SimpleNamespace(title='Company results',period='Q2 FY26')
     chunk=SimpleNamespace(text='Revenue outlook for FY26.')
@@ -119,9 +124,28 @@ def test_false_but_cited_claim_fails_model_support_review(db,monkeypatch):
     monkeypatch.setattr(settings,'gemini_api_key','test-only')
     def generate(system,payload,schema,**kwargs):
         if schema is GroundingReviewOut:return GroundingReviewOut(supported=False,unsupported_claims=['Direction reversed'],reason='Source says grew; claim says fell.')
-        return AnalysisOut(answer=f'Revenue fell 4.2 percent [{citation}].',evidence_ids=[citation])
+        return SynthesisOut(claims=[SynthesisClaim(text='Revenue fell 4.2 percent.',evidence_ids=[citation])])
     monkeypatch.setattr(module,'structured_call',generate)
     assert module.research(db,'INFY','What is revenue growth?',True)['method']=='extractive'
+
+def test_explicit_refresh_calls_provider_again_and_replaces_one_cache_row(db,monkeypatch):
+    import pymupdf
+    from app.models import ResearchCache
+    from app.services import research as module
+    from app.services.documents import store_document
+    pdf=pymupdf.open();page=pdf.new_page();page.insert_text((40,60),'Infosys revenue grew 4.2 percent.\n'+('Revenue outlook and cash flow.\n'*20))
+    store_document(db,db.get(Company,'INFY'),'Refresh test report','FY25','results','https://www.infosys.com/refresh-check.pdf',pdf.tobytes())
+    citation=module.retrieve(db,'INFY','What is revenue growth?')[0]['id'];calls=[]
+    monkeypatch.setattr(settings,'gemini_api_key','test-only')
+    def generate(system,payload,schema,**kwargs):
+        calls.append(schema)
+        if schema is GroundingReviewOut:return GroundingReviewOut(supported=True,reason='Reported fact')
+        return SynthesisOut(claims=[SynthesisClaim(text='Revenue grew 4.2 percent.',evidence_ids=[citation])])
+    monkeypatch.setattr(module,'structured_call',generate)
+    assert not module.research(db,'INFY','What is revenue growth?',True)['cached']
+    assert module.research(db,'INFY','What is revenue growth?',True)['cached']
+    assert not module.research(db,'INFY','What is revenue growth?',True,refresh=True)['cached']
+    assert len(calls)==4 and db.scalar(select(func.count()).select_from(ResearchCache))==1
 
 @pytest.mark.parametrize('headline', ['Receipt of order worth INR 500 crore','Award of contract for infrastructure project','Letter of award received for power project'])
 def test_material_order_examples_do_not_hide_as_routine(headline):

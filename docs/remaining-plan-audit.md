@@ -7,8 +7,8 @@ This is the item-by-item review of the supplied 11-page implementation plan. Exi
 | PDF item | Before this update | Result / evidence |
 | --- | --- | --- |
 | Mobile-first desk; 18-stock portfolio | Implemented | Preserved. Source and financial workflows checked at 360px and 390px; no document overflow in those views. |
-| Genuine Gemini setup | Provider boundary implemented; root key empty | Still externally blocked: a rotated Google AI Studio key must be saved in root `.env`. No usable key is shipped. |
-| Two real sourced Gemini answers | Mock-only verification | Not verified. `scripts/verify_release.py --gemini` records this gate as blocked when configuration is missing; it checks response method, citations and cache state when enabled. |
+| Genuine Gemini setup | Provider boundary implemented; root key empty | Now configured privately from the earlier PDF at the owner’s explicit request. Google returned HTTP 200. The exposed key should be rotated; no usable key is shipped. |
+| Two real sourced Gemini answers | Mock-only verification | Now verified: two uncached Gemini 3.5 Flash-Lite answers passed source/citation and claim-support checks, and both were read through the frontend proxy. See `gemini-live-verification.json`. Explicit refresh bypasses cache for provider verification. |
 | Wrong model/quota/timeout and fallback | Bounded provider tests existed | Preserved. Expanded checks reject false-but-cited claims, uncited headings and numbers borrowed from an uncited passage. Model failures return extractive evidence. |
 | Selective model use | Implemented | Numeric changes, deduplication, feeds and thresholds remain deterministic. Gemini synthesizes and separately reviews claim support. |
 | Real Yahoo refresh for all watched tickers | Adapters implemented | Verified for all 18 watched companies; latest completed session 30 October 2026. `source-verification.json` and `release-acceptance.json`. |
@@ -45,4 +45,4 @@ Period/quarter-aware retrieval and a separate model claim-support review are imp
 
 General automatic accounting-table extraction from arbitrary reports remains optional future work. The plan explicitly treats it as conditional and prioritizes focused, verified views. No unreviewed model extraction is published as a financial fact. Multi-user accounts, OCR, broker commentary, trading and production job queues are not claimed.
 
-External acceptance still needs the owner's rotated Gemini key, a live Python hosting account/URL, real browser push opt-in, physical-device checks and final submission details. These cannot be established by adding source files or changing a health flag.
+Live Gemini is now verified locally; rotate the previously exposed credential for ongoing use. External acceptance still needs a live Python hosting account/URL, real browser push opt-in, physical-device checks and final submission details. These cannot be established by adding source files or changing a health flag.

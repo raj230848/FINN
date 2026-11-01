@@ -168,11 +168,11 @@ def test_claim_validation_and_transient_fallback_not_cached(db,monkeypatch):
     monkeypatch.setattr(settings,'gemini_api_key','test-key')
     attempts=[]
     def generate(*args,**kwargs):
-        from app.schemas import GroundingReviewOut
+        from app.schemas import GroundingReviewOut, SynthesisOut, SynthesisClaim
         if args[2] is GroundingReviewOut:return GroundingReviewOut(supported=True,reason='Exact reported value',unsupported_claims=[])
         attempts.append(1)
         if len(attempts)==1: raise provider.ProviderError('Temporary failure')
-        return AnalysisOut(answer=f'Revenue grew 4.2 percent [{citation}].',evidence_ids=[citation])
+        return SynthesisOut(claims=[SynthesisClaim(text='Revenue grew 4.2 percent.',evidence_ids=[citation])])
     monkeypatch.setattr(module,'structured_call',generate)
     assert module.research(db,'INFY','What is revenue outlook?',True)['method']=='extractive'
     assert module.research(db,'INFY','What is revenue outlook?',True)['method']=='grounded_ai'

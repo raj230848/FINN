@@ -339,7 +339,7 @@ def import_document(body: ImportDocumentIn, db: DB):
 @app.post('/api/research')
 def ask(body: ResearchIn, db: DB):
     require_company(db,body.ticker)
-    result = research(db,body.ticker,body.question,body.use_ai)
+    result = research(db,body.ticker,body.question,body.use_ai,refresh=body.refresh)
     db.commit()
     return result
 
