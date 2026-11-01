@@ -1,11 +1,12 @@
 services:
   - type: web
-    name: finn-api
+    name: finn
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: starter
-    healthCheckPath: /api/health
+    numInstances: 1
+    healthCheckPath: /api/ready
     disk:
       name: finn-sqlite
       mountPath: /var/lib/finn
@@ -15,6 +16,18 @@ services:
         value: sqlite:////var/lib/finn/finn.db
       - key: FINN_API_TOKEN
         generateValue: true
+      - key: FINN_ACCESS_TOKEN
+        generateValue: true
+      - key: FINN_SESSION_SECRET
+        generateValue: true
+      - key: FINN_PUBLIC_MODE
+        value: "true"
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: https://github.com/raj230848/FINN
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL

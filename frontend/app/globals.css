@@ -4142,3 +4142,7 @@ fieldset p {
     font-size: 9px;
   }
 }
+.service-status { margin-top: 16px; padding: 14px; border: 1px solid #303344; border-radius: 14px; background: #111219; }
+.service-status summary { cursor: pointer; color: #c9baff; font-weight: 600; }
+.service-status p { overflow-wrap: anywhere; }
+.service-status small { color: #9b9fac; line-height: 1.5; }

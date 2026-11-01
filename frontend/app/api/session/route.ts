@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { BodyReadError,readSmallJson } from "@/lib/request-body";
 import {
   createSession,
+  browserOrigin,
   matchesAccessToken,
   requiresAccess,
   sameOrigin,
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set(SESSION_COOKIE, createSession(), {
       httpOnly: true,
-      secure: request.nextUrl.protocol === "https:",
+      secure: browserOrigin(request)?.startsWith("https:") === true,
       sameSite: "strict",
       path: "/",
       maxAge: 8 * 60 * 60,

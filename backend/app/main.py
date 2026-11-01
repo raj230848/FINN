@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from .config import ROOT, settings
 from .database import Base, engine, get_db, SessionLocal
-from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent, PushRecipient, PushDelivery
+from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent, PushRecipient, PushDelivery, Price, utcnow
 from .schemas import ImportDocumentIn, Mode, PreferencesIn, ResearchIn, WatchIn, normalize_ticker, PushSubscriptionIn, PushDisableIn
 from .services.push import configured as push_configured, validate_subscription, deliver_pending
 from .seed import DEMO_CLOCK, seed
@@ -25,6 +25,7 @@ from .services.documents import discover_documents, ingest_url, store_document
 from .services.materiality import CATEGORIES, classify
 from .services.research import research
 from .services.sync import run_sync, SYNC_LOCK
+from .services.operations import metrics, recover_interrupted_syncs
 from .ingestion.http import SourceError
 from .ingestion.market import resolve_company
 
@@ -34,6 +35,7 @@ def initialize():
     Base.metadata.create_all(engine)
     migrate_schema(engine)
     with SessionLocal() as db:
+        recover_interrupted_syncs(db)
         seed(db)
         # Apply improved rules to retained source rows without overwriting
         # reviewed/model analysis or changing the fixed synthetic replay.
@@ -81,11 +83,13 @@ async def token_guard(request: Request, call_next):
     if settings.finn_api_token and request.url.path.startswith('/api/') and request.url.path != '/api/health':
         supplied = request.headers.get('authorization','').removeprefix('Bearer ')
         if not hmac.compare_digest(supplied.encode('utf-8'),settings.finn_api_token.encode('utf-8')):
+            metrics.record('api', 'unauthorized')
             return JSONResponse(status_code=401,content={'detail':'API token required.'})
     if settings.public_deployment and request.method == 'POST':
         path = request.url.path
         operation,limit = ('research',10) if path=='/api/research' else ('sync',2) if path=='/api/sync' else ('import',3) if path=='/api/documents' or path.endswith('/discover') else ('other',60)
         if operation!='other' and not allow_request(request.client.host if request.client else 'unknown',operation,limit):
+            metrics.record('api', 'rate_limited')
             return JSONResponse(status_code=429,headers={'Retry-After':'60'},content={'detail':'Request limit reached. Please try again in a minute.'})
     return await call_next(request)
 
@@ -120,6 +124,20 @@ def serial(obj):
 @app.get('/api/health')
 def health():
     return {'status':'ok','version':'1.0.0','ai_configured':bool(settings.gemini_api_key),'ai_provider':'gemini','ai_model':settings.gemini_model,'access_protected':bool(settings.finn_api_token),'scheduler_enabled':settings.enable_scheduler,'demo_clock':DEMO_CLOCK.isoformat()+'Z'}
+
+@app.get('/api/operations')
+def operations(db: DB):
+    latest = db.scalar(select(SyncRun).order_by(SyncRun.id.desc()).limit(1))
+    latest_bars = select(Price.ticker, func.max(Price.date).label('session')).join(Company, Price.ticker==Company.ticker).where(Price.mode=='sourced', Company.watched.is_(True)).group_by(Price.ticker).subquery()
+    oldest_fetch, newest_session, covered = db.execute(select(func.min(Price.fetched_at), func.max(Price.date), func.count()).join(latest_bars, (Price.ticker==latest_bars.c.ticker)&(Price.date==latest_bars.c.session)).where(Price.mode=='sourced')).one()
+    watched_count = db.scalar(select(func.count()).select_from(Company).where(Company.watched.is_(True)))
+    age = max(0, int((utcnow()-oldest_fetch).total_seconds())) if oldest_fetch else None
+    delivery_counts = dict(db.execute(select(PushDelivery.state, func.count()).group_by(PushDelivery.state)).all())
+    return {'as_of': utcnow().isoformat()+'Z', 'metrics': metrics.snapshot(),
+            'sources': {'status': 'not_fetched' if age is None else 'partial' if covered<watched_count else 'stale' if age>86400 else 'recent_fetch', 'covered_companies': covered, 'watched_companies': watched_count, 'oldest_market_fetch': oldest_fetch.isoformat()+'Z' if oldest_fetch else None, 'latest_market_session': newest_session.isoformat() if newest_session else None, 'age_seconds': age, 'note': 'Fetch age is not quote age. EOD session dates and partial filing coverage remain authoritative.'},
+            'last_sync': serial(latest) if latest else None,
+            'push': {'configured': push_configured(), 'delivery_counts': delivery_counts, 'note': 'Sent means provider acceptance, not confirmed device display.'},
+            'worker_model': 'one backend worker; shared desk', 'scheduler_enabled': settings.enable_scheduler}
 
 @app.get('/api/companies')
 def companies(db: DB, q: str = ''):

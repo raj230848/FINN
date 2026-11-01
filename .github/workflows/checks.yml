@@ -28,3 +28,55 @@ jobs:
       - run: npm run test:access
       - run: npm run typecheck
       - run: npm run build
+  full-stack-container:
+    runs-on: ubuntu-latest
+    env:
+      FINN_API_TOKEN: ci-only-backend-token-which-is-not-a-real-secret
+      FINN_ACCESS_TOKEN: ci-only-shared-desk-access-code
+      FINN_SESSION_SECRET: ci-only-session-secret-which-is-not-used-outside-this-job
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx
+      - run: docker build -t finn-full-stack .
+      - name: Start isolated full stack with a persistent volume
+        run: >-
+          docker run -d --name finn-qa -p 127.0.0.1:8080:8080
+          --mount type=volume,src=finn-qa-data,dst=/var/lib/finn
+          -e DATABASE_URL=sqlite:////var/lib/finn/finn.db
+          -e FINN_API_TOKEN -e FINN_ACCESS_TOKEN -e FINN_SESSION_SECRET
+          -e FINN_PUBLIC_ORIGIN=http://127.0.0.1:8080
+          -e PORT=8080 finn-full-stack
+      - name: Wait for public readiness
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:8080/api/ready; then exit 0; fi
+            sleep 2
+          done
+          docker logs finn-qa
+          exit 1
+      - name: Exercise the protected same-origin app without paid providers
+        env:
+          FINN_HOSTED_ACCESS_CODE: ${{ env.FINN_ACCESS_TOKEN }}
+        run: python scripts/verify_hosted.py --url http://127.0.0.1:8080 --qa --out artifacts/container-acceptance.json
+      - name: Write durable QA marker and restart container
+        run: |
+          docker exec finn-qa python -c "import sqlite3; c=sqlite3.connect('/var/lib/finn/finn.db'); c.execute('UPDATE preferences SET price_threshold=6.75 WHERE id=1'); c.commit()"
+          docker restart finn-qa
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:8080/api/ready; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Verify persisted marker
+        run: docker exec finn-qa python -c "import sqlite3; c=sqlite3.connect('/var/lib/finn/finn.db'); assert c.execute('SELECT price_threshold FROM preferences WHERE id=1').fetchone()[0]==6.75"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-stack-container-acceptance
+          path: artifacts/container-acceptance.json
+      - name: Service logs on failure
+        if: failure()
+        run: docker logs finn-qa

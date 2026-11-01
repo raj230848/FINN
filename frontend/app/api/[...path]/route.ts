@@ -68,7 +68,7 @@ async function proxy(
     return NextResponse.json(
       {
         detail:
-          "FINN’s data service is unavailable or the request timed out. Check that the FastAPI backend is running on port 8000.",
+          "FINN’s data service is temporarily unavailable or the request timed out. Please try again. Saved data will be available when the service returns.",
       },
       { status: 503 },
     );

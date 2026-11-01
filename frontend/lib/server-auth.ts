@@ -49,11 +49,22 @@ export function validSession(value: string, now = Date.now()) {
     return false;
   }
 }
-export function sameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
+export function browserOrigin(request: Request): string | null {
+  // Explicit server config is authoritative behind HTTPS-terminating proxies.
+  // Never infer the external origin from arbitrary forwarded headers.
+  const configured = process.env.FINN_PUBLIC_ORIGIN || process.env.RENDER_EXTERNAL_URL;
+  if (configured) {
+    try {
+      const target = new URL(configured);
+      if (target.username || target.password || target.search || target.hash || target.pathname !== "/" || (target.protocol !== "https:" && !(target.protocol === "http:" && ["127.0.0.1", "localhost"].includes(target.hostname)))) return null;
+      return target.origin;
+    } catch { return null; }
+  }
   const url = new URL(request.url);
-  // Next may normalize its internal URL to localhost; Host retains the
-  // browser-facing authority. Do not trust arbitrary forwarded-host headers.
   const host = request.headers.get("host");
-  return Boolean(origin) && origin === (host ? `${url.protocol}//${host}` : url.origin);
+  return host ? `${url.protocol}//${host}` : url.origin;
+}
+export function sameOrigin(request: Request) {
+  const expected = browserOrigin(request);
+  return Boolean(expected) && request.headers.get("origin") === expected;
 }

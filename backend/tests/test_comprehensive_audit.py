@@ -54,6 +54,7 @@ def test_audit_regression_malformed_provider_envelope_is_sanitized(monkeypatch,m
 
 API_CASES=[
  ('GET','/api/health','/api/health',200,None),
+ ('GET','/api/operations','/api/operations',200,None),
  ('GET','/api/companies','/api/companies',200,None),
  ('PATCH','/api/companies/{ticker}','/api/companies/INFY',200,{'watched':True}),
  ('GET','/api/dashboard','/api/dashboard',200,None),

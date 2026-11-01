@@ -52,6 +52,7 @@ export type SyncRun = {
   completed_at: string | null;
   result: {
     status?: string;
+    message?: string;
     prices?: Record<
       string,
       {

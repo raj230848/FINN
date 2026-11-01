@@ -65,6 +65,7 @@ import {
 
 import { AccessGate } from "@/components/access-gate";
 import { Notifications } from "@/components/notifications";
+import { ServiceStatus } from "@/components/service-status";
 
 type View = "home" | "signals" | "research" | "watchlist";
 const navigation = [
@@ -989,6 +990,7 @@ export default function Home() {
                   ? "Scheduled source refresh is enabled."
                   : "Source refresh is manual; optional scheduling can be enabled in the backend."}
               </p>
+              <ServiceStatus />
             </div>
           )}
           {error && (
@@ -1098,6 +1100,8 @@ export default function Home() {
                     Data notes
                     <ArrowRight size={12} />
                   </button>
+                  {!refreshing &&
+                    sync?.result.message && <p role="status">{sync.result.message}</p>}
                   {!refreshing &&
                     (syncErrors.length > 0 ||
                       sync?.result.announcements?.ok === false) && (

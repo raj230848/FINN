@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { ensurePushSubscription } from "@/lib/push-subscription";
 
 const DEVICE_KEY="finn.push.device.v1";
 function deviceId() {
@@ -35,14 +36,12 @@ export function BrowserPush() {
         setMessage("Browser alerts disabled on this device.");
       } else {
         const permission=await Notification.requestPermission();
-        if(permission!=="granted")throw new Error("Permission wasn’t granted. In-app notifications remain available.");
+        if(permission!=="granted")throw new Error("Notifications are blocked. Enable notifications for this site in browser settings, then try again. In-app history remains available.");
         const config=await api<{available:boolean;public_key:string}>("/push/config");
         if(!config.available)throw new Error("The server has not configured browser push.");
         await navigator.serviceWorker.register("/finn-sw.js",{scope:"/"});
         const registration=await navigator.serviceWorker.ready;
-        const encoded=config.public_key.replace(/-/g,"+").replace(/_/g,"/");
-        const key=Uint8Array.from(atob(encoded+"=".repeat((4-encoded.length%4)%4)),c=>c.charCodeAt(0));
-        const subscription=await registration.pushManager.getSubscription() || await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key.buffer});
+        const subscription=await ensurePushSubscription(registration.pushManager,config.public_key);
         await api("/push/subscribe",{method:"POST",body:JSON.stringify({device_id:id,subscription:subscription.toJSON()})});
         setEnabled(true);setMessage("Enabled for new sourced events that match your monitoring settings. Older events are not sent.");
       }
