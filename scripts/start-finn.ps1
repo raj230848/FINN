@@ -15,7 +15,10 @@ function Get-FinnResponse([string] $Address) {
 }
 
 function Wait-FinnService([string] $Address, [string] $Name) {
-    for ($attempt = 0; $attempt -lt 45; $attempt++) {
+    # First startup indexes bundled primary reports; keep the wait bounded but
+    # allow a slower disk to finish before reporting failure.
+    $finnWaitTimer = [Diagnostics.Stopwatch]::StartNew()
+    while ($finnWaitTimer.Elapsed.TotalSeconds -lt 180) {
         $response = Get-FinnResponse $Address
         if ($response -and $response.StatusCode -eq 200) { return $response }
         Start-Sleep -Milliseconds 750

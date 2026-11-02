@@ -2,7 +2,7 @@
 
 Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
-Latest full-app update: [Neon Aurora Glass / Champagne Bubble Light](docs/theme-change.md), with cyan/violet dark mode and a champagne bubble canvas with bronze controls in light mode. [Full NSE name search and sourced-first refresh](docs/ui-ux-upgrade.md) remain available. Validated with 272 backend tests, 14 frontend tests and a production build. The static public demo below is a separate version.
+Latest full-app update: [PDF import fix and verification](docs/pdf-import-verification.md): bounded 3,000-page imports, atomic indexing, duplicate protection and readable-page coverage. Validated with 298 backend tests and 20 frontend tests. [Neon Aurora / Champagne Bubble themes](docs/theme-change.md) and [full NSE name search with sourced-first refresh](docs/ui-ux-upgrade.md) remain available. The static public demo below is a separate version.
 
 [Open the public interactive demo](https://finn-investment-desk.justfrog26.chatgpt.site). The Sites version uses synthetic market fixtures, historical reviewed financials and compact source extracts; watchlists and preferences are device-local. Live ingestion and document imports use the full Python application.
 
@@ -168,7 +168,7 @@ The source is published at [raj230848/FINN](https://github.com/raj230848/FINN). 
 | Initial compilation is slow | Let the first Next.js build and source-index startup complete. Later requests reuse compiled code. |
 | 401 API response | Match the server-only token in both backend and frontend environments, then restart both. |
 | Yahoo/NSE 403/429 or empty feed | Inspect the refresh result; retry later. Cached data and demo replay remain clearly distinct. |
-| Annual report rejected | Use the issuer's verified website or an NSE/BSE archive, a readable document under 20 MB/600 pages, and the correct company. |
+| Annual report rejected | Use a direct, text-readable primary PDF for the selected issuer. Defaults: 3,000 pages and 60,000,000 bytes, with bounded extraction/indexing. Check the reported limit or access error; scanned pages require OCR. Existing documents are retained when an import fails. |
 | No research conclusion | Import relevant primary documents. Without an API key, inspect the source extracts instead of expecting generated synthesis. |
 | No financial snapshot for a ticker | Its numeric table has not been reviewed. Use document research; missing numbers are not inferred. |
 | History latest date is yesterday | Provider latency, a trading holiday or incomplete session may explain this. FINN shows the returned date. |

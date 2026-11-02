@@ -15,11 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 assert not subprocess.check_output(['git', 'status', '--porcelain'], text=True).strip(), 'Commit reviewed source first.'
 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-proof = ROOT / 'artifacts/neon-aurora-theme'
+proof = ROOT / 'artifacts/pdf-import-fix'
 backend = ET.parse(proof / 'backend-tests.xml').getroot()
 frontend = ET.parse(proof / 'frontend-tests.xml').getroot()
-assert len(list(backend.iter('testcase'))) == 272
-assert len(list(frontend.iter('testcase'))) == 14
+assert len(list(backend.iter('testcase'))) == 298
+assert len(list(frontend.iter('testcase'))) == 20
 assert not list(backend.iter('failure')) + list(backend.iter('error')) + list(frontend.iter('failure')) + list(frontend.iter('error'))
 build = json.loads((proof / 'production-build.json').read_text())
 browser = json.loads((proof / 'browser-checks.json').read_text())
@@ -27,10 +27,10 @@ assert build['exit_code'] == 0 and not browser['production_errors']
 manifest = {
     'source_commit': commit, 'created_at': datetime.now(timezone.utc).isoformat(),
     'source_repository': 'https://github.com/raj230848/FINN', 'full_source': True,
-    'start_with': 'START_HERE.md', 'current_report': 'docs/theme-change.md',
-    'validation': {'backend_tests': 272, 'frontend_tests': 14, 'production_build': 'passed',
-                   'business_operations_in_inventory': 26, 'browser_viewport_widths': [360, 390, 1280]},
-    'current_evidence': 'audit/neon-aurora-theme/',
+    'start_with': 'START_HERE.md', 'current_report': 'docs/pdf-import-verification.md',
+    'validation': {'backend_tests': 298, 'frontend_tests': 20, 'production_build': 'passed',
+                   'business_operations_in_inventory': 26, 'browser_viewport_widths': sorted({row['viewport'] for row in browser['geometry']})},
+    'current_evidence': 'audit/pdf-import-fix/',
     'historical_reports': ['audit/history/FINN-Full-Audit-Report.pdf', 'audit/history/FINN-Verification-Gap-Resolution.pdf'],
     'historical_note': 'Earlier PDFs measure their recorded revisions, not this UI release.',
     'remaining_external_checks': ['Rotated Gemini credential and fresh live provider acceptance',
@@ -41,11 +41,11 @@ manifest = {
 target = ROOT / 'artifacts/FINN-full-updated-project.zip'
 temporary = target.with_suffix('.zip.tmp')
 subprocess.run(['git', 'archive', '--format=zip', '--output', str(temporary), 'HEAD'], check=True)
-names = ['backend-tests.xml', 'frontend-tests.xml', 'production-build.json', 'browser-checks.json', 'search-live.json',
+names = ['backend-tests.xml', 'frontend-tests.xml', 'production-build.json', 'browser-checks.json', 'real-pdf-validation.json','hcl-report-probes.json','live-http.json',
          *browser['screenshots']]
 with ZipFile(temporary, 'a', compression=ZIP_DEFLATED) as archive:
     for name in names:
-        archive.write(proof / name, 'audit/neon-aurora-theme/' + name)
+        archive.write(proof / name, 'audit/pdf-import-fix/' + name)
     for name in ('FINN-Full-Audit-Report.pdf', 'FINN-Verification-Gap-Resolution.pdf'):
         archive.write(ROOT / 'artifacts' / name, 'audit/history/' + name)
     archive.write(ROOT / 'artifacts/submission/AI_BUILD_HISTORY_REDACTED.md', 'submission/AI_BUILD_HISTORY_REDACTED.md')

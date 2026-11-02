@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from .config import ROOT, settings
 from .database import Base, engine, get_db, SessionLocal
-from .models import Alert, Announcement, Company, Document, Financial, Guidance, Preference, SyncRun, SignalEvent, PushRecipient, PushDelivery, Price, utcnow
+from .models import Alert, Announcement, Company, Document, Chunk, Financial, Guidance, Preference, SyncRun, SignalEvent, PushRecipient, PushDelivery, Price, utcnow
 from .schemas import ImportDocumentIn, Mode, PreferencesIn, ResearchIn, WatchIn, normalize_ticker, PushSubscriptionIn, PushDisableIn
 from .services.push import configured as push_configured, validate_subscription, deliver_pending
 from .seed import DEMO_CLOCK, seed
@@ -21,7 +21,8 @@ from .services.events import record_filing_events
 from .rate_limit import allow_request
 from .services.alerts import evaluate_alerts, quotes
 from .services.calculations import guidance_comparison, percent_change
-from .services.documents import discover_documents, ingest_url, store_document
+from .services.documents import discover_documents, ingest_url, store_document,IMPORT_LOCK
+from sqlalchemy.exc import IntegrityError
 from .services.materiality import CATEGORIES, classify
 from .services.research import research
 from .services.sync import run_sync, SYNC_LOCK
@@ -356,14 +357,30 @@ def discover(ticker: str, db: DB):
 @app.get('/api/companies/{ticker}/documents')
 def documents(ticker: str, db: DB):
     company = require_company(db,ticker)
-    return [serial(d) for d in db.scalars(select(Document).where(Document.ticker==company.ticker).order_by(Document.id.desc()))]
+    return [document_payload(db,d) for d in db.scalars(select(Document).where(Document.ticker==company.ticker).order_by(Document.id.desc()))]
+
+def document_payload(db,doc):
+    passages,pages=db.execute(select(func.count(Chunk.id),func.count(func.distinct(Chunk.page))).where(Chunk.document_id==doc.id)).one()
+    missing=max(0,doc.page_count-pages)
+    return {**serial(doc),'indexed_passages':passages,'indexed_pages':pages,'pages_without_passages':missing,
+            'indexing_note':f'{missing} of {doc.page_count} pages have no indexable text (blank, scanned or short fragments). OCR was not run.' if missing else 'Text passages indexed with original PDF page numbers.'}
 
 @app.post('/api/documents')
 def import_document(body: ImportDocumentIn, db: DB):
     company = require_company(db,body.ticker)
-    doc = ingest_url(db,company,body.title,body.period,body.kind,body.url)
-    db.commit()
-    return serial(doc)
+    if not IMPORT_LOCK.acquire(blocking=False):
+        raise HTTPException(409,'A document import is already running. Wait for it to finish, then retry; the saved library remains available.',headers={'Retry-After':'3'})
+    try:
+        doc=ingest_url(db,company,body.title,body.period,body.kind,body.url)
+        db.commit()
+        return document_payload(db,doc)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409,'The document changed during another import. The saved library was retained; retry the import.') from None
+    except Exception:
+        db.rollback();raise
+    finally:
+        IMPORT_LOCK.release()
 
 @app.post('/api/research')
 def ask(body: ResearchIn, db: DB):

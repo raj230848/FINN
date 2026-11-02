@@ -216,14 +216,15 @@ def test_source_fetch_checks_each_redirect_and_download_size(monkeypatch):
     monkeypatch.setattr(source.httpx,'Client',lambda **kwargs:real(transport=httpx.MockTransport(lambda _:httpx.Response(200,content=b'12345')),**kwargs))
     with pytest.raises(SourceError,match='4-byte'):source.fetch_public('https://www.infosys.com/report.pdf',{'infosys.com'},max_bytes=4)
 
-def test_encrypted_and_over_limit_pdfs_are_not_indexed():
+def test_encrypted_and_over_limit_pdfs_are_not_indexed(monkeypatch):
     from app.services.documents import extract_pages
     pdf=pymupdf.open();pdf.new_page()
     encrypted=pdf.tobytes(encryption=pymupdf.PDF_ENCRYPT_AES_256,user_pw='test-only-password',owner_pw='test-only-owner')
     with pytest.raises(SourceError,match='encrypted'):extract_pages(encrypted)
     large=pymupdf.open()
     for _ in range(601):large.new_page()
-    with pytest.raises(SourceError,match='600 page'):extract_pages(large.tobytes())
+    monkeypatch.setattr(settings,'document_max_pages',600)
+    with pytest.raises(SourceError,match='configured limit is 600'):extract_pages(large.tobytes())
 
 def test_sync_partial_failures_keep_source_errors_and_release_lock(db,monkeypatch):
     from datetime import date

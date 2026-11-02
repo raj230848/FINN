@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import {backendTimeoutMs} from "@/lib/proxy-policy";
 import {
   requiresAccess,
   sameOrigin,
@@ -8,7 +9,7 @@ import {
 
 // One origin in the browser. Backend credentials remain on the server.
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 180;
 async function proxy(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
@@ -55,7 +56,7 @@ async function proxy(
         body: ["GET", "HEAD"].includes(request.method)
           ? undefined
           : await request.text(),
-        signal: AbortSignal.timeout(55000),
+        signal: AbortSignal.timeout(backendTimeoutMs(request.method,path)),
       },
     );
     const forwarded:Record<string,string>={"Content-Type":response.headers.get("Content-Type") || "application/json","Cache-Control":"no-store"};
@@ -68,7 +69,9 @@ async function proxy(
     return NextResponse.json(
       {
         detail:
-          "FINN’s data service is temporarily unavailable or the request timed out. Please try again. Saved data will be available when the service returns.",
+          request.method==="POST"&&path.length===1&&path[0]==="documents"
+            ? "The document service did not respond in time. An import may still finish on the server. Check Source library before retrying; saved documents remain available."
+            : "FINN’s data service is temporarily unavailable or the request timed out. Please try again. Saved data will be available when the service returns.",
       },
       { status: 503 },
     );

@@ -93,6 +93,10 @@ export type Prefs = {
   available_categories?: string[];
 };
 export type SourceDocument = {
+  indexed_passages?:number;
+  indexed_pages?:number;
+  pages_without_passages?:number;
+  indexing_note?:string;
   id: number;
   ticker: string;
   title: string;
@@ -206,27 +210,37 @@ export type NotificationFeed = {
   has_more: boolean;
 };
 export class ApiError extends Error {
+  public status:number;
+  public code?:string;
   constructor(
     message: string,
-    public status: number,
-    public code?: string,
+    status: number,
+    code?: string,
   ) {
     super(message);
+    this.status=status;this.code=code;
   }
 }
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers: { "Content-Type": "application/json", ...options?.headers },
-  });
-  const data = await response.json();
+  let response:Response;
+  try{response=await fetch(`/api${path}`, {
+      ...options,
+      headers: { "Content-Type": "application/json", ...options?.headers },
+    });
+  }catch(e){
+    if(options?.signal?.aborted||(e instanceof Error&&e.name==="AbortError"))throw e;
+    throw new ApiError(path==="/documents"?"The connection was interrupted. Check Source library before retrying; the import may still complete.":"Could not reach FINN. Check your connection and retry; saved data has not been replaced.",0,"NETWORK_ERROR");
+  }
+  let data;
+  try{data=await response.json();}
+  catch{throw new ApiError(path==="/documents"?"The document service returned an unreadable response. Check Source library before retrying the import.":"FINN returned an unreadable response. Please retry when the service is available.",response.status,"INVALID_RESPONSE");}
   if (!response.ok)
     throw new ApiError(
-      typeof data.detail === "string"
+      typeof data?.detail === "string"
         ? data.detail
-        : "The request could not be validated. Check the fields and try again.",
+        : response.status>=500?"FINN’s data service is unavailable. Please retry when it returns; saved data has not been replaced.":"The request could not be validated. Check the fields and try again.",
       response.status,
-      data.code,
+      data?.code,
     );
   return data as T;
 }

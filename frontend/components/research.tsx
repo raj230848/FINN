@@ -30,6 +30,7 @@ import {
   pct,
   Research,
   SourceDocument,
+  ApiError,
 } from "@/lib/api";
 import {CompanyLookup,CompanyMatch} from "./company-lookup";
 
@@ -80,6 +81,8 @@ export function ResearchWorkspace({
   const company = companies.find((c) => c.ticker === ticker);
   const activeTicker = useRef(ticker);
   const quarterRequest = useRef(0);
+  const importPending=useRef(false);
+  const loadedIssuer=useRef(ticker);
   const discovered=useRef<CompanyDiscovery|null>(initialDiscovery);
   const [selectedName,setSelectedName]=useState("");
   const targetCount = new Set(guidance.map(g=>g.target_period)).size;
@@ -98,7 +101,9 @@ export function ResearchWorkspace({
     const discovery=discovered.current?.company.ticker===ticker?discovered.current:null;
     setCandidates(discovery?.documents||[]);
     setError("");
-    setNotice(discovery?.message||"");
+    if(discovery)setNotice(discovery.message);
+    else if(loadedIssuer.current!==ticker)setNotice("");
+    loadedIssuer.current=ticker;
     setDocs([]);
     setFinancials({ rows: [] });
     setGuidance([]);
@@ -198,23 +203,31 @@ export function ResearchWorkspace({
     }
   }
   async function importDoc(candidate?: Candidate) {
+    if(importPending.current||busy)return;
+    importPending.current=true;
     const input = candidate || importForm;
     const requestedTicker = ticker;
     setBusy("import");
     setError("");
+    setNotice("");
     try {
-      await api("/documents", {
+      const imported=await api<SourceDocument&{indexed_passages:number}>("/documents", {
         method: "POST",
         body: JSON.stringify({ ticker, ...input }),
       });
       if (activeTicker.current === requestedTicker) {
+        discovered.current=null;
         setImportOpen(false);
         setGeneration((g) => g + 1);
-        setNotice("Primary document indexed. You can now ask a question.");
+        setNotice(`Primary document ready: ${imported.page_count.toLocaleString("en-IN")} pages and ${imported.indexed_passages.toLocaleString("en-IN")} indexed passages.${imported.pages_without_passages?` ${imported.indexing_note}`:""} You can now ask a sourced question.`);
       }
     } catch (e) {
-      setError((e as Error).message);
+      if(activeTicker.current===requestedTicker){
+        setError((e as Error).message);
+        if(e instanceof ApiError&&[0,503,504].includes(e.status))setNotice("The import may still be finishing. Check Source library before retrying. Existing documents remain available.");
+      }
     } finally {
+      importPending.current=false;
       setBusy("");
     }
   }
@@ -241,6 +254,7 @@ export function ResearchWorkspace({
         {["INFY", "TCS", "PERSISTENT", "WIPRO"].map((t) => (
           <button
             key={t}
+            disabled={!!busy}
             className={ticker === t ? "selected" : ""}
             onClick={() => chooseSymbol(t)}
           >
@@ -291,7 +305,8 @@ export function ResearchWorkspace({
           {error}
         </div>
       )}
-      {notice && <div className="notice-banner">{notice}</div>}
+      {notice && <div className="notice-banner" role="status">{notice}</div>}
+      {busy==="import"&&<div className="notice-banner" role="status"><Loader2 className="spin" size={16}/> Downloading and indexing the complete report. Large PDFs can take up to three minutes. Please keep this tab open.</div>}
       {dataLoading && (
         <div className="research-loading">
           <Loader2 className="spin" size={16} /> Loading the company source
@@ -772,6 +787,7 @@ export function ResearchWorkspace({
           {importOpen && (
             <form
               className="import-form"
+              aria-busy={busy==="import"}
               onSubmit={(e) => {
                 e.preventDefault();
                 void importDoc();
@@ -781,6 +797,7 @@ export function ResearchWorkspace({
                 Primary source URL
                 <input
                   type="url"
+                  disabled={!!busy}
                   required
                   value={importForm.url}
                   placeholder="https://company.com/investors/report.pdf"
@@ -795,6 +812,7 @@ export function ResearchWorkspace({
                   <input
                     required
                     minLength={3}
+                    disabled={!!busy}
                     value={importForm.title}
                     onChange={(e) =>
                       setImportForm({ ...importForm, title: e.target.value })
@@ -806,6 +824,7 @@ export function ResearchWorkspace({
                   <input
                     required
                     minLength={2}
+                    disabled={!!busy}
                     value={importForm.period}
                     placeholder="FY25"
                     onChange={(e) =>
@@ -816,6 +835,7 @@ export function ResearchWorkspace({
                 <label>
                   Document type
                   <Select
+                    disabled={!!busy}
                     value={importForm.kind}
                     onChange={(e) =>
                       setImportForm({ ...importForm, kind: e.target.value })
@@ -859,6 +879,7 @@ export function ResearchWorkspace({
                 <small>
                   Retrieved {new Date(d.fetched_at).toLocaleDateString("en-IN")}
                 </small>
+                {d.indexing_note&&<small>{d.indexed_passages?.toLocaleString("en-IN")} passages · {d.indexing_note}</small>}
               </div>
               <span className="verified-label">
                 <ShieldCheck size={12} /> Primary source

@@ -1,6 +1,7 @@
 """Bounded public-document access. Never allow user URLs to reach local services."""
 import ipaddress
 import socket
+import time
 from urllib.parse import urljoin, urlparse
 import httpx
 
@@ -31,19 +32,27 @@ def validate_url(url: str, allowed_domains: set[str]) -> None:
     if not addresses or any(not ipaddress.ip_address(a[4][0]).is_global for a in addresses):
         raise SourceError('Private, reserved and local network addresses are not accepted.')
 
-def fetch_public(url: str, allowed_domains: set[str], max_bytes: int = 20_000_000) -> tuple[bytes, str]:
-    with httpx.Client(headers=HEADERS, timeout=httpx.Timeout(18, connect=8), follow_redirects=False) as client:
+def fetch_public(url: str, allowed_domains: set[str], max_bytes: int = 20_000_000,timeout_seconds: float=18) -> tuple[bytes, str]:
+    started=time.monotonic()
+    with httpx.Client(headers=HEADERS, timeout=httpx.Timeout(timeout_seconds, connect=min(8,timeout_seconds)), follow_redirects=False) as client:
         for _ in range(4):
             validate_url(url, allowed_domains)
+            if time.monotonic()-started>timeout_seconds:raise SourceError('Source download exceeded its time budget. Please retry the primary document.')
             try:
                 with client.stream('GET', url) as response:
                     if response.is_redirect:
-                        url = urljoin(url, response.headers.get('location', ''))
+                        target=response.headers.get('location')
+                        if not target:raise SourceError('Source redirect did not identify a document.')
+                        url = urljoin(url,target)
                         continue
                     if response.status_code != 200:
                         raise SourceError(f'Source returned HTTP {response.status_code}. It may restrict automated access; no fallback data was substituted.')
                     content = bytearray()
+                    advertised=response.headers.get('content-length','')
+                    if advertised.isdigit() and int(advertised)>max_bytes:
+                        raise SourceError(f'Source exceeds the configured {max_bytes:,}-byte download limit.')
                     for part in response.iter_bytes():
+                        if time.monotonic()-started>timeout_seconds:raise SourceError('Source download exceeded its time budget. Please retry the primary document.')
                         content.extend(part)
                         if len(content) > max_bytes:
                             raise SourceError(f'Source exceeds the configured {max_bytes:,}-byte download limit.')
