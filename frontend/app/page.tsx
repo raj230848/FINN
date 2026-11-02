@@ -53,6 +53,7 @@ import {
 import dynamic from "next/dynamic";
 import { Sparkline } from "@/components/sparkline";
 import {CompanyLookup} from "@/components/company-lookup";
+import {ThemeBubbles} from "@/components/theme-bubbles";
 
 
 
@@ -834,6 +835,7 @@ export default function Home() {
     );
   return (
     <div className="app-shell" data-view={view} data-mobile-focus={mobileFocus}>
+      <ThemeBubbles />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
