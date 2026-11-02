@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import select, delete, insert
 from sqlalchemy.orm import Session
 from ..config import ROOT,settings
-from ..models import Chunk, Company, Document,utcnow
+from ..models import Chunk, Company, Document,ResearchCache,utcnow
 from ..ingestion.http import ARCHIVES, SourceError, domain, fetch_public
 
 IMPORT_LOCK=Lock()
@@ -94,6 +94,9 @@ def store_document(db: Session, company: Company, title: str, period: str, kind:
     # Validation precedes mutation; a failed batch restores the previous library.
     with db.begin_nested():
         if existing:
+            # SQLite can reuse deleted passage IDs. Invalidate this issuer's
+            # research snapshots so replaced metadata/citations cannot stay stale.
+            db.execute(delete(ResearchCache).where(ResearchCache.result['ticker'].as_string()==company.ticker))
             db.execute(delete(Chunk).where(Chunk.document_id == existing.id))
             doc=existing
             doc.title,doc.period,doc.kind=title,period,kind

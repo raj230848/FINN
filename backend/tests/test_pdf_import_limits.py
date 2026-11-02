@@ -9,7 +9,7 @@ from sqlalchemy import select,func,event
 
 from app import main
 from app.config import settings
-from app.models import Company,Document,Chunk
+from app.models import Company,Document,Chunk,ResearchCache
 from app.ingestion.http import SourceError
 from app.ingestion import http as source
 from app.services import documents as module
@@ -132,6 +132,7 @@ def test_bad_replacement_preserves_old_document_and_passages(db,bad_content):
 def test_insert_failure_rolls_back_replacement_savepoint(db,long_pdf):
     company=db.get(Company,'INFY');url='https://www.infosys.com/rollback.pdf';original=pdf_bytes()
     doc=store_document(db,company,'Saved report','FY25','annual_report',url,original);db.commit();doc_id=doc.id
+    db.add(ResearchCache(key='rollback-cache',result={'ticker':'INFY','answer':'saved'}));db.commit()
     calls=0
     def fail_second_batch(conn,cursor,statement,parameters,context,executemany):
         nonlocal calls
@@ -145,6 +146,23 @@ def test_insert_failure_rolls_back_replacement_savepoint(db,long_pdf):
     db.expire_all();saved=db.get(Document,doc_id)
     assert saved.title=='Saved report' and saved.page_count==1
     assert db.scalar(select(func.count()).select_from(Chunk).where(Chunk.document_id==doc_id))==1
+    assert db.get(ResearchCache,'rollback-cache') is not None
+
+
+def test_replaced_document_invalidates_stale_citations_for_that_issuer_only(db):
+    company=db.get(Company,'INFY');url='https://www.infosys.com/cache-metadata.pdf';original=pdf_bytes()
+    doc=store_document(db,company,'Old title','FY24','annual_report',url,original);db.commit()
+    old=research(db,'INFY','What is revenue outlook?',False);db.commit()
+    assert old['evidence'][0]['title']=='Old title'
+    assert research(db,'INFY','What is revenue outlook?',False)['cached']
+    db.add(ResearchCache(key='other-company',result={'ticker':'WIPRO','answer':'keep'}));db.commit()
+    with pymupdf.open(stream=original,filetype='pdf') as pdf:
+        pdf.set_metadata({'title':'Revised metadata, same page text'});replacement=pdf.tobytes()
+    store_document(db,company,'New title','FY25','annual_report',url,replacement);db.commit()
+    new=research(db,'INFY','What is revenue outlook?',False)
+    assert not new['cached'] and new['evidence'][0]['title']=='New title'
+    assert new['evidence'][0]['period']=='FY25'
+    assert db.get(ResearchCache,'other-company') is not None
 
 
 def test_live_import_requires_pdf_and_keeps_primary_wrapper_guards(db,monkeypatch):

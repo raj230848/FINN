@@ -18,7 +18,7 @@ commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(
 proof = ROOT / 'artifacts/pdf-import-fix'
 backend = ET.parse(proof / 'backend-tests.xml').getroot()
 frontend = ET.parse(proof / 'frontend-tests.xml').getroot()
-assert len(list(backend.iter('testcase'))) == 298
+assert len(list(backend.iter('testcase'))) == 299
 assert len(list(frontend.iter('testcase'))) == 20
 assert not list(backend.iter('failure')) + list(backend.iter('error')) + list(frontend.iter('failure')) + list(frontend.iter('error'))
 build = json.loads((proof / 'production-build.json').read_text())
@@ -28,7 +28,7 @@ manifest = {
     'source_commit': commit, 'created_at': datetime.now(timezone.utc).isoformat(),
     'source_repository': 'https://github.com/raj230848/FINN', 'full_source': True,
     'start_with': 'START_HERE.md', 'current_report': 'docs/pdf-import-verification.md',
-    'validation': {'backend_tests': 298, 'frontend_tests': 20, 'production_build': 'passed',
+    'validation': {'backend_tests': 299, 'frontend_tests': 20, 'production_build': 'passed',
                    'business_operations_in_inventory': 26, 'browser_viewport_widths': sorted({row['viewport'] for row in browser['geometry']})},
     'current_evidence': 'audit/pdf-import-fix/',
     'historical_reports': ['audit/history/FINN-Full-Audit-Report.pdf', 'audit/history/FINN-Verification-Gap-Resolution.pdf'],

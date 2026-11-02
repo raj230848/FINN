@@ -12,7 +12,7 @@ The source distribution contains no private runtime database. A fresh install se
 
 Read `docs/remaining-plan-audit.md` for every PDF item and its evidence or remaining external dependency. `docs/verification.md` records testing. `docs/deployment.md` covers hosting the full Python app; the public ChatGPT Site is a separate static demonstration.
 
-The historical change report at `audit/history/FINN-Verification-Gap-Resolution.pdf`, with its text copy at `docs/verification-gap-resolution.md`, covers the earlier hosting, restart and monitoring changes. Its 248 backend/11 frontend counts belong to that earlier revision. The current release passes 298 backend and 20 frontend tests. `docs/hosted-acceptance.md` explains public-host/device steps that still require the actual environment.
+The historical change report at `audit/history/FINN-Verification-Gap-Resolution.pdf`, with its text copy at `docs/verification-gap-resolution.md`, covers the earlier hosting, restart and monitoring changes. Its 248 backend/11 frontend counts belong to that earlier revision. The current release passes 299 backend and 20 frontend tests. `docs/hosted-acceptance.md` explains public-host/device steps that still require the actual environment.
 
 The earlier full-project report remains at `audit/history/FINN-Full-Audit-Report.pdf` and `docs/comprehensive-audit.md`. Its 227-test/24-operation measurements belong to the earlier source revision. The current backend has 26 protected business operations, including `GET /api/operations` and the new `GET /api/company-search`; the frontend also has public minimal readiness.
 
