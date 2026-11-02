@@ -1,0 +1,25 @@
+/* Locally bundled variable fonts: one family for reading, one for hierarchy. */
+:root {
+  --font-ui:var(--font-inter),"Segoe UI",Arial,sans-serif;
+  --font-display:var(--font-manrope),"Segoe UI",Arial,sans-serif;
+}
+body {font-family:var(--font-ui);font-kerning:normal;}
+.app-shell :is(button,input,select,textarea,table) {font-family:var(--font-ui);}
+.app-shell :is(h1,h2,h3,h4) {font-family:var(--font-display);text-wrap:balance;}
+html[data-theme] .app-shell .page-heading h1 {font-family:var(--font-display);font-weight:700;line-height:1.12;letter-spacing:-.045em;}
+.app-shell h2 {font-weight:650;line-height:1.25;letter-spacing:-.035em;}
+.app-shell h3 {font-weight:650;letter-spacing:-.025em;}
+.app-shell :is(.breadth-panel h3,.sidebar-promise strong) {font-family:var(--font-display);font-weight:600;}
+.app-shell .breadth-panel h3 em {font-style:normal;}
+.app-shell .answer-text {font-family:var(--font-ui);font-size:14px;line-height:1.8;letter-spacing:0;}
+.app-shell .evidence blockquote {font-family:var(--font-ui);font-size:13px;line-height:1.75;}
+.app-shell :is(.stat-card strong,.breadth-numbers b,.chart-price strong,.explorer-value strong,.drawer-price>strong,.phone-counts strong,.phone-watch-quote strong,.phone-financials article>strong) {
+  font-family:var(--font-ui);font-variant-numeric:lining-nums tabular-nums;font-weight:650;letter-spacing:-.035em;
+}
+.app-shell :is(table,.financial-panel,.quote,.period-change) {font-variant-numeric:lining-nums tabular-nums;}
+@media(max-width:760px) {
+  html[data-theme] .app-shell .page-heading h1 {font-size:clamp(27px,7.5vw,32px);letter-spacing:-.05em;}
+  .app-shell .phone-greeting h1 {font-family:var(--font-display);font-weight:650;font-size:clamp(27px,7.2vw,32px);line-height:1.15;letter-spacing:-.05em;}
+  .app-shell .library .section-title {align-items:flex-start;flex-wrap:wrap;gap:12px;}
+  .app-shell .library .section-title>div {flex:1 1 200px;min-width:0;}
+}

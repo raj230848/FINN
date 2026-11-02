@@ -10,7 +10,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
 }
@@ -197,7 +197,7 @@ small {
   border-radius: 5px;
   width: 27px;
   height: 29px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   color: var(--positive);
   font-size: 17px;
 }
@@ -310,7 +310,7 @@ small {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 15px;
   color: var(--positive);
 }
@@ -536,7 +536,7 @@ main {
   margin-bottom: 12px;
 }
 h1 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 35px;
   line-height: 1.2;
   letter-spacing: -1.3px;
@@ -609,7 +609,7 @@ h1 > span {
   display: flex;
   align-items: baseline;
   gap: 11px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 34px;
   letter-spacing: -1px;
   font-weight: 400;
@@ -617,7 +617,7 @@ h1 > span {
   margin-top: 13px;
 }
 .stat-card strong small {
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 9px;
   letter-spacing: 0;
   color: var(--text-muted);
@@ -741,7 +741,7 @@ h1 > span {
   border-radius: 4px;
   padding: 3px 5px;
   font-size: 8px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 400;
   letter-spacing: 0;
   color: var(--text-muted);
@@ -1216,7 +1216,7 @@ h1 > span {
   margin: 15px 0 0;
 }
 .chart-price strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 25px;
   letter-spacing: -0.5px;
@@ -1264,7 +1264,7 @@ h1 > span {
   letter-spacing: 1.2px;
 }
 .guidance-teaser h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 25px;
   line-height: 1.25;
@@ -1297,7 +1297,7 @@ h1 > span {
 }
 .teaser-comparison b {
   display: block;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 31px;
   letter-spacing: -1px;
@@ -1344,7 +1344,7 @@ h1 > span {
   align-items: center;
   gap: 5px;
   font-size: 9px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   color: var(--text-muted);
 }
 .footer-mark {
@@ -1461,7 +1461,7 @@ h1 > span {
   color: var(--text-muted);
 }
 .empty-state h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 22px;
   color: var(--text-muted);
@@ -1742,7 +1742,7 @@ td small {
 }
 .company-strip h2 {
   font-size: 21px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -1870,7 +1870,7 @@ td small {
   color: var(--text-muted);
 }
 .research-empty h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 22px;
   color: var(--text-muted);
@@ -1935,7 +1935,7 @@ td small {
   color: var(--text-muted);
 }
 .research-note h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 23px;
   color: var(--text-muted);
@@ -1978,7 +1978,7 @@ td small {
   gap: 6px;
 }
 .answer h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 23px;
   color: var(--positive);
@@ -2048,7 +2048,7 @@ td small {
   margin: 12px 0;
   padding: 12px;
   background: var(--surface);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 12px;
   line-height: 1.9;
   white-space: pre-wrap;
@@ -2071,7 +2071,7 @@ td small {
 .financial-panel h2,
 .guidance-panel h2,
 .library h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 25px;
   color: var(--positive);
@@ -2114,7 +2114,7 @@ td small {
 }
 .guidance-outcome strong {
   display: block;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 52px;
   color: var(--positive);
@@ -2183,7 +2183,7 @@ td small {
   display: block;
 }
 .guidance-range > b {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 25px;
   color: var(--positive);
@@ -2391,7 +2391,7 @@ td small {
   gap: 15px;
 }
 .dialog-heading h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 27px;
   color: var(--text-muted);

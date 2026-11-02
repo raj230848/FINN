@@ -1,6 +1,6 @@
 # Open the updated FINN project
 
-This ZIP contains the full source, tests, setup scripts, deployment examples, reviewed facts and audit history. The latest change report is `docs/pdf-import-verification.md`: larger complete-PDF imports, atomic indexing, duplicate protection and coverage notes. The dark/light bubble themes, NSE name search and controlled refresh remain available. Current evidence is under `audit/pdf-import-fix/`; see `RELEASE_MANIFEST.json` for the exact source revision.
+This ZIP contains the full source, tests, setup scripts, deployment examples, reviewed facts and audit history. The latest visual report is `docs/typography.md`: locally bundled Manrope/Inter fonts and consistent reading styles. `docs/pdf-import-verification.md` covers the complete-PDF import improvements. Current typography evidence is under `audit/typography/`, with import evidence under `audit/pdf-import-fix/`; see `RELEASE_MANIFEST.json` for the exact source revision.
 
 1. Extract the ZIP into a normal local folder. Python 3.12 and Node.js 22 LTS are required.
 2. Open PowerShell in that folder and run `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`.

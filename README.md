@@ -2,7 +2,7 @@
 
 Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
-Latest full-app update: [PDF import fix and verification](docs/pdf-import-verification.md): bounded 3,000-page imports, atomic indexing, duplicate protection and readable-page coverage. Validated with 299 backend tests and 20 frontend tests. [Neon Aurora / Champagne Bubble themes](docs/theme-change.md) and [full NSE name search with sourced-first refresh](docs/ui-ux-upgrade.md) remain available. The static public demo below is a separate version.
+Latest visual update: [Manrope headings and Inter reading text](docs/typography.md), bundled locally with clearer weights, spacing and aligned financial figures. [PDF import reliability](docs/pdf-import-verification.md), [dark/light bubble themes](docs/theme-change.md) and [full NSE name search](docs/ui-ux-upgrade.md) remain available. The static public demo below is a separate version.
 
 [Open the public interactive demo](https://finn-investment-desk.justfrog26.chatgpt.site). The Sites version uses synthetic market fixtures, historical reviewed financials and compact source extracts; watchlists and preferences are device-local. Live ingestion and document imports use the full Python application.
 

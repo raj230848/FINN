@@ -103,8 +103,7 @@
   padding: 4px 8px;
   border-radius: 7px;
   font:
-    600 12px Arial,
-    sans-serif;
+    600 12px var(--font-ui);
   color: var(--primary);
 }
 .notification-sheet header > button {
@@ -212,7 +211,7 @@
   color: var(--primary);
 }
 .access-gate h1 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 32px;
   line-height: 1.2;
   margin: 17px 0 12px;
