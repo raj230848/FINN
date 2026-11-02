@@ -7,6 +7,7 @@ import "./colorful-dark.css";
 import "./reliability.css";
 import "./themes.css";
 import "./typography.css";
+import "./filters.css";
 import {THEME_BOOTSTRAP,THEME_CANVAS} from "@/lib/theme";
 
 const inter=localFont({src:"./fonts/inter-latin-variable.woff2",variable:"--font-inter",weight:"100 900",display:"swap",fallback:["Arial"]});

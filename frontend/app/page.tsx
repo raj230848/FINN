@@ -1367,12 +1367,14 @@ export default function Home() {
                         </div>
                         <div className="feed-filters">
                           <div className="filter-scroll">
+                            <div className="signal-view-controls" role="group" aria-label="Signal views">
                             <button
                               className={
                                 !priority && !savedOnly
                                   ? "filter-chip active"
                                   : "filter-chip"
                               }
+                              aria-pressed={!priority && !savedOnly}
                               onClick={() => {
                                 setPriority("");
                                 setSavedOnly(false);
@@ -1386,6 +1388,7 @@ export default function Home() {
                                   ? "filter-chip active"
                                   : "filter-chip"
                               }
+                              aria-pressed={priority === "high"}
                               onClick={() =>
                                 setPriority(priority === "high" ? "" : "high")
                               }
@@ -1405,6 +1408,8 @@ export default function Home() {
                                 }
                               </span>
                             </button>
+                            </div>
+                            <div className="signal-scope-controls">
                             <label className="filter-select">
                               <span className="sr-only">Company filter</span>
                               <Select
@@ -1417,7 +1422,7 @@ export default function Home() {
                                 {companies
                                   .filter((c) => c.watched)
                                   .map((c) => (
-                                    <option key={c.ticker}>{c.name} · {c.ticker}</option>
+                                    <option key={c.ticker} value={c.ticker}>{c.name} · {c.ticker}</option>
                                   ))}
                               </Select>
                               <ChevronDown size={11} />
@@ -1437,6 +1442,7 @@ export default function Home() {
                               </Select>
                               <ChevronDown size={11} />
                             </label>
+                            </div>
                           </div>
                           <button
                             className="icon-button filter-settings"
@@ -1756,7 +1762,7 @@ export default function Home() {
                                 onChange={(e) => setChartTicker(e.target.value)}
                               >
                                 {dashboard?.companies.map((q) => (
-                                  <option key={q.ticker}>{q.name} · {q.ticker}</option>
+                                  <option key={q.ticker} value={q.ticker}>{q.name} · {q.ticker}</option>
                                 ))}
                               </Select>
                             </label>
