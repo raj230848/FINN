@@ -66,6 +66,7 @@ export type SyncRun = {
   };
 };
 export type Dashboard = {
+  freshness?: Freshness;
   mode: Mode;
   as_of: string;
   companies: Quote[];
@@ -107,6 +108,8 @@ export type Candidate = {
   period: string;
   kind: string;
 };
+export type CompanyDiscovery={company:Company;documents:Candidate[];message:string};
+export type Freshness={state:string;should_refresh:boolean;run_id?:number|null;next_check_at?:string|null;last_completed_at?:string|null;interval_minutes?:number};
 export type Evidence = {
   id: number;
   document_id: number;

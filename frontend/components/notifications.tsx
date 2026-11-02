@@ -15,7 +15,7 @@ export function Notifications({
   mode: Mode;
   onClose: () => void;
   onChanged: () => void;
-  onResearch: (ticker: string) => void;
+  onResearch: (ticker: string,tab?:string,question?:string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
@@ -149,7 +149,7 @@ export function Notifications({
                 className="text-button"
                 onClick={() => {
                   onClose();
-                  onResearch(n.ticker);
+                  onResearch(n.ticker,"overview",`What do the company's primary sources establish about this signal: ${n.title}? Check the stated period and do not assume causality.`);
                 }}
               >
                 Research {n.ticker}

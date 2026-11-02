@@ -26,6 +26,8 @@ from .services.materiality import CATEGORIES, classify
 from .services.research import research
 from .services.sync import run_sync, SYNC_LOCK
 from .services.operations import metrics, recover_interrupted_syncs
+from .services.company_directory import directory
+from .services.freshness import reserve_refresh,refresh_state,scheduled_refresh,catchup_days
 from .ingestion.http import SourceError
 from .ingestion.market import resolve_company
 
@@ -67,7 +69,7 @@ async def lifespan(app: FastAPI):
         from apscheduler.schedulers.background import BackgroundScheduler
         scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
         if settings.enable_scheduler:
-            scheduler.add_job(run_sync,'interval',minutes=max(settings.sync_interval_minutes,30),max_instances=1,coalesce=True)
+            scheduler.add_job(scheduled_refresh,'interval',minutes=max(settings.sync_interval_minutes,30),max_instances=1,coalesce=True)
         if push_configured():
             scheduler.add_job(deliver_pending,'interval',seconds=30,max_instances=1,coalesce=True)
         scheduler.start()
@@ -85,9 +87,9 @@ async def token_guard(request: Request, call_next):
         if not hmac.compare_digest(supplied.encode('utf-8'),settings.finn_api_token.encode('utf-8')):
             metrics.record('api', 'unauthorized')
             return JSONResponse(status_code=401,content={'detail':'API token required.'})
-    if settings.public_deployment and request.method == 'POST':
+    if settings.public_deployment and (request.method == 'POST' or request.url.path=='/api/company-search'):
         path = request.url.path
-        operation,limit = ('research',10) if path=='/api/research' else ('sync',2) if path=='/api/sync' else ('import',3) if path=='/api/documents' or path.endswith('/discover') else ('other',60)
+        operation,limit = ('search',100) if path=='/api/company-search' else ('research',10) if path=='/api/research' else ('sync',2) if path=='/api/sync' else ('import',3) if path=='/api/documents' or path.endswith('/discover') else ('other',60)
         if operation!='other' and not allow_request(request.client.host if request.client else 'unknown',operation,limit):
             metrics.record('api', 'rate_limited')
             return JSONResponse(status_code=429,headers={'Retry-After':'60'},content={'detail':'Request limit reached. Please try again in a minute.'})
@@ -146,6 +148,13 @@ def companies(db: DB, q: str = ''):
         stmt = stmt.where(Company.ticker.icontains(q,autoescape=True) | Company.name.icontains(q,autoescape=True))
     return [serial(c) for c in db.scalars(stmt.limit(100))]
 
+@app.get('/api/company-search')
+def company_search(background: BackgroundTasks,db: DB,q: str=Query('',max_length=100),limit: int=Query(8,ge=1,le=20)):
+    sectors={c.ticker:c.sector for c in db.scalars(select(Company))}
+    result=directory.search(q,limit,sectors)
+    if result['stale']:background.add_task(directory.refresh)
+    return result
+
 @app.patch('/api/companies/{ticker}')
 def watch(ticker: str, body: WatchIn, db: DB):
     company = require_company(db,ticker)
@@ -168,7 +177,7 @@ def dashboard(db: DB, mode: Mode = 'demo'):
     high = sum(x.priority=='high' for x in filings)
     routine = sum(x.priority=='low' for x in filings)
     volumes = sum(x.kind=='volume' for x in alerts)
-    return {'mode':mode,'as_of':clock.isoformat()+'Z','companies':monitored,'stats':{'companies':len(monitored),'high_priority':high,'volume_alerts':volumes,'price_alerts':sum(x.kind=='price' for x in alerts),'routine':routine,'total_filings':len(filings),'coverage':sum(x['close'] is not None for x in monitored)},'digest':f'{high} high-priority disclosures and {volumes} unusual-volume signals across your watchlist. {routine} routine filings are tucked away.' if filings or alerts else 'No sourced signals yet. Refresh sources to retrieve completed trading sessions and exchange disclosures.','last_sync':serial(latest) if latest else None,'ai_configured':bool(settings.gemini_api_key),'scheduler_enabled':settings.enable_scheduler}
+    return {'mode':mode,'as_of':clock.isoformat()+'Z','companies':monitored,'stats':{'companies':len(monitored),'high_priority':high,'volume_alerts':volumes,'price_alerts':sum(x.kind=='price' for x in alerts),'routine':routine,'total_filings':len(filings),'coverage':sum(x['close'] is not None for x in monitored)},'digest':f'{high} high-priority disclosures and {volumes} unusual-volume signals across your watchlist. {routine} routine filings are tucked away.' if filings or alerts else 'No sourced signals yet. Refresh sources to retrieve completed trading sessions and exchange disclosures.','last_sync':serial(latest) if latest else None,'ai_configured':bool(settings.gemini_api_key),'scheduler_enabled':settings.enable_scheduler,'freshness':refresh_state(db)}
 
 @app.get('/api/announcements')
 def announcements(db: DB, mode: Mode='demo', window: str='24h', ticker: str|None=None, category: str|None=None, priority: str|None=None, include_routine: bool=False, start: datetime|None=None, end: datetime|None=None, offset: int=Query(0,ge=0), limit: int=Query(100,ge=1,le=300)):
@@ -310,15 +319,13 @@ def update_preferences(body: PreferencesIn, db: DB):
     return serial(pref)
 
 @app.post('/api/sync',status_code=202)
-def sync(background: BackgroundTasks, db: DB, filing_days: int | None=Query(None,ge=1,le=31)):
-    latest = db.scalar(select(SyncRun).where(SyncRun.completed_at.is_(None)).order_by(SyncRun.id.desc()).limit(1))
-    if SYNC_LOCK.locked() or (latest and datetime.now(timezone.utc).replace(tzinfo=None)-latest.started_at<timedelta(minutes=10)):
-        raise HTTPException(409,'A source refresh is already running.')
-    row = SyncRun(result={'status':'queued'})
-    db.add(row)
-    db.commit()
-    background.add_task(run_sync,row.id,filing_days)
-    return {'id':row.id,'status':'queued'}
+def sync(background: BackgroundTasks, db: DB, filing_days: int | None=Query(None,ge=1,le=31),only_if_stale: bool=False):
+    if SYNC_LOCK.locked() and not db.scalar(select(SyncRun.id).where(SyncRun.completed_at.is_(None))):
+        raise HTTPException(409,'A source refresh is already running. The cached snapshot is still available.')
+    result,created=reserve_refresh(db,only_if_stale)
+    if created:background.add_task(run_sync,result['id'],filing_days or (catchup_days(db) if only_if_stale else None),smart=only_if_stale)
+    if result['id'] is None:return JSONResponse(status_code=200,content=result)
+    return result
 
 @app.get('/api/sync/{run_id}')
 def sync_status(run_id: RecordId, db: DB):

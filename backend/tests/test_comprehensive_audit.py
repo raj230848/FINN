@@ -55,6 +55,7 @@ def test_audit_regression_malformed_provider_envelope_is_sanitized(monkeypatch,m
 API_CASES=[
  ('GET','/api/health','/api/health',200,None),
  ('GET','/api/operations','/api/operations',200,None),
+ ('GET','/api/company-search','/api/company-search?q=Infosys',200,None),
  ('GET','/api/companies','/api/companies',200,None),
  ('PATCH','/api/companies/{ticker}','/api/companies/INFY',200,{'watched':True}),
  ('GET','/api/dashboard','/api/dashboard',200,None),
@@ -91,7 +92,7 @@ def endpoint_context(db,monkeypatch):
     monkeypatch.setattr(main,'resolve_company',lambda t:{'ticker':t,'name':'Audit Company Limited','website':'https://example.com','sector':'Test','verified':True})
     monkeypatch.setattr(main,'discover_documents',lambda c:[])
     monkeypatch.setattr(main,'ingest_url',lambda session,company,title,period,kind,url:store_document(session,company,title,period,kind,url,content))
-    def complete(run_id,days=None):
+    def complete(run_id,days=None,**kwargs):
         row=db.get(SyncRun,run_id);row.completed_at=utcnow();row.result={'status':'complete','controlled_fixture':True};db.commit()
     monkeypatch.setattr(main,'run_sync',complete)
     for name,value in [('vapid_private_key','test-only-private'),('vapid_public_key','test-only-public'),('vapid_subject','mailto:audit@example.invalid')]:monkeypatch.setattr(settings,name,value)

@@ -4,12 +4,13 @@ import "./workspace.css";
 import "./mobile.css";
 import "./colorful-dark.css";
 import "./reliability.css";
+import "./themes.css";
+import {THEME_BOOTSTRAP} from "@/lib/theme";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#050507",
 };
 
 export const metadata: Metadata = {
@@ -23,7 +24,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head><meta name="theme-color" content="#10121C"/><script dangerouslySetInnerHTML={{__html:THEME_BOOTSTRAP}}/></head>
       <body>{children}</body>
     </html>
   );

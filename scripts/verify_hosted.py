@@ -64,6 +64,7 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
             call('GET','/api/health',template='/api/health',keys=['status','ai_configured'])
             dashboard=call('GET','/api/dashboard?mode=sourced',template='/api/dashboard',keys=['companies','last_sync','as_of'])
             call('GET','/api/operations',template='/api/operations',keys=['sources','metrics','push'])
+            call('GET','/api/company-search?q=HCL%20Technologies',template='/api/company-search',keys=['items','source_date','message'])
             feed=call('GET','/api/announcements?mode=demo&window=7d',template='/api/announcements',keys=['items','coverage'])
             call('GET','/api/alerts?mode=sourced',template='/api/alerts')
             notifications=call('GET','/api/notifications?mode=demo',template='/api/notifications',keys=['items','unread_count'])
@@ -123,7 +124,7 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
             call('DELETE','/api/session',label='logout')
             call('GET','/api/companies',401,label='logout removes access')
     # Exact route inventory, including optional operations that must remain unverified.
-    expected={('GET',p) for p in ['/api/health','/api/operations','/api/companies','/api/dashboard','/api/announcements','/api/alerts','/api/notifications','/api/preferences','/api/push/config','/api/push/status','/api/sync/{run_id}','/api/announcements/{filing_id}/context','/api/companies/{ticker}/documents','/api/companies/{ticker}/financials','/api/companies/{ticker}/guidance']}
+    expected={('GET',p) for p in ['/api/health','/api/operations','/api/company-search','/api/companies','/api/dashboard','/api/announcements','/api/alerts','/api/notifications','/api/preferences','/api/push/config','/api/push/status','/api/sync/{run_id}','/api/announcements/{filing_id}/context','/api/companies/{ticker}/documents','/api/companies/{ticker}/financials','/api/companies/{ticker}/guidance']}
     expected.update({('PATCH','/api/companies/{ticker}'),('PUT','/api/preferences')})
     expected.update(('POST',p) for p in ['/api/sync','/api/research','/api/documents','/api/companies/{ticker}/discover','/api/push/subscribe','/api/push/unsubscribe','/api/notifications/read-all','/api/notifications/{event_id}/read'])
     seen={(r['method'],r['path']) for r in report['operations']}

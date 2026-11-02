@@ -1,4 +1,5 @@
 "use client";
+import {Select} from "@/components/select";
 
 import { useEffect, useId, useRef, useState } from "react";
 import {
@@ -26,6 +27,7 @@ import {
   YAxis,
 } from "recharts";
 import { Company, Mode, Quote, money, number, pct } from "@/lib/api";
+import {CompanyLookup} from "./company-lookup";
 
 function HistoryChart({
   quote,
@@ -41,13 +43,13 @@ function HistoryChart({
   const common = { data, margin: { top: 14, right: 16, left: 0, bottom: 0 } };
   const axes = (
     <>
-      <CartesianGrid vertical={false} stroke="#302838" strokeDasharray="3 6" />
+      <CartesianGrid vertical={false} stroke="var(--chart-grid)" strokeDasharray="3 6" />
       <XAxis
         dataKey="date"
         axisLine={false}
         tickLine={false}
         minTickGap={40}
-        tick={{ fill: "#a497b4", fontSize: 11 }}
+        tick={{ fill: "var(--text-muted)", fontSize: 11 }}
         tickFormatter={(d) =>
           new Date(`${d}T12:00:00`).toLocaleDateString("en-IN", {
             day: "numeric",
@@ -60,7 +62,7 @@ function HistoryChart({
         tickLine={false}
         width={62}
         domain={metric === "price" ? ["auto", "auto"] : [0, "auto"]}
-        tick={{ fill: "#a497b4", fontSize: 11 }}
+        tick={{ fill: "var(--text-muted)", fontSize: 11 }}
         tickFormatter={(v) =>
           metric === "volume"
             ? `${(Number(v) / 1e6).toFixed(1)}M`
@@ -68,16 +70,16 @@ function HistoryChart({
         }
       />
       <Tooltip
-        cursor={{ stroke: "#a78bc0", strokeDasharray: "3 3" }}
+        cursor={{ stroke: "var(--text-muted)", strokeDasharray: "3 3" }}
         contentStyle={{
-          border: "1px solid #614578",
+          border: "1px solid var(--border-strong)",
           borderRadius: 12,
-          backgroundColor: "#21172c",
-          color: "#f5e9ff",
-          boxShadow: "0 10px 32px #0c1c3312",
+          backgroundColor: "var(--surface-raised)",
+          color: "var(--text)",
+          boxShadow: "0 10px 32px var(--shadow)",
           fontSize: 12,
         }}
-        labelStyle={{ color: "#b9a1cc", marginBottom: 6 }}
+        labelStyle={{ color: "var(--text-secondary)", marginBottom: 6 }}
         formatter={(v) => [
           metric === "price" ? money(Number(v)) : number(Number(v)),
           metric === "price" ? "Adjusted close" : "Shares traded",
@@ -96,19 +98,19 @@ function HistoryChart({
           <AreaChart {...common}>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#a9f182" stopOpacity={0.26} />
-                <stop offset="100%" stopColor="#a9f182" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--positive)" stopOpacity={0.26} />
+                <stop offset="100%" stopColor="var(--positive)" stopOpacity={0} />
               </linearGradient>
             </defs>
             {axes}
             <Area
               dataKey="close"
               type="monotone"
-              stroke="#b8ec84"
+              stroke="var(--positive)"
               strokeWidth={2.5}
               fill={`url(#${id})`}
               isAnimationActive={false}
-              activeDot={{ r: 5, stroke: "white", strokeWidth: 3 }}
+              activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 3 }}
             />
           </AreaChart>
         ) : (
@@ -116,7 +118,7 @@ function HistoryChart({
             {axes}
             <Bar
               dataKey="volume"
-              fill="#b794ff"
+              fill="var(--primary)"
               radius={[3, 3, 0, 0]}
               isAnimationActive={false}
             />
@@ -194,16 +196,16 @@ export function MarketExplorer({
           <div>
             <label className="explorer-company">
               <span className="sr-only">Explorer company</span>
-              <select
+              <Select
                 value={quote?.ticker || ""}
                 onChange={(e) => setTicker(e.target.value)}
               >
                 {quotes.map((q) => (
                   <option key={q.ticker} value={q.ticker}>
-                    {q.ticker}
+                    {q.name} · {q.ticker}
                   </option>
                 ))}
-              </select>
+              </Select>
               <ChevronDown size={13} />
             </label>
             <div>
@@ -481,133 +483,6 @@ export function CompanyDrawer({
   );
 }
 
-export function CompanySearch({
-  companies,
-  onSelect,
-}: {
-  companies: Company[];
-  onSelect: (ticker: string) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
-  const results = companies
-    .filter((c) =>
-      `${c.ticker} ${c.name}`.toLowerCase().includes(query.toLowerCase()),
-    )
-    .slice(0, 6);
-  useEffect(() => {
-    function shortcut(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        input.current?.focus();
-        setOpen(true);
-      }
-    }
-    document.addEventListener("keydown", shortcut);
-    return () => document.removeEventListener("keydown", shortcut);
-  }, []);
-  function select(t: string) {
-    onSelect(t);
-    setQuery("");
-    setOpen(false);
-  }
-  return (
-    <div
-      className="company-search-wrap"
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
-      }}
-    >
-      <form
-        className="global-search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const match = results[active];
-          if (match) select(match.ticker);
-          else if (query.trim())
-            select(query.trim().toUpperCase().replace(/\.NS$/, ""));
-        }}
-      >
-        <Search size={16} />
-        <input
-          ref={input}
-          aria-label="Search companies"
-          aria-expanded={open}
-          aria-controls="company-search-results"
-          aria-activedescendant={
-            open && results[active]
-              ? `search-${results[active].ticker}`
-              : undefined
-          }
-          role="combobox"
-          autoComplete="off"
-          placeholder="Search a company…"
-          value={query}
-          onFocus={() => setOpen(true)}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setActive(0);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setOpen(false);
-            if (e.key === "ArrowDown") {
-              e.preventDefault();
-              setActive((i) => Math.min(i + 1, results.length - 1));
-            }
-            if (e.key === "ArrowUp") {
-              e.preventDefault();
-              setActive((i) => Math.max(i - 1, 0));
-            }
-          }}
-        />
-        <kbd>Ctrl K</kbd>
-      </form>
-      {open && (
-        <div
-          className="search-results"
-          id="company-search-results"
-          role="listbox"
-        >
-          <div className="search-results-label">
-            {query ? "COMPANIES" : "QUICK RESEARCH"}
-          </div>
-          {results.map((c, i) => (
-            <button
-              type="button"
-              role="option"
-              aria-selected={i === active}
-              className={i === active ? "active" : ""}
-              id={`search-${c.ticker}`}
-              key={c.ticker}
-              onMouseEnter={() => setActive(i)}
-              onClick={() => select(c.ticker)}
-            >
-              <span className="search-company-icon">
-                {c.ticker.slice(0, 2)}
-              </span>
-              <span>
-                <b>{c.ticker}</b>
-                <small>{c.name}</small>
-              </span>
-              <ArrowUpRight size={14} />
-            </button>
-          ))}
-          {!results.length && (
-            <button
-              type="button"
-              className="search-new"
-              onClick={() => select(query.trim().toUpperCase())}
-            >
-              Research “{query}”<ArrowRight size={14} />
-            </button>
-          )}
-          <div className="search-tip">
-            ↑ ↓ to navigate <span>↵ to open</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+export function CompanySearch({companies,onSelect}:{companies:Company[];onSelect:(ticker:string,tab?:string)=>void|Promise<void>}) {
+  return <CompanyLookup compact companies={companies} onSelect={c=>onSelect(c.ticker,"documents")}/>;
 }

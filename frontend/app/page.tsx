@@ -1,4 +1,5 @@
 "use client";
+import {Select} from "@/components/select";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity,
@@ -38,6 +39,7 @@ import {
   NotificationFeed,
   Alert,
   Company,
+  CompanyDiscovery,
   Dashboard,
   Filing,
   label,
@@ -48,13 +50,11 @@ import {
   shortDate,
   SyncRun,
 } from "@/lib/api";
-import { PriceChart, Sparkline } from "@/components/charts";
-import { ResearchWorkspace } from "@/components/research";
-import {
-  CompanyDrawer,
-  CompanySearch,
-  MarketExplorer,
-} from "@/components/market-explorer";
+import dynamic from "next/dynamic";
+import { Sparkline } from "@/components/sparkline";
+import {CompanyLookup} from "@/components/company-lookup";
+
+
 
 import {
   FilterSheet,
@@ -66,6 +66,12 @@ import {
 import { AccessGate } from "@/components/access-gate";
 import { Notifications } from "@/components/notifications";
 import { ServiceStatus } from "@/components/service-status";
+import { ThemeToggle } from "@/components/theme-toggle";
+
+const PriceChart=dynamic(()=>import("@/components/charts").then(m=>m.PriceChart),{ssr:false});
+const MarketExplorer=dynamic(()=>import("@/components/market-explorer").then(m=>m.MarketExplorer),{ssr:false,loading:()=> <div className="panel chart-loading">Loading market history…</div>});
+const CompanyDrawer=dynamic(()=>import("@/components/market-explorer").then(m=>m.CompanyDrawer),{ssr:false});
+const ResearchWorkspace=dynamic(()=>import("@/components/research").then(m=>m.ResearchWorkspace),{loading:()=> <div className="panel chart-loading">Opening the research desk…</div>});
 
 type View = "home" | "signals" | "research" | "watchlist";
 const navigation = [
@@ -103,7 +109,7 @@ function SignalCard({
   onSave,
 }: {
   filing: Filing;
-  onResearch: (t: string) => void;
+  onResearch: (t: string,tab?:string,question?:string) => void;
   saved: boolean;
   onSave: (filing: Filing) => void;
 }) {
@@ -188,7 +194,7 @@ function SignalCard({
           <button
             aria-label={`Research ${filing.ticker}`}
             className="signal-research"
-            onClick={() => onResearch(filing.ticker)}
+            onClick={() => onResearch(filing.ticker,"overview",`What do primary sources establish about this ${filing.category.replaceAll("_"," ")} filing: ${filing.title}?`)}
           >
             <ArrowUpRight size={16} />
           </button>
@@ -361,7 +367,7 @@ function Preferences({
             <span>
               Minimum number of complete historical sessions required.
             </span>
-            <select
+            <Select
               value={prefs.lookback}
               onChange={(e) =>
                 setPrefs({ ...prefs, lookback: Number(e.target.value) })
@@ -372,7 +378,7 @@ function Preferences({
                   {n} trading sessions
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <fieldset>
             <legend>Companies to monitor</legend>
@@ -419,6 +425,7 @@ function Preferences({
               {error}
             </div>
           )}
+
           <div className="dialog-footer">
             <span>
               <Clock3 size={13} /> End-of-day monitoring
@@ -440,7 +447,7 @@ function Preferences({
 
 export default function Home() {
   const [view, setView] = useState<View>("home");
-  const [mode, setMode] = useState<Mode>("demo");
+  const [mode, setMode] = useState<Mode>("sourced");
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [filings, setFilings] = useState<Filing[]>([]);
@@ -475,6 +482,8 @@ export default function Home() {
   const [customEnd, setCustomEnd] = useState("2026-10-30");
   const [researchTicker, setResearchTicker] = useState("INFY");
   const [researchTab, setResearchTab] = useState("overview");
+  const [researchQuestion,setResearchQuestion]=useState("");
+  const [researchDiscovery,setResearchDiscovery]=useState<CompanyDiscovery|null>(null);
   const [chartTicker, setChartTicker] = useState("RELIANCE");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -493,6 +502,9 @@ export default function Home() {
   const closeCompany = useCallback(() => setSelectedCompany(null), []);
   const reload = useCallback(() => setGeneration((g) => g + 1), []);
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
+  const autoRequested=useRef(0),displayMode=useRef<Mode>("sourced");
+  const [wide,setWide]=useState(false);
+  useEffect(()=>{const media=matchMedia("(min-width: 761px)");const changed=()=>setWide(media.matches);changed();media.addEventListener("change",changed);return()=>media.removeEventListener("change",changed);},[]);
 
   useEffect(() => {
     try {
@@ -543,6 +555,7 @@ export default function Home() {
     let cancelled = false;
     setLoading(true);
     setError("");
+    if(displayMode.current!==mode){setDashboard(null);setAlerts([]);setFilings([]);setRoutineCount(0);setFeedMeta({});setNotificationFeed({items:[],unread_count:0,total:0,has_more:false});displayMode.current=mode;}
     Promise.all([
       api<Dashboard>(`/dashboard?mode=${mode}`),
       api<Company[]>("/companies"),
@@ -563,7 +576,7 @@ export default function Home() {
           if (e instanceof ApiError && e.code === "SIGN_IN_REQUIRED")
             setSessionLocked(true);
           setError(e.message);
-          setDashboard(null);
+          // Preserve the last good snapshot for this mode during a provider/API outage.
         }
       })
       .finally(() => {
@@ -573,6 +586,20 @@ export default function Home() {
       cancelled = true;
     };
   }, [mode, generation]);
+  useEffect(()=>{
+    if(mode!=="sourced"||!dashboard?.freshness||sessionLocked)return;
+    if(dashboard.freshness.state==="in_progress"&&dashboard.freshness.run_id){
+      setSync({id:dashboard.freshness.run_id,started_at:new Date().toISOString(),completed_at:null,result:{status:"running"}});setRefreshing(true);return;
+    }
+    if(dashboard.freshness.should_refresh&&Date.now()-autoRequested.current>60000){autoRequested.current=Date.now();void refresh(undefined,true);}
+  },[dashboard,mode,sessionLocked]);
+  useEffect(()=>{
+    if(mode!=="sourced"||sessionLocked)return;
+    let cancelled=false;
+    const update=()=>{if(document.visibilityState!=="visible")return;api<Dashboard>("/dashboard?mode=sourced").then(d=>{if(!cancelled){setDashboard(d);setSync(d.last_sync);}}).catch(()=>{});};
+    const timer=setInterval(update,60000);window.addEventListener("online",update);
+    return()=>{cancelled=true;clearInterval(timer);window.removeEventListener("online",update);};
+  },[mode,sessionLocked]);
   useEffect(() => {
     let cancelled = false;
     feedVersion.current++;
@@ -628,6 +655,7 @@ export default function Home() {
         setSync(result);
         if (result.completed_at) {
           setRefreshing(false);
+          setToast(result.result.status==="complete"?"Sources refreshed. Original session dates are shown.":"Refresh finished with source gaps. Review the status.");
           reload();
         }
       } catch (e) {
@@ -680,16 +708,20 @@ export default function Home() {
       if (version === feedVersion.current) setLoadingMore(false);
     }
   }
-  async function refresh(filingDays?: number) {
+  async function refresh(filingDays?: number,automatic=false) {
+    if(mode==="demo"&&!automatic){setToast("Replaying the labelled example. No external sources were refreshed.");reload();return;}
+    if(refreshing)return;
     setRefreshing(true);
     setError("");
     try {
-      const result = await api<{ id: number }>(`/sync${filingDays?`?filing_days=${filingDays}`:""}`, { method: "POST" });
+      const params=new URLSearchParams();if(filingDays)params.set("filing_days",String(filingDays));if(automatic)params.set("only_if_stale","true");
+      const result = await api<{ id: number|null;status:string }>(`/sync?${params}`, { method: "POST" });
+      if(result.id===null){setRefreshing(false);return;}
       setSync({
         id: result.id,
         started_at: new Date().toISOString(),
         completed_at: null,
-        result: { status: "queued" },
+        result: { status: result.status },
       });
     } catch (e) {
       setError((e as Error).message);
@@ -703,9 +735,15 @@ export default function Home() {
     setSavedOnly(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function research(ticker: string, tab = "overview") {
+  async function research(ticker: string, tab = "overview",question="") {
+    setResearchDiscovery(null);
+    if(!companies.some(c=>c.ticker===ticker)){
+      const result=await api<CompanyDiscovery>(`/companies/${ticker}/discover`,{method:"POST"});
+      setResearchDiscovery(result);reload();
+    }
     setResearchTicker(ticker);
     setResearchTab(tab);
+    setResearchQuestion(question);
     navigate("research");
   }
   async function toggleWatch(c: Company) {
@@ -918,8 +956,9 @@ export default function Home() {
             <ChevronRight size={12} />
             <b>{navigation.find((n) => n.id === view)?.title}</b>
           </div>
-          <CompanySearch companies={companies} onSelect={research} />
+          <CompanyLookup compact companies={companies} onSelect={c=>research(c.ticker,"documents")} />
           <div className="topbar-actions">
+            <ThemeToggle />
             <span className="eod-label">
               <i /> EOD intelligence
             </span>
@@ -944,16 +983,18 @@ export default function Home() {
           <div className="environment-bar">
             <div className="mode-toggle" aria-label="Data mode">
               <button
-                className={mode === "demo" ? "selected" : ""}
-                onClick={() => setMode("demo")}
-              >
-                <FlaskConical size={12} /> Demo replay
-              </button>
-              <button
                 className={mode === "sourced" ? "selected" : ""}
+                aria-pressed={mode === "sourced"}
                 onClick={() => setMode("sourced")}
               >
                 <ShieldCheck size={12} /> Sourced data
+              </button>
+              <button
+                className={mode === "demo" ? "selected" : ""}
+                aria-pressed={mode === "demo"}
+                onClick={() => setMode("demo")}
+              >
+                <FlaskConical size={12} /> Demo replay
               </button>
             </div>
             <span>
@@ -1002,10 +1043,18 @@ export default function Home() {
               </button>
             </div>
           )}
+          {mode==="sourced"&&dashboard&&<div className="source-freshness" aria-label="Source freshness">
+            <span className={`freshness-tag ${dashboard.freshness?.state==="due"||dashboard.freshness?.state==="retry_later"?"stale":""}`}>{refreshing?"Updating in background":dashboard.freshness?.state==="retry_later"?(dashboard.companies.some(c=>c.close!==null)?"Last good snapshot · retry scheduled":"Sources unavailable · retry scheduled"):"Sourced EOD"}</span>
+            <span>Latest market session <b>{dashboard.companies.map(c=>c.date).filter(Boolean).sort().at(-1)||"not fetched"}</b></span>
+            <span>Last check <b>{dashboard.last_sync?.completed_at?new Date(dashboard.last_sync.completed_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"})+" IST":"not completed"}</b></span>
+            <span>{dashboard.scheduler_enabled?`Automatic checks · ${dashboard.freshness?.interval_minutes||60} min`:"Freshness checked when you open the desk"}</span>
+          </div>}
           {view === "research" ? (
             <ResearchWorkspace
               initialTicker={researchTicker}
               initialTab={researchTab}
+              initialQuestion={researchQuestion}
+              initialDiscovery={researchDiscovery}
               companies={companies}
               onChanged={reload}
             />
@@ -1016,7 +1065,7 @@ export default function Home() {
                   dashboard={dashboard}
                   focus={mobileFocus}
                   onFocus={setMobileFocus}
-                  refreshing={refreshing}
+                  refreshing={mode==="sourced"&&refreshing}
                   onRefresh={() => void refresh()}
                   onPriority={() => focusSignals("high")}
                   onAlerts={() => focusSignals("market")}
@@ -1066,15 +1115,15 @@ export default function Home() {
                   </p>
                 </div>
                 <button
-                  className="btn refresh-button"
-                  disabled={refreshing}
+                  className="btn primary refresh-button"
+                  disabled={mode==="sourced"&&refreshing}
                   onClick={() => void refresh()}
                 >
                   <RefreshCw size={14} className={refreshing ? "spin" : ""} />
-                  {refreshing ? "Refreshing sources…" : "Refresh sources"}
+                  {mode==="demo"?"Replay example":refreshing ? "Refreshing sources…" : "Refresh sources"}
                 </button>
               </div>
-              {(refreshing || (mode === "sourced" && sync)) && (
+              {mode === "sourced" && (refreshing || (sync&&sync.result.status!=="complete")) && (
                 <div className="sync-banner">
                   <div>
                     <span
@@ -1240,13 +1289,13 @@ export default function Home() {
                         </button>
                       </section>
                       <div className="home-market">
-                        <MarketExplorer
+                        {(wide||mobileFocus==="market")&&<MarketExplorer
                           quotes={
                             dashboard?.mode === mode ? dashboard.companies : []
                           }
                           mode={mode}
                           onInspect={setSelectedCompany}
-                        />
+                        />}
                         <MobileMovers
                           quotes={
                             dashboard?.mode === mode ? dashboard.companies : []
@@ -1300,7 +1349,7 @@ export default function Home() {
                           <label className="window-select">
                             <Clock3 size={12} />
                             <span className="sr-only">Time window</span>
-                            <select
+                            <Select
                               value={windowValue}
                               disabled={savedOnly}
                               aria-label="Time window"
@@ -1310,7 +1359,7 @@ export default function Home() {
                               <option value="7d">Last 7 days</option>
                               <option value="30d">Last 30 days</option>
                               <option value="custom">Custom dates</option>
-                            </select>
+                            </Select>
                             <ChevronDown size={12} />
                           </label>
                         </div>
@@ -1356,7 +1405,7 @@ export default function Home() {
                             </button>
                             <label className="filter-select">
                               <span className="sr-only">Company filter</span>
-                              <select
+                              <Select
                                 value={filterTicker}
                                 onChange={(e) =>
                                   setFilterTicker(e.target.value)
@@ -1366,14 +1415,14 @@ export default function Home() {
                                 {companies
                                   .filter((c) => c.watched)
                                   .map((c) => (
-                                    <option key={c.ticker}>{c.ticker}</option>
+                                    <option key={c.ticker}>{c.name} · {c.ticker}</option>
                                   ))}
-                              </select>
+                              </Select>
                               <ChevronDown size={11} />
                             </label>
                             <label className="filter-select">
                               <span className="sr-only">Category filter</span>
-                              <select
+                              <Select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
                               >
@@ -1383,7 +1432,7 @@ export default function Home() {
                                     {label(c)}
                                   </option>
                                 ))}
-                              </select>
+                              </Select>
                               <ChevronDown size={11} />
                             </label>
                           </div>
@@ -1458,6 +1507,7 @@ export default function Home() {
                                     <ChevronDown size={14} />
                                   </summary>
                                   <p>{a.explanation}</p>
+                                  <button className="text-button" onClick={()=>void research(a.ticker,"overview",`Review the primary-source business outlook and risks for ${a.ticker} after this ${a.date} completed-session signal: ${a.title}. Do not infer a cause for the market move.`)}>Research this signal<ArrowRight size={14}/></button>
                                   {a.mode === "sourced" && a.source_url && (
                                     <a
                                       href={a.source_url}
@@ -1699,14 +1749,14 @@ export default function Home() {
                           <div className="section-title">
                             <label>
                               <span className="sr-only">Chart company</span>
-                              <select
+                              <Select
                                 value={chartQuote?.ticker || chartTicker}
                                 onChange={(e) => setChartTicker(e.target.value)}
                               >
                                 {dashboard?.companies.map((q) => (
-                                  <option key={q.ticker}>{q.ticker}</option>
+                                  <option key={q.ticker}>{q.name} · {q.ticker}</option>
                                 ))}
-                              </select>
+                              </Select>
                             </label>
                             <span className="small-label">
                               {mode === "demo" ? "SIMULATED" : "ADJUSTED CLOSE"}
@@ -1724,7 +1774,7 @@ export default function Home() {
                               {pct(chartQuote?.change_pct ?? null)}
                             </span>
                           </div>
-                          {chartQuote?.history.length ? (
+                          {wide&&chartQuote?.history.length ? (
                             <PriceChart data={chartQuote.history} />
                           ) : (
                             <div className="chart-empty">
@@ -1840,7 +1890,7 @@ export default function Home() {
                         </div>
                         <label className="watch-sort">
                           Sort by
-                          <select
+                          <Select
                             aria-label="Sort watchlist"
                             value={watchSort}
                             onChange={(e) => setWatchSort(e.target.value)}
@@ -1849,7 +1899,7 @@ export default function Home() {
                             <option value="gainers">Top gainers</option>
                             <option value="decliners">Top decliners</option>
                             <option value="volume">Unusual volume</option>
-                          </select>
+                          </Select>
                         </label>
                       </div>
                       <MobileWatchlist

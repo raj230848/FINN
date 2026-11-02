@@ -1,4 +1,5 @@
 "use client";
+import {Select} from "@/components/select";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -127,7 +128,7 @@ export function MobileBrief({
         </div>
         <button
           className="phone-refresh"
-          aria-label="Refresh sources"
+          aria-label={dashboard?.mode==="demo"?"Replay example":"Refresh sources"}
           disabled={refreshing}
           onClick={onRefresh}
         >
@@ -325,7 +326,7 @@ export function FilterSheet({
         >
           <label>
             Time window
-            <select
+            <Select
               value={draft.window}
               disabled={savedOnly}
               onChange={(e) => field("window", e.target.value)}
@@ -334,7 +335,7 @@ export function FilterSheet({
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
               <option value="custom">Custom dates</option>
-            </select>
+            </Select>
           </label>
           {savedOnly && (
             <p className="sheet-note">Saved insights include all dates.</p>
@@ -364,7 +365,7 @@ export function FilterSheet({
           )}
           <label>
             Company
-            <select
+            <Select
               value={draft.ticker}
               onChange={(e) => field("ticker", e.target.value)}
             >
@@ -376,11 +377,11 @@ export function FilterSheet({
                     {c.ticker} · {c.name}
                   </option>
                 ))}
-            </select>
+            </Select>
           </label>
           <label>
             Announcement type
-            <select
+            <Select
               value={draft.category}
               onChange={(e) => field("category", e.target.value)}
             >
@@ -390,11 +391,11 @@ export function FilterSheet({
                   {label(c)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label>
             Priority
-            <select
+            <Select
               value={draft.priority}
               onChange={(e) => field("priority", e.target.value)}
             >
@@ -402,7 +403,7 @@ export function FilterSheet({
               <option value="high">High priority</option>
               <option value="medium">Medium priority</option>
               <option value="low">Low priority</option>
-            </select>
+            </Select>
           </label>
           <footer>
             <button

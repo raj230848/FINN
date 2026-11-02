@@ -36,6 +36,7 @@ def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
             '/api/health':{'status':'ok','ai_configured':True},
             '/api/dashboard':{'companies':[],'last_sync':None,'as_of':'2026-11-01'},
             '/api/operations':{'sources':{},'metrics':{},'push':{}},
+            '/api/company-search':{'items':[],'source_date':'2026-11-02','message':'Choose a company'},
             '/api/companies':[],
             '/api/announcements':{'items':[],'coverage':{}},
             '/api/notifications':{'items':[],'unread_count':0},
@@ -45,7 +46,7 @@ def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
         return httpx.Response(200,json=values.get(p,[]))
     report=hosted.verify('https://finn.example','private-test-code',transport=httpx.MockTransport(handle))
     assert report['summary']['failed']==0
-    assert report['summary']['business_operations']==25
+    assert report['summary']['business_operations']==26
     assert report['summary']['operations_not_verified']>0
     assert not any(m=='POST' and p!='/api/session' for m,p in calls)
     encoded=json.dumps(report)

@@ -1,4 +1,5 @@
 "use client";
+import {Select} from "@/components/select";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
@@ -21,6 +22,7 @@ import {
   api,
   Candidate,
   Company,
+  CompanyDiscovery,
   Financials,
   GuidanceItem,
   label,
@@ -29,6 +31,7 @@ import {
   Research,
   SourceDocument,
 } from "@/lib/api";
+import {CompanyLookup,CompanyMatch} from "./company-lookup";
 
 const questions = [
   "What does the company do?",
@@ -40,16 +43,19 @@ const questions = [
 export function ResearchWorkspace({
   initialTicker,
   initialTab = "overview",
+  initialQuestion = "",
+  initialDiscovery = null,
   companies,
   onChanged,
 }: {
   initialTicker: string;
   initialTab?: string;
+  initialQuestion?: string;
+  initialDiscovery?: CompanyDiscovery|null;
   companies: Company[];
   onChanged: () => void;
 }) {
   const [ticker, setTicker] = useState(initialTicker);
-  const [search, setSearch] = useState(initialTicker);
   const [tab, setTab] = useState(initialTab);
   const [docs, setDocs] = useState<SourceDocument[]>([]);
   const [financials, setFinancials] = useState<Financials>({ rows: [] });
@@ -74,21 +80,25 @@ export function ResearchWorkspace({
   const company = companies.find((c) => c.ticker === ticker);
   const activeTicker = useRef(ticker);
   const quarterRequest = useRef(0);
+  const discovered=useRef<CompanyDiscovery|null>(initialDiscovery);
+  const [selectedName,setSelectedName]=useState("");
   const targetCount = new Set(guidance.map(g=>g.target_period)).size;
   activeTicker.current = ticker;
 
   useEffect(() => {
     setTicker(initialTicker);
-    setSearch(initialTicker);
+    discovered.current=initialDiscovery;
   }, [initialTicker]);
+  useEffect(()=>setQuestion(initialQuestion),[initialQuestion,initialTicker]);
   useEffect(() => setTab(initialTab), [initialTab]);
   useEffect(() => {
     let cancelled = false;
     quarterRequest.current++;
     setAnswer(null);
-    setCandidates([]);
+    const discovery=discovered.current?.company.ticker===ticker?discovered.current:null;
+    setCandidates(discovery?.documents||[]);
     setError("");
-    setNotice("");
+    setNotice(discovery?.message||"");
     setDocs([]);
     setFinancials({ rows: [] });
     setGuidance([]);
@@ -132,7 +142,7 @@ export function ResearchWorkspace({
   }
 
   async function discover() {
-    const symbol = search.trim().toUpperCase().replace(/\.NS$/, "");
+    const symbol = ticker;
     if (!symbol) return;
     setBusy("discover");
     setError("");
@@ -146,11 +156,7 @@ export function ResearchWorkspace({
         method: "POST",
       });
       onChanged();
-      setTicker(result.company.ticker);
-      setTimeout(() => {
-        setCandidates(result.documents);
-        setNotice(result.message);
-      }, 0);
+      if(activeTicker.current===symbol){setCandidates(result.documents);setNotice(result.message);}
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -159,10 +165,22 @@ export function ResearchWorkspace({
   }
   function chooseSymbol(symbol: string) {
     setTicker(symbol);
-    setSearch(symbol);
+    setQuestion("");
+    setSelectedName("");
+  }
+  async function chooseCompany(match:CompanyMatch){
+    setBusy("opening");setError("");
+    try{
+      if(!companies.some(c=>c.ticker===match.ticker)){
+        const result=await api<CompanyDiscovery>(`/companies/${match.ticker}/discover`,{method:"POST"});
+        discovered.current=result;onChanged();
+      } else discovered.current=null;
+      setSelectedName(match.name);setTicker(match.ticker);setQuestion("");setTab("documents");setGeneration(g=>g+1);
+    }finally{setBusy("");}
   }
   async function ask(value: string) {
     if (!value.trim() || busy) return;
+    if(!docs.length){setTab("documents");setNotice("Add a primary document first. Discover an issuer PDF, review its URL and import it before asking Gemini.");return;}
     const version = ++requestVersion.current;
     setQuestion(value);
     setBusy("research");
@@ -215,36 +233,10 @@ export function ResearchWorkspace({
           <ShieldCheck size={15} /> Primary sources only
         </span>
       </div>
-      <div className="research-search">
-        <Search size={19} />
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (companies.some((c) => c.ticker === search.toUpperCase()))
-              chooseSymbol(search.toUpperCase());
-            else void discover();
-          }}
-        >
-          <label className="sr-only" htmlFor="ticker-search">
-            NSE company ticker
-          </label>
-          <input
-            id="ticker-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Enter any NSE ticker, e.g. INFY or M&M"
-            maxLength={24}
-          />
-          <button className="btn primary" disabled={!!busy}>
-            {busy === "discover" ? (
-              <Loader2 className="spin" size={15} />
-            ) : (
-              <Search size={15} />
-            )}{" "}
-            Find company
-          </button>
-        </form>
+      <div className="research-search name-first-search">
+        <CompanyLookup companies={companies} disabled={!!busy} onSelect={chooseCompany}/>
       </div>
+      {/* Verified company selection supplies a ticker to the existing APIs. */}
       <div className="company-pills">
         {["INFY", "TCS", "PERSISTENT", "WIPRO"].map((t) => (
           <button
@@ -263,7 +255,7 @@ export function ResearchWorkspace({
           {ticker.slice(0, 2)}
         </div>
         <div>
-          <h2>{company?.name || ticker}</h2>
+          <h2>{company?.name || selectedName || discovered.current?.company.name || ticker}</h2>
           <p>
             {ticker} <span>·</span> NSE <span>·</span>{" "}
             {company?.sector || "Verify with Discover"}
@@ -271,7 +263,7 @@ export function ResearchWorkspace({
         </div>
         <div className="document-count">
           <FileText size={15} />
-          {docs.length} indexed documents
+          {dataLoading?"Checking source library…":`${docs.length} source document${docs.length===1?"":"s"}`}
         </div>
       </div>
       <div className="research-tabs" role="tablist" aria-label="Research views">
@@ -306,6 +298,12 @@ export function ResearchWorkspace({
           library…
         </div>
       )}
+      {!dataLoading&&!docs.length&&!error&&<section className="source-onboarding" aria-label="Add company evidence">
+        <span className="source-onboarding-icon"><BookOpen size={24}/></span>
+        <div><span className="eyebrow">COMPANY FOUND · EVIDENCE NEXT</span><h3>0 source documents. Start with the original.</h3><p>Discover primary sources → review the issuer or exchange URL → import the PDF → ask a sourced question. No AI conclusion is generated without evidence.</p>
+        <div className="onboarding-actions"><button className="btn primary" disabled={!!busy} onClick={()=>{setTab("documents");void discover();}}>{busy==="discover"?<Loader2 size={16} className="spin"/>:<Search size={16}/>}Discover primary sources</button><button className="btn" onClick={()=>{setTab("documents");setImportOpen(true);}}>Import issuer PDF<ArrowRight size={14}/></button></div></div>
+      </section>}
+      {initialQuestion&&ticker===initialTicker&&<div className="event-research-context"><ShieldCheck size={16}/><p><b>From your signal</b> {initialQuestion} Source evidence is required; a filing does not establish the cause of a price move.</p></div>}
       {tab === "overview" && (
         <div className="research-grid">
           <section className="panel research-main">
@@ -507,9 +505,9 @@ export function ResearchWorkspace({
                 Percentages calculated in Python.
               </p>
               {!!financials.periods?.length && <label className="quarter-select">Reviewed quarter
-                <select aria-label="Reviewed quarter" value={financials.current_period} disabled={busy==="quarter"} onChange={e=>void chooseQuarter(e.target.value)}>
+                <Select aria-label="Reviewed quarter" value={financials.current_period} disabled={busy==="quarter"} onChange={e=>void chooseQuarter(e.target.value)}>
                   {financials.periods.map(period=><option key={period} value={period}>{period}</option>)}
-                </select>
+                </Select>
                 <small>{financials.periods.length} reviewed quarters · fiscal-year ending year</small>
               </label>}
               {!!financials.review_flags?.length && <aside className="review-flags" aria-label="Accounting review notes"><b>Read these numbers in context</b>{financials.review_flags.map(flag=><p key={flag}>{flag}</p>)}</aside>}
@@ -817,7 +815,7 @@ export function ResearchWorkspace({
                 </label>
                 <label>
                   Document type
-                  <select
+                  <Select
                     value={importForm.kind}
                     onChange={(e) =>
                       setImportForm({ ...importForm, kind: e.target.value })
@@ -829,7 +827,7 @@ export function ResearchWorkspace({
                     <option value="investor_presentation">
                       Investor presentation
                     </option>
-                  </select>
+                  </Select>
                 </label>
               </div>
               <button className="btn primary" disabled={!!busy}>

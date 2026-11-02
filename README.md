@@ -2,6 +2,8 @@
 
 Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
+Latest full-app update: [UI, name search and freshness report](docs/ui-ux-upgrade.md). Includes Midnight Orchid / Warm Ivory themes, full NSE company-name autocomplete, sourced-first startup and controlled automatic refresh. Validated with 272 backend tests, 14 frontend tests and a production build. The static public demo below is a separate version.
+
 [Open the public interactive demo](https://finn-investment-desk.justfrog26.chatgpt.site). The Sites version uses synthetic market fixtures, historical reviewed financials and compact source extracts; watchlists and preferences are device-local. Live ingestion and document imports use the full Python application.
 
 **Your portfolio. In perspective.** A mobile-first investment intelligence prototype for the ENAM Holdings AI Engineer Build Challenge.

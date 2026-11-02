@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #10273385;
+  background: var(--scrim);
   backdrop-filter: blur(5px);
   padding: 20px;
 }
@@ -23,11 +23,11 @@
   max-width: 100%;
   max-height: 92dvh;
   overflow: auto;
-  background: #f8faf9;
+  background: var(--surface);
   padding: 26px;
   border-radius: 22px;
-  color: #203846;
-  box-shadow: 0 25px 100px #10273340;
+  color: var(--info);
+  box-shadow: 0 25px 100px var(--shadow);
 }
 .feed-filter-sheet header {
   display: flex;
@@ -38,7 +38,7 @@
 .feed-filter-sheet header span {
   font-size: 10px;
   letter-spacing: 1.8px;
-  color: #617769;
+  color: var(--text-muted);
 }
 .feed-filter-sheet h2 {
   display: flex;
@@ -52,7 +52,7 @@
   height: 44px;
   display: grid;
   place-items: center;
-  background: #eaf0ed;
+  background: var(--surface);
   border-radius: 50%;
 }
 .feed-filter-sheet label {
@@ -70,9 +70,9 @@
   width: 100%;
   padding: 0 12px;
   font-size: 15px;
-  color: #203846;
-  border: 1px solid #d9e2dd;
-  background: white;
+  color: var(--info);
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 10px;
   min-width: 0;
 }
@@ -84,7 +84,7 @@
 .sheet-note {
   font-size: 12px;
   margin: -10px 0 20px;
-  color: #697b85;
+  color: var(--text-muted);
 }
 .feed-filter-sheet footer {
   display: flex;
@@ -107,7 +107,7 @@
     scroll-padding-top: 75px;
   }
   body {
-    background: #f4f6f4;
+    background: var(--surface);
   }
   main {
     padding: 0 18px;
@@ -119,7 +119,7 @@
     position: sticky;
     top: 0;
     z-index: 45;
-    background: #f8faf8f5;
+    background: var(--surface);
     backdrop-filter: blur(14px);
   }
   .breadcrumb {
@@ -134,11 +134,11 @@
     display: inline;
     font-size: 31px;
     letter-spacing: -2px;
-    color: #152d39;
+    color: var(--info);
     font-weight: 750;
   }
   .phone-wordmark span {
-    color: #6a8c4a;
+    color: var(--positive);
   }
   .mobile-menu,
   .topbar-actions .icon-button {
@@ -248,7 +248,7 @@
     font-size: 9px;
     font-weight: 650;
     letter-spacing: 1.5px;
-    color: #697f75;
+    color: var(--text-muted);
   }
   .phone-greeting h1 {
     font-family: Georgia, serif;
@@ -257,10 +257,10 @@
     letter-spacing: -1.2px;
     line-height: 1.14;
     margin-top: 10px;
-    color: #17323e;
+    color: var(--info);
   }
   .phone-greeting h1 span {
-    color: #6e914d;
+    color: var(--positive);
   }
   .phone-refresh {
     width: 44px;
@@ -268,10 +268,10 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    border: 1px solid #d9e2db;
+    border: 1px solid var(--border);
     border-radius: 50%;
-    color: #526d5c;
-    background: #fff;
+    color: var(--text-muted);
+    background: var(--surface);
   }
   .phone-counts {
     display: grid;
@@ -282,7 +282,7 @@
     text-align: left;
     min-height: 61px;
     padding: 0 11px;
-    border-right: 1px solid #dce4de;
+    border-right: 1px solid var(--border);
   }
   .phone-counts button:first-child {
     padding-left: 0;
@@ -297,36 +297,36 @@
     font-size: 29px;
     font-weight: 550;
     letter-spacing: -1px;
-    color: #203b45;
+    color: var(--info);
   }
   .phone-counts strong svg {
-    color: #8c9f91;
+    color: var(--text-muted);
   }
   .phone-counts i {
     width: 7px;
     height: 7px;
-    background: #d29a56;
+    background: var(--warning-soft);
     border-radius: 50%;
   }
   .phone-counts span {
     display: block;
     margin-top: 4px;
     font-size: 11px;
-    color: #64776f;
+    color: var(--text-muted);
     white-space: nowrap;
   }
   .phone-digest {
-    background: #17333f;
-    color: #f4f6ec;
+    background: var(--info-soft);
+    color: var(--positive);
     padding: 18px;
     border-radius: 17px;
-    box-shadow: 0 8px 24px #193c4510;
+    box-shadow: 0 8px 24px var(--shadow);
   }
   .phone-digest-label {
     display: flex;
     align-items: center;
     gap: 7px;
-    color: #cfdfa5;
+    color: var(--positive);
   }
   .phone-digest-label > span {
     font-size: 9px;
@@ -337,7 +337,7 @@
     margin-left: auto;
     font-size: 8px;
     letter-spacing: 0.5px;
-    color: #b6c7ca;
+    color: var(--text-muted);
   }
   .phone-digest p {
     font-size: 13px;
@@ -347,7 +347,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    color: #e5eeeb;
+    color: var(--text);
   }
   .phone-digest.expanded p {
     display: block;
@@ -356,7 +356,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #d4e7aa;
+    color: var(--positive);
     font-size: 12px;
     font-weight: 550;
     min-height: 44px;
@@ -370,8 +370,8 @@
     grid-template-columns: 1fr 1fr 1fr;
     gap: 4px;
     padding: 4px;
-    border: 1px solid #dce5de;
-    background: #eaf0e9;
+    border: 1px solid var(--border);
+    background: var(--surface);
     border-radius: 13px;
     margin-top: 22px;
   }
@@ -382,14 +382,14 @@
     justify-content: center;
     gap: 5px;
     font-size: 12px;
-    color: #697d71;
+    color: var(--text-muted);
     border-radius: 9px;
     white-space: nowrap;
   }
   .phone-view-switch button[aria-pressed="true"] {
-    background: white;
-    color: #233d31;
-    box-shadow: 0 2px 5px #1f453514;
+    background: var(--surface);
+    color: var(--positive);
+    box-shadow: 0 2px 5px var(--shadow);
     font-weight: 650;
   }
   .phone-view-switch small {
@@ -439,8 +439,8 @@
   .filter-settings {
     width: 44px;
     height: 44px;
-    border: 1px solid #dce5de;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface);
     border-radius: 11px;
     flex-shrink: 0;
   }
@@ -449,19 +449,19 @@
   }
   .signal-card {
     border-radius: 16px;
-    background: #fff;
+    background: var(--surface);
     padding: 18px 17px 0;
-    box-shadow: 0 4px 16px #17332c04;
+    box-shadow: 0 4px 16px var(--shadow);
   }
   .signal-meta {
     font-size: 10px;
     gap: 6px;
-    color: #6e7d81;
+    color: var(--text-muted);
   }
   .signal-meta strong {
     font-size: 12px;
     letter-spacing: 0.3px;
-    color: #2b4652;
+    color: var(--info);
   }
   .signal-meta .company-logo {
     width: 28px;
@@ -491,7 +491,7 @@
   .signal-summary {
     font-size: 13px;
     line-height: 1.7;
-    color: #65777d;
+    color: var(--text-muted);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -618,8 +618,8 @@
   }
   .phone-movers {
     display: block;
-    border: 1px solid #dfe7df;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface);
     padding: 18px;
     border-radius: 17px;
   }
@@ -629,7 +629,7 @@
   .phone-movers > div > span {
     display: block;
     font-size: 11px;
-    color: #7a8b80;
+    color: var(--text-muted);
     margin-top: 4px;
     margin-bottom: 15px;
   }
@@ -639,7 +639,7 @@
     gap: 9px;
     width: 100%;
     padding: 15px 0;
-    border-top: 1px solid #edf0ec;
+    border-top: 1px solid var(--border);
     text-align: left;
   }
   .mover-mark {
@@ -648,8 +648,8 @@
     width: 32px;
     height: 32px;
     flex-shrink: 0;
-    background: #edf2e8;
-    color: #647b4f;
+    background: var(--surface);
+    color: var(--text-muted);
     border-radius: 9px;
     font-size: 10px;
   }
@@ -663,7 +663,7 @@
   .phone-movers b {
     font-size: 12px;
     display: block;
-    color: #24404a;
+    color: var(--info);
   }
   .phone-movers small {
     display: block;
@@ -675,18 +675,18 @@
     white-space: nowrap;
   }
   .phone-movers button > svg {
-    color: #819885;
+    color: var(--text-muted);
     flex-shrink: 0;
   }
   .mobile-bottom-nav {
     padding: 7px 8px max(8px, env(safe-area-inset-bottom));
-    background: #fcfdfbf5;
+    background: var(--surface);
     backdrop-filter: blur(15px);
   }
   .mobile-bottom-nav button {
     min-height: 54px;
     font-size: 10px;
-    color: #718278;
+    color: var(--text-muted);
     gap: 5px;
   }
   .mobile-bottom-nav button > svg {
@@ -694,9 +694,9 @@
     height: 21px;
   }
   .mobile-bottom-nav button.active {
-    color: #294a39;
+    color: var(--positive);
     font-weight: 700;
-    background: #e9f0df;
+    background: var(--surface);
     border-radius: 13px;
   }
   .app-footer {
@@ -725,7 +725,7 @@
     display: block;
     width: 38px;
     height: 4px;
-    background: #ccd8cf;
+    background: var(--surface);
     border-radius: 3px;
     margin: 0 auto 20px;
   }
@@ -748,7 +748,7 @@
     display: block;
     width: 38px;
     height: 4px;
-    background: #ccd8cf;
+    background: var(--surface);
     border-radius: 3px;
     margin: -12px auto 20px;
   }
@@ -830,7 +830,7 @@
     position: sticky;
     top: 66px;
     z-index: 20;
-    background: #f4f6f4;
+    background: var(--surface);
     padding-top: 7px;
     scrollbar-width: none;
   }
@@ -888,8 +888,8 @@
   }
   .phone-financials > article {
     padding: 17px;
-    background: #f3f6f0;
-    border: 1px solid #e0e7db;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 13px;
   }
   .phone-financials article > div:first-child {
@@ -900,18 +900,18 @@
   }
   .phone-financials h3 {
     font-size: 14px;
-    color: #35513e;
+    color: var(--text);
   }
   .phone-financials article > div > span {
     font-size: 11px;
-    color: #748474;
+    color: var(--text-muted);
   }
   .phone-financials article > strong {
     font-size: 31px;
     font-weight: 550;
     display: block;
     margin: 11px 0 16px;
-    color: #203b3a;
+    color: var(--info);
     letter-spacing: -1px;
   }
   .phone-financials strong small {
@@ -920,28 +920,28 @@
     margin-top: 3px;
     font-weight: 400;
     letter-spacing: 0.2px;
-    color: #6d7d73;
+    color: var(--text-muted);
   }
   .phone-financials article > p {
     font-size: 12px;
     line-height: 1.6;
     margin-bottom: 15px;
-    color: #728071;
+    color: var(--text-muted);
   }
   .financial-comparisons {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 13px;
-    border-top: 1px solid #dfe6d9;
+    border-top: 1px solid var(--border);
     padding-top: 13px;
   }
   .financial-comparisons span {
     font-size: 10px;
-    color: #71816d;
+    color: var(--text-muted);
   }
   .financial-comparisons b {
     font-size: 17px;
-    color: #3c5145;
+    color: var(--text);
     display: block;
     margin: 6px 0;
   }
@@ -1062,7 +1062,7 @@
     min-height: 44px;
     width: 100%;
     font-size: 12px;
-    color: #62796a;
+    color: var(--text-muted);
   }
   .phone-feed-actions span {
     margin-right: auto;
@@ -1088,9 +1088,9 @@
   }
   .phone-watchlist article {
     padding: 16px;
-    border: 1px solid #dde6da;
+    border: 1px solid var(--border);
     border-radius: 14px;
-    background: #fcfdfb;
+    background: var(--surface);
   }
   .phone-watch-company {
     display: flex;
@@ -1106,12 +1106,12 @@
   }
   .phone-watch-company b {
     font-size: 14px;
-    color: #24434a;
+    color: var(--info);
   }
   .phone-watch-company small {
     display: block;
     font-size: 12px;
-    color: #7a887b;
+    color: var(--text-muted);
     margin-top: 4px;
   }
   .phone-watch-quote {
@@ -1125,7 +1125,7 @@
     font-size: 24px;
     font-weight: 550;
     letter-spacing: -0.7px;
-    color: #27473f;
+    color: var(--positive);
   }
   .phone-watch-quote > div:last-child {
     text-align: right;
@@ -1138,11 +1138,11 @@
   .phone-watch-quote span {
     display: block;
     font-size: 10px;
-    color: #7b8c7d;
+    color: var(--text-muted);
     margin-top: 6px;
   }
   .phone-watchlist footer {
-    border-top: 1px solid #e6ece2;
+    border-top: 1px solid var(--border);
     padding-top: 4px;
     display: flex;
     align-items: center;
@@ -1151,7 +1151,7 @@
   }
   .phone-watchlist footer > span {
     font-size: 11px;
-    color: #71846b;
+    color: var(--text-muted);
   }
   .phone-watchlist footer button {
     min-height: 44px;
@@ -1159,7 +1159,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    color: #587043;
+    color: var(--positive);
   }
   .setting-chips button {
     min-height: 44px;

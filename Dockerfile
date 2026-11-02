@@ -16,6 +16,7 @@ COPY backend/requirements.lock.txt backend/requirements.lock.txt
 RUN pip install --no-cache-dir -r backend/requirements.lock.txt
 COPY backend/app backend/app
 COPY backend/data/primary backend/data/primary
+COPY backend/data/nse-directory.json backend/data/nse-directory.json
 COPY scripts/start_hosted.py scripts/start_hosted.py
 COPY --from=frontend-build /build/.next/standalone frontend/.next/standalone
 COPY --from=frontend-build /build/.next/static frontend/.next/standalone/.next/static

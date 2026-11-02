@@ -35,7 +35,8 @@ def evaluate_alerts(db: Session, mode: str) -> int:
                 continue
             from datetime import date
             title = f"{quote['ticker']}: {value:+.2f}% daily move" if kind == 'price' else f"{quote['ticker']}: {value:.2f}x usual volume"
-            explanation = (f"Completed-session adjusted close changed {value:+.2f}% versus the preceding trading session; your threshold is +/-{threshold:g}%." if kind=='price' else f"Completed-session volume is {value:.2f} times the mean of the PRECEDING {pref.lookback} trading sessions (current day excluded); your threshold is {threshold:g}x.")
+            baseline=sum(p['volume'] for p in quote['history'][:-1][-pref.lookback:])/pref.lookback if kind=='volume' else None
+            explanation = (f"Completed-session adjusted close changed {value:+.2f}% versus the preceding trading session; your threshold is +/-{threshold:g}%." if kind=='price' else f"Completed-session volume of {quote['volume']:,} shares is {value:.2f} times the preceding {pref.lookback}-session average ({baseline:,.2f} shares; current day excluded). Your threshold is {threshold:g}x.")
             db.add(Alert(key=f"{mode}:{quote['ticker']}:{quote['date']}:{kind}",ticker=quote['ticker'],kind=kind,title=title,explanation=explanation,value=value,threshold=threshold,date=date.fromisoformat(quote['date']),mode=mode,source_url=quote['source_url']))
             from datetime import datetime
             record_event(db,event_key=f"market:{mode}:{quote['ticker']}:{quote['date']}:{kind}",
