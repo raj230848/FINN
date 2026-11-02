@@ -1,12 +1,12 @@
 "use client";
 import {useEffect,useState} from "react";
 import {Sun,Moon} from "lucide-react";
-import {THEME_KEY,Theme,validTheme} from "@/lib/theme";
+import {THEME_CANVAS,THEME_KEY,Theme,validTheme} from "@/lib/theme";
 export function ThemeToggle(){
   const [theme,setTheme]=useState<Theme>("dark");
   function apply(value:Theme){
     document.documentElement.dataset.theme=value;document.documentElement.style.colorScheme=value;
-    const meta=document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');if(meta)meta.content=value==="dark"?"#10121C":"#FCFAF6";
+    const meta=document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');if(meta)meta.content=THEME_CANVAS[value];
     setTheme(value);
   }
   useEffect(()=>{setTheme(validTheme(document.documentElement.dataset.theme));const changed=(e:StorageEvent)=>{if(e.key===THEME_KEY)apply(validTheme(e.newValue));};window.addEventListener("storage",changed);return()=>window.removeEventListener("storage",changed);},[]);

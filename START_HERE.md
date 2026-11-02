@@ -1,6 +1,6 @@
 # Open the updated FINN project
 
-This ZIP contains the full source, tests, setup scripts, deployment examples, reviewed facts and audit history. The latest change report is `docs/ui-ux-upgrade.md`: dark/light themes, full NSE name search, sourced-first launch and controlled refresh. Current evidence is under `audit/ui-ux/`; see `RELEASE_MANIFEST.json` for the exact source revision.
+This ZIP contains the full source, tests, setup scripts, deployment examples, reviewed facts and audit history. The latest change report is `docs/theme-change.md`: Neon Aurora Glass dark mode and Champagne Bubble Light. Full NSE name search, sourced-first launch and controlled refresh remain available. Current evidence is under `audit/neon-aurora-theme/`; see `RELEASE_MANIFEST.json` for the exact source revision.
 
 1. Extract the ZIP into a normal local folder. Python 3.12 and Node.js 22 LTS are required.
 2. Open PowerShell in that folder and run `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`.

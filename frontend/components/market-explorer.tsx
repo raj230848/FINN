@@ -98,15 +98,15 @@ function HistoryChart({
           <AreaChart {...common}>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--positive)" stopOpacity={0.26} />
-                <stop offset="100%" stopColor="var(--positive)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-line)" stopOpacity={0.26} />
+                <stop offset="100%" stopColor="var(--chart-line)" stopOpacity={0} />
               </linearGradient>
             </defs>
             {axes}
             <Area
               dataKey="close"
               type="monotone"
-              stroke="var(--positive)"
+              stroke="var(--chart-line)"
               strokeWidth={2.5}
               fill={`url(#${id})`}
               isAnimationActive={false}

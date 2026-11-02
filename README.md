@@ -2,7 +2,7 @@
 
 Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
-Latest full-app update: [UI, name search and freshness report](docs/ui-ux-upgrade.md). Includes Midnight Orchid / Warm Ivory themes, full NSE company-name autocomplete, sourced-first startup and controlled automatic refresh. Validated with 272 backend tests, 14 frontend tests and a production build. The static public demo below is a separate version.
+Latest full-app update: [Neon Aurora Glass / Champagne Bubble Light](docs/theme-change.md), with cyan/violet dark mode and a champagne bubble canvas with bronze controls in light mode. [Full NSE name search and sourced-first refresh](docs/ui-ux-upgrade.md) remain available. Validated with 272 backend tests, 14 frontend tests and a production build. The static public demo below is a separate version.
 
 [Open the public interactive demo](https://finn-investment-desk.justfrog26.chatgpt.site). The Sites version uses synthetic market fixtures, historical reviewed financials and compact source extracts; watchlists and preferences are device-local. Live ingestion and document imports use the full Python application.
 

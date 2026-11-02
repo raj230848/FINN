@@ -21,8 +21,8 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
         >
           <defs>
             <linearGradient id="pricefill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--positive)" stopOpacity={0.2} />
-              <stop offset="100%" stopColor="var(--positive)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--chart-line)" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="var(--chart-line)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -66,7 +66,7 @@ export function PriceChart({ data }: { data: PricePoint[] }) {
           <Area
             dataKey="close"
             type="monotone"
-            stroke="var(--positive)"
+            stroke="var(--chart-line)"
             fill="url(#pricefill)"
             strokeWidth={2}
             isAnimationActive={false}

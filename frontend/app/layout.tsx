@@ -5,7 +5,7 @@ import "./mobile.css";
 import "./colorful-dark.css";
 import "./reliability.css";
 import "./themes.css";
-import {THEME_BOOTSTRAP} from "@/lib/theme";
+import {THEME_BOOTSTRAP,THEME_CANVAS} from "@/lib/theme";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -25,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head><meta name="theme-color" content="#10121C"/><script dangerouslySetInnerHTML={{__html:THEME_BOOTSTRAP}}/></head>
+      <head><meta name="theme-color" content={THEME_CANVAS.dark}/><script dangerouslySetInnerHTML={{__html:THEME_BOOTSTRAP}}/></head>
       <body>{children}</body>
     </html>
   );

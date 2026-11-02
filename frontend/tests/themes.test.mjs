@@ -2,14 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
-import {THEME_BOOTSTRAP,validTheme} from "../lib/theme.ts";
+import {THEME_BOOTSTRAP,THEME_CANVAS,validTheme} from "../lib/theme.ts";
 
 test("stored theme initializes before hydration; invalid or blocked storage falls back safely",()=>{
   for(const stored of ["light","dark","invalid",null]){
     const root={dataset:{},style:{}},meta={content:""};
     vm.runInNewContext(THEME_BOOTSTRAP,{localStorage:{getItem:()=>stored},document:{documentElement:root,querySelector:()=>meta}});
     assert.equal(root.dataset.theme,validTheme(stored));assert.equal(root.style.colorScheme,validTheme(stored));
-    assert.equal(meta.content,stored==="light"?"#FCFAF6":"#10121C");
+    assert.equal(meta.content,THEME_CANVAS[validTheme(stored)]);
   }
   const root={dataset:{},style:{}};
   vm.runInNewContext(THEME_BOOTSTRAP,{localStorage:{getItem:()=>{throw Error("blocked");}},document:{documentElement:root,querySelector:()=>null}});

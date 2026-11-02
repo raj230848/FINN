@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 assert not subprocess.check_output(['git', 'status', '--porcelain'], text=True).strip(), 'Commit reviewed source first.'
 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-proof = ROOT / 'artifacts/ui-ux-plan'
+proof = ROOT / 'artifacts/neon-aurora-theme'
 backend = ET.parse(proof / 'backend-tests.xml').getroot()
 frontend = ET.parse(proof / 'frontend-tests.xml').getroot()
 assert len(list(backend.iter('testcase'))) == 272
@@ -23,14 +23,14 @@ assert len(list(frontend.iter('testcase'))) == 14
 assert not list(backend.iter('failure')) + list(backend.iter('error')) + list(frontend.iter('failure')) + list(frontend.iter('error'))
 build = json.loads((proof / 'production-build.json').read_text())
 browser = json.loads((proof / 'browser-checks.json').read_text())
-assert build['exit_code'] == 0 and not browser['productionErrorsSince0905']
+assert build['exit_code'] == 0 and not browser['production_errors']
 manifest = {
     'source_commit': commit, 'created_at': datetime.now(timezone.utc).isoformat(),
     'source_repository': 'https://github.com/raj230848/FINN', 'full_source': True,
-    'start_with': 'START_HERE.md', 'current_report': 'docs/ui-ux-upgrade.md',
+    'start_with': 'START_HERE.md', 'current_report': 'docs/theme-change.md',
     'validation': {'backend_tests': 272, 'frontend_tests': 14, 'production_build': 'passed',
                    'business_operations_in_inventory': 26, 'browser_viewport_widths': [360, 390, 1280]},
-    'current_evidence': 'audit/ui-ux/',
+    'current_evidence': 'audit/neon-aurora-theme/',
     'historical_reports': ['audit/history/FINN-Full-Audit-Report.pdf', 'audit/history/FINN-Verification-Gap-Resolution.pdf'],
     'historical_note': 'Earlier PDFs measure their recorded revisions, not this UI release.',
     'remaining_external_checks': ['Rotated Gemini credential and fresh live provider acceptance',
@@ -45,7 +45,7 @@ names = ['backend-tests.xml', 'frontend-tests.xml', 'production-build.json', 'br
          *browser['screenshots']]
 with ZipFile(temporary, 'a', compression=ZIP_DEFLATED) as archive:
     for name in names:
-        archive.write(proof / name, 'audit/ui-ux/' + name)
+        archive.write(proof / name, 'audit/neon-aurora-theme/' + name)
     for name in ('FINN-Full-Audit-Report.pdf', 'FINN-Verification-Gap-Resolution.pdf'):
         archive.write(ROOT / 'artifacts' / name, 'audit/history/' + name)
     archive.write(ROOT / 'artifacts/submission/AI_BUILD_HISTORY_REDACTED.md', 'submission/AI_BUILD_HISTORY_REDACTED.md')
