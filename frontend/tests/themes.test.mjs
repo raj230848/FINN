@@ -25,5 +25,8 @@ for(const theme of ["dark","light"]){
     const tokens=Object.fromEntries([...section.matchAll(/--([\w-]+):\s*(#[\da-fA-F]{6})/g)].map(m=>[m[1],m[2]]));
     for(const [fg,bg] of [["text","canvas"],["text","surface"],["text-muted","surface"],["primary","primary-soft"],["positive","positive-soft"],["negative","negative-soft"],["info","info-soft"],["warning","warning-soft"],["on-primary","primary"]])assert.ok(contrast(tokens[fg],tokens[bg])>=4.5,`${fg} on ${bg}: ${contrast(tokens[fg],tokens[bg])}`);
     assert.ok(contrast(tokens["border-strong"],tokens.control)>=3,"Interactive border contrast");
+    if(theme==="light")for(const fg of ["text-secondary","text-muted","primary","info"]){
+      for(const bg of ["canvas","gradient-warm"])assert.ok(contrast(tokens[fg],tokens[bg])>=4.5,`${fg} on the deeper ${bg}: ${contrast(tokens[fg],tokens[bg])}`);
+    }
   });
 }
