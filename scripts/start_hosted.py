@@ -27,8 +27,19 @@ def deployment_environment(source):
     return env, backend_port
 
 
+def service_environments(env):
+    # Keep provider credentials and storage configuration out of the Node process.
+    backend_only = {'DATABASE_URL', 'GEMINI_API_KEY', 'VAPID_PRIVATE_KEY'}
+    frontend_only = {'FINN_ACCESS_TOKEN', 'FINN_SESSION_SECRET'}
+    return (
+        {name: value for name, value in env.items() if name not in frontend_only},
+        {name: value for name, value in env.items() if name not in backend_only},
+    )
+
+
 def main():
     env, backend_port = deployment_environment(os.environ)
+    backend_env, frontend_env = service_environments(env)
     if hasattr(os, 'geteuid') and os.geteuid()==0:
         # A freshly mounted host disk can be root-owned. Prepare only our exact
         # database files, then drop privileges before either service is launched.
@@ -57,7 +68,7 @@ def main():
     for name in ('SIGTERM', 'SIGINT'):
         signal.signal(getattr(signal, name), stop)
     try:
-        children.append(subprocess.Popen([sys.executable, '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(backend_port), '--workers', '1'], cwd=ROOT / 'backend', env=env))
+        children.append(subprocess.Popen([sys.executable, '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(backend_port), '--workers', '1'], cwd=ROOT / 'backend', env=backend_env))
         deadline = time.monotonic() + 120
         while not stopping and time.monotonic() < deadline:
             if children[0].poll() is not None:
@@ -74,7 +85,7 @@ def main():
                 raise RuntimeError('Backend startup did not complete within 120 seconds.')
         if stopping:
             return 0
-        children.append(subprocess.Popen([env.get('NODE_BINARY', 'node'), str(server)], cwd=server.parent, env=env))
+        children.append(subprocess.Popen([frontend_env.get('NODE_BINARY', 'node'), str(server)], cwd=server.parent, env=frontend_env))
         while not stopping:
             if any(child.poll() is not None for child in children):
                 raise RuntimeError('A FINN service exited; shutting down both services for host recovery.')

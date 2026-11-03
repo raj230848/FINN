@@ -7,18 +7,18 @@ Use this after an actual full-stack HTTPS deployment. Local tests, a Docker CI j
 Save the evaluator instance's desk code only in your shell's private `FINN_HOSTED_ACCESS_CODE` environment variable. Do not put it in command arguments or screenshots. From the project root:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/verify_hosted.py --url https://YOUR_ACTUAL_FRONTEND --out artifacts/hosted-readiness.json
+.\.venv\Scripts\python.exe scripts/verify_hosted.py --url https://YOUR_ACTUAL_FRONTEND --guest --out artifacts/hosted-readiness.json
 ```
 
-This checks public readiness, anonymous blocking, actual login cookie flags, authenticated reads/response fields and logout. Omitting the code records that authentication was not tested. It rejects remote plain HTTP, credential-bearing URLs, paths and query strings.
+This checks public readiness, the sourced guest dashboard, protection of operator diagnostics, login cookie flags, authenticated reads and logout. Omit `--guest` for a private desk, where anonymous data access must return 401. Omitting the code records that authentication was not tested. It rejects remote plain HTTP, credential-bearing URLs, paths and query strings.
 
 Only on a disposable evaluator desk, use:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/verify_hosted.py --url https://YOUR_QA_FRONTEND --qa --refresh --gemini --ticker HCLTECH --out artifacts/hosted-acceptance.json
+.\.venv\Scripts\python.exe scripts/verify_hosted.py --url https://YOUR_QA_FRONTEND --guest --qa --refresh --gemini --ticker HCLTECH --out artifacts/hosted-acceptance.json
 ```
 
-This performs actual source refresh/discovery/import and an uncached Gemini request, so network availability and model costs apply. It temporarily changes preferences/watch state and restores them, but deliberately marks QA notification history read. It verifies persisted effects with follow-up GET requests and inventories all 25 backend operations. `not_verified` is retained for unavailable samples or a real push subscription; a 200 is not treated as proof of device delivery or source semantics. Review each citation's original page manually. Reports omit access codes, cookies, private subscription details and full provider bodies.
+This performs actual source refresh/discovery/import and an uncached Gemini request, so network availability and model costs apply. Omit `--gemini` when no rotated key is configured. It temporarily changes preferences/watch state and restores them, but deliberately marks QA notification history read. It verifies persisted effects with follow-up GET requests and inventories all 26 backend operations. `not_verified` is retained for unavailable samples or a real push subscription; a 200 is not treated as proof of device delivery or source semantics. Review each citation's original page manually. Reports omit access codes, cookies, private subscription details and full provider bodies.
 
 The original `verify_release.py` remains for a two-host backend/frontend layout; the single-origin checker is the primary combined-stack path. A failed response, malformed schema or provider timeout remains a failure/limit rather than a fabricated pass.
 

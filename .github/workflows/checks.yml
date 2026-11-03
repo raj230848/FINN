@@ -47,6 +47,7 @@ jobs:
           --mount type=volume,src=finn-qa-data,dst=/var/lib/finn
           -e DATABASE_URL=sqlite:////var/lib/finn/finn.db
           -e FINN_API_TOKEN -e FINN_ACCESS_TOKEN -e FINN_SESSION_SECRET
+          -e FINN_GUEST_MODE=true
           -e FINN_PUBLIC_ORIGIN=http://127.0.0.1:8080
           -e PORT=8080 finn-full-stack
       - name: Wait for public readiness
@@ -57,10 +58,10 @@ jobs:
           done
           docker logs finn-qa
           exit 1
-      - name: Exercise the protected same-origin app without paid providers
+      - name: Exercise guest and operator access without paid providers
         env:
           FINN_HOSTED_ACCESS_CODE: ${{ env.FINN_ACCESS_TOKEN }}
-        run: python scripts/verify_hosted.py --url http://127.0.0.1:8080 --qa --out artifacts/container-acceptance.json
+        run: python scripts/verify_hosted.py --url http://127.0.0.1:8080 --guest --qa --out artifacts/container-acceptance.json
       - name: Write durable QA marker and restart container
         run: |
           docker exec finn-qa python -c "import sqlite3; c=sqlite3.connect('/var/lib/finn/finn.db'); c.execute('UPDATE preferences SET price_threshold=6.75 WHERE id=1'); c.commit()"

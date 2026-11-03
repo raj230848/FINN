@@ -20,7 +20,8 @@ def test_remote_mutations_require_explicit_qa_scope():
         hosted.verify('https://finn.example','not-published',refresh=True)
 
 
-def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
+@pytest.mark.parametrize('guest',[False,True])
+def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code(guest):
     calls=[];logged_in=False
     def handle(request):
         nonlocal logged_in
@@ -31,7 +32,10 @@ def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
         if p=='/api/session':
             logged_in=request.method=='POST'
             return httpx.Response(200,json={'ok':True},headers={'set-cookie':'finn_session=private-test-cookie; Path=/; HttpOnly; Secure; SameSite=Strict'})
-        if not logged_in:return httpx.Response(401,json={'detail':'Sign in'})
+        if not logged_in:
+            if guest and p=='/api/dashboard':
+                return httpx.Response(200,json={'guest':True,'mode':'sourced','companies':[]})
+            return httpx.Response(403 if guest else 401,json={'detail':'Sign in'})
         values={
             '/api/health':{'status':'ok','ai_configured':True},
             '/api/dashboard':{'companies':[],'last_sync':None,'as_of':'2026-11-01'},
@@ -44,7 +48,7 @@ def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
             '/api/push/config':{'available':False},'/api/push/status':{'enabled':False},
         }
         return httpx.Response(200,json=values.get(p,[]))
-    report=hosted.verify('https://finn.example','private-test-code',transport=httpx.MockTransport(handle))
+    report=hosted.verify('https://finn.example','private-test-code',guest=guest,transport=httpx.MockTransport(handle))
     assert report['summary']['failed']==0
     assert report['summary']['business_operations']==26
     assert report['summary']['operations_not_verified']>0
@@ -56,3 +60,13 @@ def test_acceptance_never_calls_optional_provider_without_flags_or_leaks_code():
 def test_readiness_failure_is_not_reported_as_success():
     report=hosted.verify('https://finn.example','',transport=httpx.MockTransport(lambda _:httpx.Response(503,json={'status':'unavailable'})))
     assert report['summary']['failed']>0
+
+
+def test_guest_acceptance_rejects_demo_data_and_public_operations():
+    def handle(request):
+        p=request.url.path
+        if p=='/api/ready':return httpx.Response(200,json={'status':'ready'})
+        if p=='/api/dashboard':return httpx.Response(200,json={'guest':True,'mode':'demo','companies':[]})
+        return httpx.Response(200,text='FINN')
+    report=hosted.verify('https://finn.example','',guest=True,transport=httpx.MockTransport(handle))
+    assert report['summary']['failed']==2

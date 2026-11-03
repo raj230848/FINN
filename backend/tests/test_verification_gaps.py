@@ -91,6 +91,16 @@ def test_one_origin_hosting_keeps_backend_private(hosted_launcher,tmp_path):
     assert env['HOSTNAME']=='0.0.0.0' and port==8000
 
 
+def test_hosted_service_environments_keep_credentials_with_their_consumer(hosted_launcher,tmp_path):
+    env=hosted_env(tmp_path)|{'GEMINI_API_KEY':'test-gemini','VAPID_PRIVATE_KEY':'test-vapid'}
+    backend,frontend=hosted_launcher.service_environments(env)
+    for key in ('DATABASE_URL','GEMINI_API_KEY','VAPID_PRIVATE_KEY'):
+        assert backend[key]==env[key] and key not in frontend
+    for key in ('FINN_ACCESS_TOKEN','FINN_SESSION_SECRET'):
+        assert frontend[key]==env[key] and key not in backend
+    assert backend['FINN_API_TOKEN']==frontend['FINN_API_TOKEN']==env['FINN_API_TOKEN']
+
+
 @pytest.mark.parametrize('key,value',[('FINN_API_TOKEN','short'),('FINN_ACCESS_TOKEN',''),('FINN_SESSION_SECRET','short'),('DATABASE_URL','sqlite:///relative.db'),('PORT','8000'),('PORT','70000')])
 def test_unsafe_host_configuration_fails_before_start(hosted_launcher,tmp_path,key,value):
     env=hosted_env(tmp_path);env[key]=value

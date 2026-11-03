@@ -28,13 +28,13 @@ def target_origin(value):
     return value.rstrip('/')
 
 
-def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, transport=None):
+def verify(base, code, *, guest=False, qa=False, refresh=False, gemini=False, ticker=None, transport=None):
     base=target_origin(base)
     if any((refresh,gemini,ticker)) and not qa:
         raise ValueError('Use --qa only against an isolated evaluator desk before mutation/provider checks.')
     report={'checked_at':datetime.now(timezone.utc).isoformat(),'frontend_origin':base,'isolated_qa_acknowledged':qa,'checks':[],'operations':[],'limits':['Physical-device display, provider semantic correctness and hosting-disk durability require separate acceptance.','Push subscribe needs an actual browser-generated subscription; this script never fabricates one.']}
     with httpx.Client(base_url=base,timeout=55,transport=transport,follow_redirects=False) as client:
-        def call(method,path,expected=200,*,template=None,keys=None,body=None,label=None):
+        def call(method,path,expected=200,*,template=None,keys=None,fields=None,body=None,label=None):
             row={'scenario':label or path,'method':method,'path':template or path.split('?')[0],'expected':expected}
             try:
                 response=client.request(method,path,headers={'Origin':base},json=body) if body is not None else client.request(method,path,headers={'Origin':base})
@@ -42,6 +42,8 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
                 try:data=response.json()
                 except ValueError:data=None
                 row['schema_valid']=keys is None or isinstance(data,dict) and all(k in data for k in keys)
+                if fields:
+                    row['schema_valid'] &= isinstance(data,dict) and all(data.get(k)==v for k,v in fields.items())
                 row['status']='passed' if response.status_code==expected and row['schema_valid'] else 'failed'
                 if path=='/api/session' and method=='POST' and expected==200:
                     cookie=response.headers.get('set-cookie','').lower()
@@ -54,8 +56,14 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
             if template:report['operations'].append(row.copy())
             return data if row['status']=='passed' else None
         call('GET','/',label='frontend loads')
-        call('GET','/api/ready',keys=['status'],label='public readiness')
-        call('GET','/api/companies',401,label='anonymous desk blocked')
+        call('GET','/api/ready',fields={'status':'ready'},label='public readiness')
+        def check_anonymous():
+            if guest:
+                call('GET','/api/dashboard?mode=sourced',fields={'guest':True,'mode':'sourced'},keys=['companies'],label='public sourced guest dashboard')
+                call('GET','/api/operations',403,label='operator diagnostics unavailable to guests')
+            else:
+                call('GET','/api/companies',401,label='anonymous desk blocked')
+        check_anonymous()
         if not code:
             report['limits'].append('FINN_HOSTED_ACCESS_CODE missing; authenticated acceptance not run.')
         else:
@@ -122,7 +130,7 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
                     report['checks'].append({'scenario':'fresh source-cited Gemini answer','status':'passed' if result and result['method']=='grounded_ai' and not result['cached'] and result['evidence'] else 'failed','method':(result or {}).get('method'),'citations':[{'page':e['page'],'url':e['url']} for e in (result or {}).get('evidence',[])]})
                 call('POST','/api/session',body={'access_code':code},label='session renewal')
             call('DELETE','/api/session',label='logout')
-            call('GET','/api/companies',401,label='logout removes access')
+            check_anonymous()
     # Exact route inventory, including optional operations that must remain unverified.
     expected={('GET',p) for p in ['/api/health','/api/operations','/api/company-search','/api/companies','/api/dashboard','/api/announcements','/api/alerts','/api/notifications','/api/preferences','/api/push/config','/api/push/status','/api/sync/{run_id}','/api/announcements/{filing_id}/context','/api/companies/{ticker}/documents','/api/companies/{ticker}/financials','/api/companies/{ticker}/guidance']}
     expected.update({('PATCH','/api/companies/{ticker}'),('PUT','/api/preferences')})
@@ -136,10 +144,11 @@ def verify(base, code, *, qa=False, refresh=False, gemini=False, ticker=None, tr
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url',required=True);parser.add_argument('--qa',action='store_true',help='Explicit acknowledgement: target is a disposable isolated evaluator desk.')
+    parser.add_argument('--guest',action='store_true',help='Require public guest browsing with operator-only diagnostics.')
     parser.add_argument('--refresh',action='store_true');parser.add_argument('--gemini',action='store_true');parser.add_argument('--ticker')
     parser.add_argument('--out',default='artifacts/hosted-acceptance.json')
     args=parser.parse_args()
-    try:report=verify(args.url,os.environ.get('FINN_HOSTED_ACCESS_CODE',''),qa=args.qa,refresh=args.refresh,gemini=args.gemini,ticker=args.ticker)
+    try:report=verify(args.url,os.environ.get('FINN_HOSTED_ACCESS_CODE',''),guest=args.guest,qa=args.qa,refresh=args.refresh,gemini=args.gemini,ticker=args.ticker)
     except ValueError as error:parser.error(str(error))
     out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'report':str(out.resolve()),'summary':report['summary']}))

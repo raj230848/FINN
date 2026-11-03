@@ -5,6 +5,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: starter
+    autoDeployTrigger: checksPass
     numInstances: 1
     healthCheckPath: /api/ready
     disk:
