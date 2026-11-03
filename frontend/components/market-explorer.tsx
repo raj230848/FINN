@@ -29,6 +29,34 @@ import {
 import { Company, Mode, Quote, money, number, pct } from "@/lib/api";
 import {CompanyLookup} from "./company-lookup";
 
+type ChartMetric = "price" | "volume";
+const timeRanges = [[5, "1W"], [22, "1M"], [65, "3M"]] as const;
+
+function ChartMetricPicker({ metric, onChange }: { metric: ChartMetric; onChange: (metric: ChartMetric) => void }) {
+  return (
+    <div className="segmented-control" role="group" aria-label="Chart metric">
+      <button aria-pressed={metric === "price"} className={metric === "price" ? "selected" : ""} onClick={() => onChange("price")}>
+        <TrendingUp size={13} /> Price
+      </button>
+      <button aria-pressed={metric === "volume"} className={metric === "volume" ? "selected" : ""} onClick={() => onChange("volume")}>
+        <BarChart3 size={13} /> Volume
+      </button>
+    </div>
+  );
+}
+
+function ChartTimeRange({ sessions, onChange }: { sessions: number; onChange: (sessions: number) => void }) {
+  return (
+    <div className="chart-ranges" role="group" aria-label="Chart time range">
+      {timeRanges.map(([count, title]) => (
+        <button key={count} aria-pressed={sessions === count} className={sessions === count ? "selected" : ""} onClick={() => onChange(count)}>
+          {title}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function HistoryChart({
   quote,
   sessions,
@@ -36,7 +64,7 @@ function HistoryChart({
 }: {
   quote: Quote;
   sessions: number;
-  metric: "price" | "volume";
+  metric: ChartMetric;
 }) {
   const id = useId().replaceAll(":", "");
   const data = quote.history.slice(-sessions);
@@ -140,7 +168,7 @@ export function MarketExplorer({
 }) {
   const [ticker, setTicker] = useState("RELIANCE");
   const [sessions, setSessions] = useState(22);
-  const [metric, setMetric] = useState<"price" | "volume">("price");
+  const [metric, setMetric] = useState<ChartMetric>("price");
   const quote = quotes.find((q) => q.ticker === ticker) || quotes[0];
   const windowData = quote?.history.slice(-sessions) || [];
   const first =
@@ -163,34 +191,12 @@ export function MarketExplorer({
       <div className="explorer-main">
         <div className="explorer-heading">
           <div>
-            <div className="eyebrow">THE BIGGER PICTURE</div>
             <h2>
               Portfolio pulse
               <span className="live-dot" />
             </h2>
           </div>
-          <div className="segmented-control" aria-label="Chart metric">
-            {(
-              [
-                ["price", "Price"],
-                ["volume", "Volume"],
-              ] as const
-            ).map(([id, title]) => (
-              <button
-                key={id}
-                aria-pressed={metric === id}
-                className={metric === id ? "selected" : ""}
-                onClick={() => setMetric(id)}
-              >
-                {id === "price" ? (
-                  <TrendingUp size={13} />
-                ) : (
-                  <BarChart3 size={13} />
-                )}{" "}
-                {title}
-              </button>
-            ))}
-          </div>
+          <ChartMetricPicker metric={metric} onChange={setMetric} />
         </div>
         <div className="explorer-value">
           <div>
@@ -229,22 +235,7 @@ export function MarketExplorer({
               </span>
             </div>
           </div>
-          <div className="chart-ranges" aria-label="Chart time range">
-            {[
-              [5, "1W"],
-              [22, "1M"],
-              [65, "3M"],
-            ].map(([n, title]) => (
-              <button
-                key={n}
-                aria-pressed={sessions === n}
-                onClick={() => setSessions(Number(n))}
-                className={sessions === n ? "selected" : ""}
-              >
-                {title}
-              </button>
-            ))}
-          </div>
+          <ChartTimeRange sessions={sessions} onChange={setSessions} />
         </div>
         {quote?.history.length ? (
           <HistoryChart
@@ -280,11 +271,6 @@ export function MarketExplorer({
           </span>
           <span>WATCHLIST BREADTH</span>
         </div>
-        <h3>
-          A feel for
-          <br />
-          <em>the day’s direction.</em>
-        </h3>
         <div className="breadth-numbers">
           <div>
             <b>{gainers.toString().padStart(2, "0")}</b>
@@ -312,10 +298,7 @@ export function MarketExplorer({
             }}
           />
         </div>
-        <p>
-          Based on the latest available completed session for each watched
-          company.
-        </p>
+        <p>Latest completed sessions</p>
         <div className="breadth-bottom">
           <span>
             {available} / {quotes.length} with daily changes
@@ -340,6 +323,7 @@ export function CompanyDrawer({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState(22);
+  const [metric, setMetric] = useState<ChartMetric>("price");
   useEffect(() => {
     const old = document.activeElement as HTMLElement;
     const root = ref.current;
@@ -396,37 +380,23 @@ export function CompanyDrawer({
         <h2 id="company-detail-title">{quote.name}</h2>
         <p className="drawer-sector">{quote.sector}</p>
         <div className="drawer-price">
-          <strong>{money(quote.close)}</strong>
+          <strong>{metric === "price" ? money(quote.close) : quote.volume === null ? "—" : number(quote.volume)}</strong>
           <span
             className={(quote.change_pct || 0) >= 0 ? "positive" : "negative"}
           >
-            {pct(quote.change_pct)} <small>latest session</small>
+            {metric === "price" ? pct(quote.change_pct) : "shares traded"} <small>latest session</small>
           </span>
         </div>
         <div className="drawer-chart-title">
-          <h3>Price history</h3>
-          <div className="chart-ranges">
-            {[
-              [5, "1W"],
-              [22, "1M"],
-              [65, "3M"],
-            ].map(([n, title]) => (
-              <button
-                className={sessions === n ? "selected" : ""}
-                aria-pressed={sessions === n}
-                onClick={() => setSessions(Number(n))}
-                key={n}
-              >
-                {title}
-              </button>
-            ))}
-          </div>
+          <h3>{metric === "price" ? "Price history" : "Volume history"}</h3>
+          <ChartMetricPicker metric={metric} onChange={setMetric} />
+          <ChartTimeRange sessions={sessions} onChange={setSessions} />
         </div>
         {quote.history.length ? (
-          <HistoryChart quote={quote} sessions={sessions} metric="price" />
+          <HistoryChart key={metric} quote={quote} sessions={sessions} metric={metric} />
         ) : (
           <div className="notice-banner">
-            No sourced market sessions are available for this company.
+            {quote.watched === false ? "Watch this company to load market history on the next refresh." : "No completed market sessions are available yet."}
           </div>
         )}
         <div className="drawer-metrics">
@@ -474,7 +444,7 @@ export function CompanyDrawer({
             target="_blank"
             rel="noreferrer"
           >
-            Open original price history
+            Open market data source
             <ExternalLink size={13} />
           </a>
         )}

@@ -91,6 +91,8 @@ async def token_guard(request: Request, call_next):
     if settings.public_deployment and (request.method == 'POST' or request.url.path=='/api/company-search'):
         path = request.url.path
         operation,limit = ('search',100) if path=='/api/company-search' else ('research',10) if path=='/api/research' else ('sync',2) if path=='/api/sync' else ('import',3) if path=='/api/documents' or path.endswith('/discover') else ('other',60)
+        if operation == 'research' and request.headers.get('x-finn-guest') == '1':
+            operation, limit = 'guest_research', 12
         if operation!='other' and not allow_request(request.client.host if request.client else 'unknown',operation,limit):
             metrics.record('api', 'rate_limited')
             return JSONResponse(status_code=429,headers={'Retry-After':'60'},content={'detail':'Request limit reached. Please try again in a minute.'})
@@ -143,11 +145,13 @@ def operations(db: DB):
             'worker_model': 'one backend worker; shared desk', 'scheduler_enabled': settings.enable_scheduler}
 
 @app.get('/api/companies')
-def companies(db: DB, q: str = ''):
+def companies(db: DB, q: str = '', has_guidance: bool = False):
     stmt = select(Company).order_by(Company.watched.desc(),Company.ticker)
+    if has_guidance:
+        stmt = stmt.where(Company.ticker.in_(select(Guidance.ticker)))
     if q:
-        stmt = stmt.where(Company.ticker.icontains(q,autoescape=True) | Company.name.icontains(q,autoescape=True))
-    return [serial(c) for c in db.scalars(stmt.limit(100))]
+        stmt = stmt.where(Company.ticker.icontains(q,autoescape=True) | Company.name.icontains(q,autoescape=True)).limit(100)
+    return [serial(c) for c in db.scalars(stmt)]
 
 @app.get('/api/company-search')
 def company_search(background: BackgroundTasks,db: DB,q: str=Query('',max_length=100),limit: int=Query(8,ge=1,le=20)):
@@ -157,8 +161,29 @@ def company_search(background: BackgroundTasks,db: DB,q: str=Query('',max_length
     return result
 
 @app.patch('/api/companies/{ticker}')
-def watch(ticker: str, body: WatchIn, db: DB):
-    company = require_company(db,ticker)
+def watch(ticker: str, body: WatchIn, db: DB, add_if_listed: bool = False):
+    ticker = symbol(ticker)
+    if not add_if_listed or not body.watched:
+        company = require_company(db, ticker)
+    else:
+        company = db.get(Company, ticker)
+        if company is None or not company.verified:
+            listing = directory.lookup(ticker)
+            if listing is None:
+                raise HTTPException(404, 'This ticker was not found in the NSE company directory.')
+            if company is None:
+                company = Company(ticker=ticker, name=listing['name'], sector='Unclassified', verified=True, watched=True)
+                db.add(company)
+                try:
+                    db.flush()
+                except IntegrityError:
+                    db.rollback()
+                    company = db.get(Company, ticker)
+                    if company is None:
+                        raise
+            if not company.verified:
+                company.name = listing['name']
+                company.verified = True
     company.watched = body.watched
     db.flush()
     for mode in ('demo','sourced'):
@@ -339,12 +364,17 @@ def sync_status(run_id: RecordId, db: DB):
 def discover(ticker: str, db: DB):
     ticker = symbol(ticker)
     company = db.get(Company,ticker)
-    if not company or not company.verified:
-        resolved = resolve_company(ticker)
+    if not company or not company.verified or not company.website:
+        try:
+            resolved = resolve_company(ticker)
+        except SourceError:
+            if not company or not company.verified:
+                raise
+            resolved = None
         if not company:
             company = Company(**resolved,watched=False)
             db.add(company)
-        else:
+        elif resolved:
             for key,value in resolved.items():
                 setattr(company,key,value)
         db.commit()
@@ -383,10 +413,12 @@ def import_document(body: ImportDocumentIn, db: DB):
         IMPORT_LOCK.release()
 
 @app.post('/api/research')
-def ask(body: ResearchIn, db: DB):
+def ask(body: ResearchIn, db: DB, request: Request):
     require_company(db,body.ticker)
-    result = research(db,body.ticker,body.question,body.use_ai,refresh=body.refresh)
-    db.commit()
+    guest = settings.public_deployment and request.headers.get('x-finn-guest') == '1'
+    result = research(db,body.ticker,body.question,body.use_ai and not guest,refresh=body.refresh and not guest,cache_result=not guest)
+    if not guest:
+        db.commit()
     return result
 
 @app.get('/api/companies/{ticker}/financials')

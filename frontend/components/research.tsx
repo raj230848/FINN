@@ -2,6 +2,7 @@
 import {Select} from "@/components/select";
 import { useEffect, useRef, useState } from "react";
 import {
+  BarChart3,
   ArrowDown,
   ArrowRight,
   BookOpen,
@@ -64,6 +65,8 @@ export function ResearchWorkspace({
   const [guidanceNote, setGuidanceNote] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<Research | null>(null);
+  const answerPanel = useRef<HTMLDivElement>(null);
+  const [questionError, setQuestionError] = useState("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -85,7 +88,9 @@ export function ResearchWorkspace({
   const loadedIssuer=useRef(ticker);
   const discovered=useRef<CompanyDiscovery|null>(initialDiscovery);
   const [selectedName,setSelectedName]=useState("");
-  const targetCount = new Set(guidance.map(g=>g.target_period)).size;
+  const answerNotes = answer?.evidence.length ? answer.limitations.filter(note =>
+    !/^(Only the indexed historical documents|A model support review|The Gemini request|No Gemini key configured)/.test(note)
+  ) : [];
   activeTicker.current = ticker;
 
   useEffect(() => {
@@ -95,13 +100,20 @@ export function ResearchWorkspace({
   useEffect(()=>setQuestion(initialQuestion),[initialQuestion,initialTicker]);
   useEffect(() => setTab(initialTab), [initialTab]);
   useEffect(() => {
+    if (answer && answerPanel.current) {
+      answerPanel.current.focus({ preventScroll: true });
+      answerPanel.current.scrollIntoView({ block: "start" });
+    }
+  }, [answer]);
+  useEffect(() => {
     let cancelled = false;
     quarterRequest.current++;
     setAnswer(null);
+    setQuestionError("");
     const discovery=discovered.current?.company.ticker===ticker?discovered.current:null;
     setCandidates(discovery?.documents||[]);
     setError("");
-    if(discovery)setNotice(discovery.message);
+    if(discovery)setNotice(discovery.documents.length ? "" : discovery.message);
     else if(loadedIssuer.current!==ticker)setNotice("");
     loadedIssuer.current=ticker;
     setDocs([]);
@@ -161,7 +173,7 @@ export function ResearchWorkspace({
         method: "POST",
       });
       onChanged();
-      if(activeTicker.current===symbol){setCandidates(result.documents);setNotice(result.message);}
+      if(activeTicker.current===symbol){setCandidates(result.documents);setNotice(result.documents.length ? "" : result.message);}
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -184,11 +196,13 @@ export function ResearchWorkspace({
     }finally{setBusy("");}
   }
   async function ask(value: string) {
-    if (!value.trim() || busy) return;
-    if(!docs.length){setTab("documents");setNotice("Add a primary document first. Discover an issuer PDF, review its URL and import it before asking Gemini.");return;}
+    if (!value.trim() || busy || dataLoading) return;
+    if(!docs.length){setTab("documents");setNotice("Add a company report before asking a question.");return;}
     const version = ++requestVersion.current;
     setQuestion(value);
     setBusy("research");
+    setAnswer(null);
+    setQuestionError("");
     setError("");
     try {
       const result = await api<Research>("/research", {
@@ -197,7 +211,7 @@ export function ResearchWorkspace({
       });
       if (version === requestVersion.current) setAnswer(result);
     } catch (e) {
-      if (version === requestVersion.current) setError((e as Error).message);
+      if (version === requestVersion.current) setQuestionError((e as Error).message);
     } finally {
       setBusy("");
     }
@@ -211,7 +225,7 @@ export function ResearchWorkspace({
     setError("");
     setNotice("");
     try {
-      const imported=await api<SourceDocument&{indexed_passages:number}>("/documents", {
+      await api<SourceDocument>("/documents", {
         method: "POST",
         body: JSON.stringify({ ticker, ...input }),
       });
@@ -219,7 +233,8 @@ export function ResearchWorkspace({
         discovered.current=null;
         setImportOpen(false);
         setGeneration((g) => g + 1);
-        setNotice(`Primary document ready: ${imported.page_count.toLocaleString("en-IN")} pages and ${imported.indexed_passages.toLocaleString("en-IN")} indexed passages.${imported.pages_without_passages?` ${imported.indexing_note}`:""} You can now ask a sourced question.`);
+        setTab("overview");
+        setNotice("Document added. You can now ask a question.");
       }
     } catch (e) {
       if(activeTicker.current===requestedTicker){
@@ -236,11 +251,7 @@ export function ResearchWorkspace({
     <div className="research-workspace">
       <div className="page-heading research-heading">
         <div>
-          <div className="eyebrow">THE RESEARCH DESK</div>
-          <h1>
-            Go beyond the headline<span>.</span>
-          </h1>
-          <p>Ask better questions. Follow every answer to its source.</p>
+          <h1>Research desk</h1>
         </div>
         <span className="source-seal">
           <ShieldCheck size={15} /> Primary sources only
@@ -262,7 +273,6 @@ export function ResearchWorkspace({
             <ArrowRight size={12} />
           </button>
         ))}
-        <span>Or research a ticker outside your portfolio</span>
       </div>
       <div className="company-strip">
         <div className={`company-logo logo-${ticker.length % 5}`}>
@@ -284,7 +294,7 @@ export function ResearchWorkspace({
         {[
           ["overview", "Research & evidence"],
           ["financials", "Financial snapshot"],
-          ["guidance", "Promise vs. reality"],
+          ["guidance", "Promise Tracker"],
           ["documents", "Source library"],
         ].map(([id, title]) => (
           <button
@@ -306,7 +316,7 @@ export function ResearchWorkspace({
         </div>
       )}
       {notice && <div className="notice-banner" role="status">{notice}</div>}
-      {busy==="import"&&<div className="notice-banner" role="status"><Loader2 className="spin" size={16}/> Downloading and indexing the complete report. Large PDFs can take up to three minutes. Please keep this tab open.</div>}
+      {busy==="import"&&<div className="notice-banner" role="status"><Loader2 className="spin" size={16}/> Adding the document. Large reports may take a few minutes.</div>}
       {dataLoading && (
         <div className="research-loading">
           <Loader2 className="spin" size={16} /> Loading the company source
@@ -315,7 +325,7 @@ export function ResearchWorkspace({
       )}
       {!dataLoading&&!docs.length&&!error&&<section className="source-onboarding" aria-label="Add company evidence">
         <span className="source-onboarding-icon"><BookOpen size={24}/></span>
-        <div><span className="eyebrow">COMPANY FOUND · EVIDENCE NEXT</span><h3>0 source documents. Start with the original.</h3><p>Discover primary sources → review the issuer or exchange URL → import the PDF → ask a sourced question. No AI conclusion is generated without evidence.</p>
+        <div><h3>Add a source document</h3><p>Import an issuer PDF before asking a question.</p>
         <div className="onboarding-actions"><button className="btn primary" disabled={!!busy} onClick={()=>{setTab("documents");void discover();}}>{busy==="discover"?<Loader2 size={16} className="spin"/>:<Search size={16}/>}Discover primary sources</button><button className="btn" onClick={()=>{setTab("documents");setImportOpen(true);}}>Import issuer PDF<ArrowRight size={14}/></button></div></div>
       </section>}
       {initialQuestion&&ticker===initialTicker&&<div className="event-research-context"><ShieldCheck size={16}/><p><b>From your signal</b> {initialQuestion} Source evidence is required; a filing does not establish the cause of a price move.</p></div>}
@@ -324,17 +334,12 @@ export function ResearchWorkspace({
           <section className="panel research-main">
             <div className="section-title">
               <h2>
-                <Sparkles size={17} /> A question worth asking
+                <Sparkles size={17} /> Ask a question
               </h2>
-              <span className="small-label">EVIDENCE FIRST</span>
             </div>
-            <p className="section-description">
-              Research the business, cash quality, outlook, or risks using
-              company-issued documents.
-            </p>
             <div className="question-chips">
               {questions.map((q) => (
-                <button key={q} disabled={!!busy} onClick={() => void ask(q)}>
+                <button key={q} disabled={!!busy || dataLoading} onClick={() => void ask(q)}>
                   {q}
                   <ArrowRight size={13} />
                 </button>
@@ -364,7 +369,7 @@ export function ResearchWorkspace({
                 </span>
                 <button
                   className="btn primary"
-                  disabled={!!busy || question.trim().length < 4}
+                  disabled={!!busy || dataLoading || question.trim().length < 4}
                 >
                   {busy === "research" ? (
                     <Loader2 size={15} className="spin" />
@@ -375,43 +380,30 @@ export function ResearchWorkspace({
                 </button>
               </div>
             </form>
+            {questionError && <div className="error-banner" role="alert">{questionError}</div>}
             {busy === "research" && (
-              <div className="research-loading">
+              <div className="research-loading" role="status">
                 <Loader2 size={19} className="spin" />
-                <div>
-                  Reading the source material
-                  <span>
-                    Retrieving relevant passages and checking citations
-                  </span>
-                </div>
+                Reading company documents…
               </div>
             )}
             {answer && (
-              <div className="answer" aria-live="polite">
+              <div className="answer" ref={answerPanel} tabIndex={-1} aria-label="Research answer" role="region">
                 <div className="answer-label">
                   <span>
                     <Sparkles size={13} />
-                    {answer.method === "grounded_ai"
-                      ? "SOURCE-GROUNDED GEMINI"
-                      : answer.method === "extractive"
-                        ? "EXTRACTIVE RESEARCH"
-                        : "INSUFFICIENT EVIDENCE"}
+                    {answer.evidence.length ? "Company documents" : "No matching sources"}
                   </span>
-                  {answer.cached && <span>Cached</span>}
                 </div>
                 <h3>{answer.question}</h3>
                 <p className="answer-text">{answer.answer}</p>
-                <div className="limitations">
-                  {answer.limitations.map((l, i) => (
-                    <p key={i}>{l}</p>
-                  ))}
-                </div>
+                {answerNotes.length > 0 && <details className="reading-notes">
+                  <summary>Answer notes</summary>
+                  {answerNotes.map((note, i) => <p key={i}>{note}</p>)}
+                </details>}
                 {answer.evidence.length > 0 && (
                   <>
-                    <h4>
-                      Evidence inspector{" "}
-                      <span>{answer.evidence.length} passages</span>
-                    </h4>
+                    <h4>Sources</h4>
                     {answer.evidence.map((e) => (
                       <details
                         className="evidence"
@@ -439,16 +431,6 @@ export function ResearchWorkspace({
                     ))}
                   </>
                 )}
-              </div>
-            )}
-            {!answer && busy !== "research" && (
-              <div className="research-empty">
-                <BookOpen size={29} />
-                <h3>The answer starts with the evidence.</h3>
-                <p>
-                  Choose a question above, or ask your own. Every passage keeps
-                  its document, period, and page reference.
-                </p>
               </div>
             )}
           </section>
@@ -491,14 +473,6 @@ export function ResearchWorkspace({
                 <ArrowRight size={14} />
               </button>
             </section>
-            <div className="research-note">
-              <ShieldCheck size={21} />
-              <h3>Show your working.</h3>
-              <p>
-                Company reports and earnings calls. Original dates. Page-level
-                evidence. No broker notes or model memory as financial evidence.
-              </p>
-            </div>
           </aside>
         </div>
       )}
@@ -506,7 +480,6 @@ export function ResearchWorkspace({
         <section className="panel financial-panel">
           <div className="section-title">
             <div>
-              <div className="eyebrow">THE NUMBERS, IN CONTEXT</div>
               <h2>Quarterly financial snapshot</h2>
             </div>
             <span className="small-label">
@@ -616,7 +589,7 @@ export function ResearchWorkspace({
                   </tbody>
                 </table>
               </div>
-              <p className="method-note">{financials.note}</p>
+              <details className="reading-notes"><summary>Calculation notes</summary><p>{financials.note}</p></details>
               <div className="financial-source-links">
                 {financials.sources?.map((s, i) => (
                   <a
@@ -639,7 +612,7 @@ export function ResearchWorkspace({
           ) : (
             <div className="empty-state">
               <FileText size={28} />
-              <h3>Numbers deserve a source check.</h3>
+              <h3>No reviewed financials</h3>
               <p>{financials.message}</p>
               <button className="btn" onClick={() => setTab("overview")}>
                 Research the source documents
@@ -649,141 +622,24 @@ export function ResearchWorkspace({
           )}
         </section>
       )}
-      {tab === "guidance" && !dataLoading && (
-        <section className="panel guidance-panel">
-          <div className="section-title">
-            <div>
-              <div className="eyebrow">MANAGEMENT ACCOUNTABILITY</div>
-              <h2>What was promised. What was delivered.</h2>
-            </div>
-            <Target size={24} />
-          </div>
-          <p className="section-description">
-            Quantitative guidance, compared with reported outcomes on the same
-            basis.
-          </p>
-          {guidance.length > 0 ? (
-            <>
-              <div className="guidance-outcome">
-                <div>
-                  <span>{targetCount===1?`ACTUAL ${guidance[0].target_period} RESULT`:"DISTINCT TARGET PERIODS"}</span>
-                  <strong>
-                    {targetCount===1 ? (guidance[0].actual===null?"Pending":guidance[0].actual.toFixed(1)) : targetCount}
-                    <small>{targetCount===1?"%":"targets"}</small>
-                  </strong>
-                  <p>{guidance[0].metric}</p>
-                </div>
-                <div className="guidance-outcome-copy">
-                  <ShieldCheck size={22} />
-                  <h3>{targetCount===1?"One target. Every revision.":"Each quarter has its own outcome."}</h3>
-                  <p>
-                    {targetCount===1?"Read each revision in context. All revisions refer to one target period; the same final outcome can exceed an early range and miss a later one.":"Only the same metric, period and currency basis are compared. Future guidance remains pending until its outcome is reported."}
-                  </p>
-                </div>
-              </div>
-              <div className="guidance-timeline">
-                {guidance.map((g, i) => (
-                  <div className="guidance-row" key={i}>
-                    <div className="timeline-dot">{i + 1}</div>
-                    <div className="guidance-revision">
-                      <b>{g.revision}</b>
-                      <span>{g.statement_date}</span>
-                      <small>Target: {g.target_period}</small>
-                    </div>
-                    <div className="guidance-range">
-                      <span>GUIDANCE</span>
-                      <b>
-                        {g.low}–{g.high}%
-                      </b>
-                      <div className="guidance-track">
-                        <i
-                          style={{
-                            left: `${((g.low-Math.min(g.low,g.actual??0,0)+0.5)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100}%`,
-                            width: `${Math.max(((g.high-g.low)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100,2)}%`,
-                          }}
-                        />
-                        {g.actual!==null && <em style={{left:`${((g.actual-Math.min(g.low,g.actual,0)+0.5)/(Math.max(g.high,g.actual,0)-Math.min(g.low,g.actual,0)+1))*100}%`}} />}
-                      </div>
-                      <small>{g.actual===null?"Actual: pending":`Actual: ${g.actual.toFixed(1)}%`}</small>
-                    </div>
-                    <div className="guidance-status">
-                      <span className={`outcome ${g.status}`}>
-                        {g.status === "achieved" ? (
-                          <Check size={12} />
-                        ) : g.status === "missed" ? (
-                          <ArrowDown size={12} />
-                        ) : (
-                          <ArrowRight size={12} />
-                        )}{" "}
-                        {label(g.status)}
-                      </span>
-                      <small>
-                        {g.deviation_pp===null?"Awaiting reported outcome":`${g.deviation_pp>0?"+":""}${g.deviation_pp.toFixed(1)} pp from range`}
-                      </small>
-                    </div>
-                    <details className="guidance-evidence">
-                      <summary>
-                        <Link2 size={14} /> Evidence
-                      </summary>
-                      <p>{g.statement}</p>
-                      {g.basis&&<p>Basis: {g.basis}</p>}
-                      <a
-                        href={`${g.guidance_url}#page=${g.guidance_page}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Original guidance · p. {g.guidance_page}
-                        <ExternalLink size={12} />
-                      </a>
-                      {g.actual_url && <a
-                        href={`${g.actual_url}#page=${g.actual_page}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Reported result · p. {g.actual_page}
-                        <ExternalLink size={12} />
-                      </a>}
-                    </details>
-                  </div>
-                ))}
-              </div>
-              <p className="method-note">
-                {guidanceNote} Deviation is in percentage points from the
-                nearest guidance boundary, not relative percent. No credibility
-                score is inferred.
-              </p>
-            </>
-          ) : (
-            <div className="empty-state">
-              <Target size={30} />
-              <h3>A promise needs two sources.</h3>
-              <p>
-                No reviewed guidance/result pair is indexed for {ticker}. Start
-                with INFY to explore the four-revision historical example.
-              </p>
-              <button className="btn" onClick={() => chooseSymbol("INFY")}>
-                Explore Infosys
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          )}
-        </section>
+      {tab === "guidance" && !dataLoading && !error && (
+        <GuidanceComparison ticker={ticker} guidance={guidance} guidanceNote={guidanceNote} onExploreInfosys={() => chooseSymbol("INFY")} />
       )}
       {tab === "documents" && (
         <section className="panel library">
           <div className="section-title">
             <div>
-              <div className="eyebrow">THE SOURCE OF TRUTH</div>
               <h2>Primary document library</h2>
             </div>
-            <button className="btn" onClick={() => setImportOpen(!importOpen)}>
-              <Link2 size={14} /> Import document
-            </button>
+            <div className="library-actions">
+              {docs.length > 0 && <button className="btn primary" disabled={!!busy} onClick={() => setTab("overview")}>
+                <Sparkles size={14} /> Ask a question
+              </button>}
+              <button className="btn" onClick={() => setImportOpen(!importOpen)}>
+                <Link2 size={14} /> Import document
+              </button>
+            </div>
           </div>
-          <p className="section-description">
-            Full source documents are indexed by page. Only issuer and exchange
-            domains are accepted.
-          </p>
           {importOpen && (
             <form
               className="import-form"
@@ -856,7 +712,7 @@ export function ResearchWorkspace({
                 ) : (
                   <ArrowRight size={14} />
                 )}{" "}
-                Download & index
+                Add document
               </button>
             </form>
           )}
@@ -876,10 +732,6 @@ export function ResearchWorkspace({
                 <p>
                   {label(d.kind)} · {d.period} · {d.page_count} pages
                 </p>
-                <small>
-                  Retrieved {new Date(d.fetched_at).toLocaleDateString("en-IN")}
-                </small>
-                {d.indexing_note&&<small>{d.indexed_passages?.toLocaleString("en-IN")} passages · {d.indexing_note}</small>}
               </div>
               <span className="verified-label">
                 <ShieldCheck size={12} /> Primary source
@@ -932,5 +784,197 @@ export function ResearchWorkspace({
         </section>
       )}
     </div>
+  );
+}
+
+type GuidanceResponse = { items: GuidanceItem[]; note: string };
+
+export function PromiseTracker({companies, onOpenResearch}: {companies: Company[]; onOpenResearch: (ticker: string) => void}) {
+  const [reviewedIssuers, setReviewedIssuers] = useState<Company[] | null>(null);
+  const [selectedTicker, setSelectedTicker] = useState("");
+  const [comparison, setComparison] = useState<GuidanceResponse | null>(null);
+  const [error, setError] = useState("");
+  const reviewedTickers = new Set(reviewedIssuers?.map(company => company.ticker));
+  const otherIssuers = companies.filter(company => !reviewedTickers.has(company.ticker));
+  const ticker = selectedTicker || (reviewedIssuers && (
+    reviewedIssuers.find(company => company.ticker === "INFY")?.ticker ?? reviewedIssuers[0]?.ticker ?? otherIssuers[0]?.ticker
+  )) || "";
+
+  useEffect(() => {
+    const request = new AbortController();
+    api<Company[]>("/companies?has_guidance=true", { signal: request.signal })
+      .then(issuers => { if (!request.signal.aborted) setReviewedIssuers(issuers); })
+      .catch(e => { if (!request.signal.aborted) setError(e.message); });
+    return () => request.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!ticker) return;
+    const request = new AbortController();
+    api<GuidanceResponse>(`/companies/${encodeURIComponent(ticker)}/guidance`, { signal: request.signal })
+      .then(data => { if (!request.signal.aborted) setComparison(data); })
+      .catch(e => { if (!request.signal.aborted) setError(e.message); });
+    return () => request.abort();
+  }, [ticker]);
+
+  return (
+    <div className="research-workspace promise-tracker">
+      <div className="page-heading research-heading">
+        <div><h1>Promise Tracker</h1></div>
+        <span className="source-seal"><ShieldCheck size={15} /> Primary sources only</span>
+      </div>
+      {reviewedIssuers && !!ticker && <div className="promise-tracker-controls">
+        <label className="field-label">
+          Company
+          <Select aria-label="Promise Tracker company" value={ticker} onChange={event => {
+            if (event.target.value === ticker) return;
+            setError("");
+            setComparison(null);
+            setSelectedTicker(event.target.value);
+          }}>
+            {reviewedIssuers.length > 0 && <optgroup label="Reviewed guidance">
+              {reviewedIssuers.map(company => <option key={company.ticker} value={company.ticker}>{company.name} ({company.ticker})</option>)}
+            </optgroup>}
+            {otherIssuers.length > 0 && <optgroup label="No reviewed guidance yet">
+              {otherIssuers.map(company => <option key={company.ticker} value={company.ticker}>{company.name} ({company.ticker})</option>)}
+            </optgroup>}
+          </Select>
+        </label>
+        <button className="btn" onClick={() => onOpenResearch(ticker)}>Open source library <ArrowRight size={14} /></button>
+      </div>}
+      {error ? <div className="error-banner" role="alert">{error}</div> :
+        reviewedIssuers && !ticker ? <section className="panel empty-state"><Target size={30} /><h2>No companies available</h2><p>Add an NSE company from your watchlist to get started.</p></section> :
+        comparison ? <GuidanceComparison ticker={ticker} guidance={comparison.items} guidanceNote={comparison.note} /> :
+        <div className="research-loading" role="status"><Loader2 className="spin" size={16} /> Loading reviewed guidance…</div>}
+    </div>
+  );
+}
+
+function GuidanceComparison({
+  ticker, guidance, guidanceNote, onExploreInfosys,
+}: {
+  ticker: string;
+  guidance: GuidanceItem[];
+  guidanceNote: string;
+  onExploreInfosys?: () => void;
+}) {
+  const targetCount = new Set(guidance.map(item => JSON.stringify([item.target_period, item.metric, item.basis, item.unit]))).size;
+  return (
+  <section className="panel guidance-panel">
+    <div className="section-title">
+      <div>
+        <h2>Guidance vs. results</h2>
+      </div>
+      <Target size={24} />
+    </div>
+    {guidance.length > 0 ? (
+      <>
+        <div className="guidance-outcome">
+          <div>
+            <span>{targetCount===1?`ACTUAL ${guidance[0].target_period} RESULT`:"DISTINCT TARGET PERIODS"}</span>
+            <strong>
+              {targetCount===1 ? (guidance[0].actual===null?"Pending":guidance[0].actual.toFixed(1)) : targetCount}
+            {targetCount > 1 && <small>targets</small>}
+            {targetCount === 1 && guidance[0].actual !== null && <small>{guidance[0].unit === "percent" ? "%" : guidance[0].unit}</small>}
+            </strong>
+            <p>{guidance[0].metric}</p>
+          </div>
+          <div className="guidance-outcome-copy">
+            <ShieldCheck size={22} />
+            <h3>{targetCount===1 ? (guidance.length===1 ? "Reviewed comparison" : "Guidance revisions") : "Guidance outcomes"}</h3>
+            <p>
+              {targetCount===1 && guidance.length>1 ? "All revisions refer to the same target period." : "Compared by matching period, metric and currency."}
+            </p>
+          </div>
+        </div>
+        <div className="guidance-timeline">
+          {guidance.map((g, i) => (
+            <details className="guidance-card" key={`${g.guidance_url}-${g.target_period}-${g.metric}-${i}`}>
+            <summary className="guidance-row">
+              <span className="timeline-dot" aria-hidden="true">{i + 1}</span>
+              <span className="guidance-revision">
+                <b>{g.revision}</b>
+                <span>{g.statement_date}</span>
+                <small>Target: {g.target_period}</small>
+              </span>
+              <span className="guidance-range">
+                <span>GUIDANCE</span>
+                <b>
+                {g.low}–{g.high}{g.unit === "percent" ? "%" : ` ${g.unit}`}
+                </b>
+                <span className="guidance-track" aria-hidden="true">
+                  <i
+                    style={{
+                      left: `${((g.low-Math.min(g.low,g.actual??0,0)+0.5)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100}%`,
+                      width: `${Math.max(((g.high-g.low)/(Math.max(g.high,g.actual??0,0)-Math.min(g.low,g.actual??0,0)+1))*100,2)}%`,
+                    }}
+                  />
+                  {g.actual!==null && <em style={{left:`${((g.actual-Math.min(g.low,g.actual,0)+0.5)/(Math.max(g.high,g.actual,0)-Math.min(g.low,g.actual,0)+1))*100}%`}} />}
+                </span>
+              <small>{g.actual===null?"Actual: pending":`Actual: ${g.actual.toFixed(1)}${g.unit === "percent" ? "%" : ` ${g.unit}`}`}</small>
+              </span>
+              <span className="guidance-status">
+                <span className={`outcome ${g.status}`}>
+                  {g.status === "achieved" ? (
+                    <Check size={12} />
+                  ) : g.status === "missed" ? (
+                    <ArrowDown size={12} />
+                  ) : (
+                    <ArrowRight size={12} />
+                  )}{" "}
+                  {label(g.status)}
+                </span>
+                <small>
+                  {g.deviation_pp===null?"Awaiting reported outcome":`${g.deviation_pp>0?"+":""}${g.deviation_pp.toFixed(1)} pp from range`}
+                </small>
+              </span>
+              <span className="guidance-expand" aria-hidden="true"><ChevronDown size={17} /></span>
+            </summary>
+              <div className="guidance-sources">
+                <p>{g.statement}</p>
+                {g.basis && <p>{g.basis}</p>}
+                <div className="guidance-source-links">
+                  <a className="guidance-source original" href={`${g.guidance_url}#page=${g.guidance_page}`} target="_blank" rel="noreferrer">
+                    <FileText size={19} aria-hidden="true" />
+                    <span><b>Original guidance</b><small>Open PDF · Page {g.guidance_page}</small></span>
+                    <ExternalLink size={15} aria-hidden="true" />
+                  </a>
+                  {g.actual_url ? (
+                    <a className="guidance-source reported" href={g.actual_page ? `${g.actual_url}#page=${g.actual_page}` : g.actual_url} target="_blank" rel="noreferrer">
+                      <BarChart3 size={19} aria-hidden="true" />
+                      <span><b>Reported result</b><small>Open PDF{g.actual_page ? ` · Page ${g.actual_page}` : ""}</small></span>
+                      <ExternalLink size={15} aria-hidden="true" />
+                    </a>
+                  ) : (
+                    <div className="guidance-source pending">
+                      <BarChart3 size={19} aria-hidden="true" />
+                      <span><b>Reported result</b><small>Awaiting results</small></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </details>
+          ))}
+        </div>
+        <details className="reading-notes"><summary>How comparisons work</summary><p>
+          {guidanceNote} Deviation is in percentage points from the
+          nearest guidance boundary, not relative percent. No credibility
+          score is inferred.
+        </p></details>
+      </>
+    ) : (
+      <div className="empty-state">
+        <Target size={30} />
+        <h3>No matched guidance</h3>
+        <p>
+          No reviewed guidance or results are indexed for {ticker}.
+        </p>
+        {onExploreInfosys && ticker !== "INFY" && <button className="btn" onClick={onExploreInfosys}>
+          Explore Infosys
+          <ArrowRight size={14} />
+        </button>}
+      </div>
+    )}
+  </section>
   );
 }

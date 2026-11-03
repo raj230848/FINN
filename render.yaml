@@ -22,6 +22,8 @@ services:
         generateValue: true
       - key: FINN_PUBLIC_MODE
         value: "true"
+      - key: FINN_GUEST_MODE
+        value: "true"
       - key: VAPID_PRIVATE_KEY
         sync: false
       - key: VAPID_PUBLIC_KEY
@@ -35,4 +37,4 @@ services:
       - key: PUBLIC_DEPLOYMENT
         value: "true"
       - key: ENABLE_SCHEDULER
-        value: "false"
+        value: "true"

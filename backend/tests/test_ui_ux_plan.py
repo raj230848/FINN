@@ -90,12 +90,15 @@ def test_refresh_reservation_is_shared_across_two_sessions(db):
 
 
 def test_recent_snapshot_and_failed_attempt_have_server_cooldowns(db):
-    now=utcnow();run=SyncRun(started_at=now,completed_at=now,result={'status':'complete'})
+    now=utcnow();prior=now-timedelta(minutes=1)
+    run=SyncRun(started_at=prior,completed_at=prior,result={'status':'complete'})
     db.add(run);db.commit()
     assert not refresh_state(db,now)['should_refresh']
     assert reserve_refresh(db,only_if_stale=True,now=now)[0]['id'] is None
-    run.result={'status':'partial','prices':{'INFY':{'ok':False}}};db.commit()
+    db.add(SyncRun(started_at=now,completed_at=now,result={'status':'partial','prices':{'INFY':{'ok':False}}}));db.commit()
     assert refresh_state(db,now)['state']=='retry_later'
+    assert refresh_state(db,now)['last_successful_at']==prior.isoformat()+'Z'
+    assert refresh_state(db,now)['last_completed_at']==now.isoformat()+'Z'
     assert not refresh_state(db,now+timedelta(minutes=4))['should_refresh']
     assert refresh_state(db,now+timedelta(minutes=6))['should_refresh']
 

@@ -3,7 +3,8 @@ import pymupdf
 import pytest
 from app.config import settings
 from app.ingestion.http import SourceError, validate_url
-from app.models import Company, Document
+from app.models import Company, Document, ResearchCache
+from sqlalchemy import func, select
 from app.schemas import AnalysisOut, SynthesisOut, SynthesisClaim
 from app.services.documents import extract_pages, store_document
 from app.services.research import research
@@ -42,6 +43,42 @@ def test_model_fabricated_citation_rejected(db,monkeypatch):
     result=module.research(db,'INFY','What is revenue outlook?',True)
     assert result['method']=='extractive'
     assert any('validation failed' in l for l in result['limitations'])
+
+def test_hosted_guest_cannot_use_gemini_or_write_research_cache(client, db, monkeypatch):
+    from app.services import research as module
+    store_document(db, db.get(Company, 'INFY'), 'Issuer report', 'FY25', 'annual_report',
+                   'https://www.infosys.com/test.pdf', sample_pdf())
+    db.commit()
+    monkeypatch.setattr(settings, 'public_deployment', True)
+    monkeypatch.setattr(settings, 'gemini_api_key', 'synthetic-test-key')
+    monkeypatch.setattr(module, 'structured_call', lambda *args, **kwargs: pytest.fail('Guest called Gemini'))
+    response = client.post('/api/research', headers={'X-Finn-Guest': '1'},
+                           json={'ticker': 'INFY', 'question': 'What is revenue outlook?', 'use_ai': True, 'refresh': True})
+    assert response.status_code == 200
+    assert response.json()['method'] == 'extractive'
+    assert response.json()['evidence']
+    assert db.scalar(select(func.count()).select_from(ResearchCache)) == 0
+
+def test_business_overview_answers_from_the_report_without_a_model(db):
+    pdf = pymupdf.open()
+    page = pdf.new_page()
+    page.insert_text((50, 70), """K.P.R. Mill Limited
+Details of business activities (accounting for 90% of the Turnover):
+Description of Main Activity Description of Business Activity % of Turnover of the entity
+1 Manufacturing Yarn 42.33
+2 Manufacturing Fabric 8.89
+3 Manufacturing Garment 42.62
+Products/Services sold by the entity
+The Group has classified its operations primarily into three reportable segments viz.,
+Textile, Sugar and Others based on the management approach.""", fontsize=10)
+    document = store_document(db, db.get(Company, 'KPRMILL'), 'Issuer report', 'FY26', 'annual_report',
+                              'https://kprmilllimited.com/report.pdf', pdf.tobytes())
+    result = research(db, 'KPRMILL', 'What does the company do?', use_ai=True)
+    citation = f'[{result["evidence"][0]["id"]}]'
+    assert result['method'] == 'extractive'
+    assert f'manufacturing yarn, fabric and garment products {citation}' in result['answer']
+    assert f'Textile, Sugar and Others as its operating segments {citation}' in result['answer']
+    assert result['evidence'][0]['document_id'] == document.id
 
 def test_primary_url_guards(monkeypatch):
     monkeypatch.setattr(socket,'getaddrinfo',lambda *a,**kw:[(2,1,6,'',('127.0.0.1',443))])

@@ -82,6 +82,10 @@ def seed(db):
     manifest = ROOT/'data'/'primary'/'verified.json'
     if manifest.exists():
         data = json.loads(manifest.read_text(encoding='utf-8'))
+        for issuer in data.get('issuers', []):
+            if not db.get(Company, issuer['ticker']):
+                db.add(Company(**issuer, watched=False, verified=True))
+        db.flush()
         for row in data.get('financials',[]):
             if not db.scalar(select(Financial.id).where(Financial.ticker==row['ticker'],Financial.period==row['period'],Financial.mode=='sourced')):
                 db.add(Financial(mode='sourced',**row))

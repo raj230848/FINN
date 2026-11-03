@@ -174,7 +174,32 @@
       "page": 3
     }
   ],
+  "issuers": [
+    {
+      "ticker": "HCLTECH",
+      "name": "HCL Technologies",
+      "sector": "Information technology",
+      "website": "https://www.hcltech.com"
+    }
+  ],
   "guidance": [
+    {
+      "ticker": "HCLTECH",
+      "revision": "Q3 revision",
+      "statement_date": "2025-01-13",
+      "target_period": "FY25",
+      "metric": "Revenue growth in constant currency",
+      "unit": "percent",
+      "basis": "Consolidated company revenue, year-over-year in constant currency",
+      "low": 4.5,
+      "high": 5.0,
+      "actual": 4.7,
+      "statement": "HCLTech revised its full-year group revenue outlook to 4.5%–5.0% growth in constant currency. The outlook included the acquired HPE CTG assets.",
+      "guidance_url": "https://www.hcltech.com/sites/default/files/documents/investor-reports/HCL_Tech_Q3_FY25_Investor_Release_0.pdf",
+      "guidance_page": 3,
+      "actual_url": "https://www.hcltech.com/sites/default/files/documents/investor-reports/HCLTech_Q4_FY25_Investor_Release.pdf",
+      "actual_page": 3
+    },
     {
       "ticker": "INFY",
       "revision": "Initial outlook",

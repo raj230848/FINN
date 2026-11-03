@@ -86,7 +86,6 @@ export function Notifications({
       >
         <header>
           <div>
-            <span>YOUR SIGNAL HISTORY</span>
             <h2 id="notifications-title">
               <Bell size={21} />
               Notifications <b>{feed.unread_count}</b>

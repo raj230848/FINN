@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { LockKeyhole, ArrowRight, Loader2 } from "lucide-react";
 
-export function AccessGate({ onUnlocked }: { onUnlocked: () => void }) {
+export function AccessGate({ onUnlocked, onCancel }: { onUnlocked: () => void; onCancel?: () => void }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +58,7 @@ export function AccessGate({ onUnlocked }: { onUnlocked: () => void }) {
             Open my desk
           </button>
         </form>
+        {onCancel && <button className="text-button" onClick={onCancel}>Back to public preview</button>}
       </section>
     </main>
   );

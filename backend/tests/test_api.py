@@ -30,6 +30,30 @@ def test_watchlist_changes_monitoring(client):
     assert client.patch('/api/companies/INFY',json={'watched':False}).json()['watched'] is False
     assert client.get('/api/dashboard').json()['stats']['companies']==17
 
+def test_watchlist_can_add_a_directory_company_without_discovering_documents(client, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main.directory, 'lookup', lambda ticker: {'name': 'New Listed Company'} if ticker == 'NEWCO' else None)
+    path = '/api/companies/newco.NS?add_if_listed=true'
+    assert client.patch(path, json={'watched': False}).status_code == 404
+    for _ in range(2):
+        response = client.patch(path, json={'watched': True})
+        assert response.status_code == 200
+        assert response.json()['name'] == 'New Listed Company'
+        assert response.json()['verified'] is True
+    companies = client.get('/api/companies').json()
+    assert len([c for c in companies if c['ticker'] == 'NEWCO' and c['watched']]) == 1
+    assert client.patch('/api/companies/NEWCO', json={'watched': False}).json()['watched'] is False
+    assert client.patch('/api/companies/UNLISTED?add_if_listed=true', json={'watched': True}).status_code == 404
+
+def test_tracker_lists_only_companies_with_reviewed_guidance(client):
+    response = client.get('/api/companies?has_guidance=true')
+    assert response.status_code == 200
+    assert {company['ticker'] for company in response.json()} == {'HCLTECH', 'INFY', 'WIPRO'}
+    assert any(company['ticker'] == 'TCS' for company in client.get('/api/companies').json())
+    assert client.get('/api/companies/TCS/guidance').json()['items'] == []
+    hcltech = client.get('/api/companies/HCLTECH/guidance').json()['items'][0]
+    assert (hcltech['low'], hcltech['high'], hcltech['actual'], hcltech['status']) == (4.5, 5.0, 4.7, 'achieved')
+
 def test_unseen_ticker_discovery_generalises(client,monkeypatch):
     from app import main
     monkeypatch.setattr(main,'resolve_company',lambda t: {'ticker':t,'name':'Unseen Company Limited','sector':'Test sector','website':'https://example.com','verified':True})

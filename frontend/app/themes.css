@@ -1,8 +1,8 @@
 /* Neon Aurora Glass / Champagne Bubble Light. One palette across the workspace. */
 :root,html[data-theme="dark"] {
   color-scheme:dark;
-  --canvas:#080F1C; --surface:#102130; --surface-raised:#182D3E;
-  --text:#EDF6FC; --text-secondary:#C2D2DE; --text-muted:#9CAEBF;
+  --canvas:#080F1C; --surface:#101E2D; --surface-raised:#192C3E;
+  --text:#F2F7FD; --text-secondary:#D1DFEB; --text-muted:#B4C4D3;
   --primary:#55E2DA; --on-primary:#072624; --primary-soft:#14383F;
   --positive:#9DDFAC; --positive-soft:#18382D;
   --negative:#FF9FA9; --negative-soft:#412633;
@@ -11,7 +11,7 @@
   --border:#304D60; --border-strong:#62849B; --control:#152A3A;
   --chart-grid:#2B4356; --chart-line:#55E2DA;
   --scrim:rgba(3,8,17,.76); --shadow:rgba(0,0,0,.24);
-  --glow-orchid:rgba(151,105,246,.2); --glow-blue:rgba(39,214,211,.14);
+  --glow-orchid:rgba(151,105,246,.13); --glow-blue:rgba(39,214,211,.09);
   --accent-violet:#B7A0F9; --primary-hover:#7AEBE4;
   --select-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2355E2DA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --ink:var(--text); --muted:var(--text-muted); --forest:var(--primary);

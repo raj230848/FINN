@@ -1,9 +1,9 @@
 "use client";
 import {useEffect,useState} from "react";
 import {Sun,Moon} from "lucide-react";
-import {THEME_CANVAS,THEME_KEY,Theme,validTheme} from "@/lib/theme";
+import {DEFAULT_THEME,THEME_CANVAS,THEME_KEY,Theme,validTheme} from "@/lib/theme";
 export function ThemeToggle(){
-  const [theme,setTheme]=useState<Theme>("dark");
+  const [theme,setTheme]=useState<Theme>(DEFAULT_THEME);
   function apply(value:Theme){
     document.documentElement.dataset.theme=value;document.documentElement.style.colorScheme=value;
     const meta=document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');if(meta)meta.content=THEME_CANVAS[value];

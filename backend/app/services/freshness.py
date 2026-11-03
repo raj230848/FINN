@@ -14,9 +14,11 @@ def refresh_state(db,now=None):
     latest=db.scalar(select(SyncRun).order_by(SyncRun.id.desc()).limit(1))
     if not db.scalar(select(func.count()).select_from(Company).where(Company.watched.is_(True))):
         return {'state':'empty_watchlist','run_id':None,'should_refresh':False,'next_check_at':None}
-    successful=db.scalar(select(SyncRun).where(SyncRun.completed_at.is_not(None)).order_by(SyncRun.id.desc()).limit(1))
+    completed=db.scalar(select(SyncRun.completed_at).where(SyncRun.completed_at.is_not(None)).order_by(SyncRun.id.desc()).limit(1))
+    successful=db.scalar(select(SyncRun.completed_at).where(SyncRun.result['status'].as_string()=='complete',SyncRun.completed_at.is_not(None)).order_by(SyncRun.id.desc()).limit(1))
+    last_successful_at=successful.isoformat()+'Z' if successful else None
     if latest and latest.completed_at is None:
-        return {'state':'in_progress','run_id':latest.id,'should_refresh':False,'next_check_at':None}
+        return {'state':'in_progress','run_id':latest.id,'should_refresh':False,'next_check_at':None,'last_successful_at':last_successful_at}
     delay=interval
     if latest and latest.result.get('status') in ('partial','failed'):
         recent=list(db.scalars(select(SyncRun).order_by(SyncRun.id.desc()).limit(4)))
@@ -29,7 +31,7 @@ def refresh_state(db,now=None):
     missing=db.scalar(select(func.count()).select_from(Company).where(Company.watched.is_(True),~Company.ticker.in_(select(Price.ticker).where(Price.mode=='sourced'))))
     due=not next_at or now>=next_at
     # Cooldown applies even with missing data, so failing providers cannot cause a tab storm.
-    return {'state':'due' if due else 'retry_later' if latest and latest.result.get('status') in ('partial','failed') else 'fresh','run_id':None,'should_refresh':due,'next_check_at':next_at.isoformat()+'Z' if next_at else None,'missing_companies':missing,'last_completed_at':successful.completed_at.isoformat()+'Z' if successful else None,'interval_minutes':interval}
+    return {'state':'due' if due else 'retry_later' if latest and latest.result.get('status') in ('partial','failed') else 'fresh','run_id':None,'should_refresh':due,'next_check_at':next_at.isoformat()+'Z' if next_at else None,'missing_companies':missing,'last_completed_at':completed.isoformat()+'Z' if completed else None,'last_successful_at':last_successful_at,'interval_minutes':interval}
 
 
 def reserve_refresh(db,only_if_stale=False,now=None):

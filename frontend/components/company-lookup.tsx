@@ -1,6 +1,6 @@
 "use client";
 import { useEffect,useId,useRef,useState } from "react";
-import { Loader2,Search,ShieldCheck,X,ArrowUpRight } from "lucide-react";
+import { Loader2,Search,ShieldCheck,X,ArrowUpRight,Plus,Check } from "lucide-react";
 import { api,Company } from "@/lib/api";
 
 export type CompanyMatch={ticker:string;name:string;exchange:string;sector:string|null;verified:boolean;source_date:string|null};
@@ -11,7 +11,7 @@ function Highlight({text,query}:{text:string;query:string}){
   if(index<0||!query)return <>{text}</>;
   return <>{text.slice(0,index)}<mark>{text.slice(index,index+query.length)}</mark>{text.slice(index+query.length)}</>;
 }
-export function CompanyLookup({onSelect,companies=[],compact=false,disabled=false}:{onSelect:(company:CompanyMatch)=>void|Promise<void>;companies?:Company[];compact?:boolean;disabled?:boolean}){
+export function CompanyLookup({onSelect,companies=[],compact=false,disabled=false,addToWatchlist=false}:{onSelect:(company:CompanyMatch)=>void|Promise<void>;companies?:Company[];compact?:boolean;disabled?:boolean;addToWatchlist?:boolean}){
   const [query,setQuery]=useState(""),[open,setOpen]=useState(false),[active,setActive]=useState(-1);
   const [result,setResult]=useState<SearchResult|null>(null),[loading,setLoading]=useState(false),[selecting,setSelecting]=useState(false),[error,setError]=useState("");
   const input=useRef<HTMLInputElement>(null),version=useRef(0),id=useId();
@@ -50,7 +50,7 @@ export function CompanyLookup({onSelect,companies=[],compact=false,disabled=fals
     <label className={compact?"sr-only":"field-label"} htmlFor={id}>Search NSE company name or ticker</label>
     <div className="nse-search-field">
       <Search size={18} aria-hidden="true"/>
-      <input ref={input} id={id} role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={`${id}-list`} aria-activedescendant={open&&items[active]?`${id}-${active}`:undefined} autoComplete="off" spellCheck={false} maxLength={100} placeholder={compact?"Search name or NSE ticker…":"Company name or NSE ticker, e.g. Infosys or INFY"} value={query} disabled={disabled||selecting} onFocus={()=>setOpen(true)} onChange={e=>{setQuery(e.target.value);setOpen(true);}} onKeyDown={e=>{
+      <input ref={input} id={id} role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open?`${id}-list`:undefined} aria-activedescendant={open&&items[active]?`${id}-${active}`:undefined} autoFocus={addToWatchlist} autoComplete="off" spellCheck={false} maxLength={100} placeholder={compact?"Search name or NSE ticker…":"Company name or NSE ticker, e.g. Infosys or INFY"} value={query} disabled={disabled} readOnly={selecting} onFocus={()=>setOpen(true)} onChange={e=>{setQuery(e.target.value);setOpen(true);}} onKeyDown={e=>{
         if(e.key==="Escape"){setOpen(false);return;}
         if(e.key==="ArrowDown"){e.preventDefault();setOpen(true);setActive(i=>Math.min(i+1,items.length-1));}
         if(e.key==="ArrowUp"){e.preventDefault();setActive(i=>Math.max(i-1,0));}
@@ -61,17 +61,21 @@ export function CompanyLookup({onSelect,companies=[],compact=false,disabled=fals
           if(match)void choose(match);else setOpen(true);
         }
       }}/>
-      {(loading||selecting)?<Loader2 size={17} className="spin" aria-label={selecting?"Opening company":"Searching NSE directory"}/>:query?<button className="search-clear" aria-label="Clear company search" onClick={()=>{setQuery("");input.current?.focus();}}><X size={17}/></button>:compact?<kbd>⌘ K</kbd>:<span className="nse-only">NSE</span>}
+      {(loading||selecting)?<Loader2 size={17} className="spin" aria-label={selecting?(addToWatchlist?"Adding company":"Opening company"):"Searching NSE directory"}/>:query?<button className="search-clear" aria-label="Clear company search" onClick={()=>{setQuery("");input.current?.focus();}}><X size={17}/></button>:compact?<kbd>⌘ K</kbd>:<span className="nse-only">NSE</span>}
     </div>
     {open&&<div className="nse-search-results" id={`${id}-list`} role="listbox" aria-label="NSE company suggestions">
-      <div className="search-menu-title">{selecting?"Opening source library…":loading?"Searching the NSE directory…":"FIND YOUR COMPANY"}</div>
-      {items.map((c,i)=><button id={`${id}-${i}`} role="option" aria-selected={active===i} key={c.ticker} className={`nse-result ${active===i?"active":""}`} disabled={selecting} onPointerDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>void choose(c)}>
-        <span className="nse-result-icon">{c.ticker.slice(0,2)}</span><span className="nse-result-copy"><b><Highlight text={c.name} query={query.trim()}/></b><small>{c.sector||"NSE-listed equity"} · {c.verified?<><ShieldCheck size={11}/>Directory confirmed</>:"Saved company"}</small></span><span className="ticker-chip"><Highlight text={c.ticker} query={query.trim()}/></span><ArrowUpRight size={14}/>
-      </button>)}
+      <div className="search-menu-title">{selecting?(addToWatchlist?"Adding to watchlist…":"Opening source library…"):loading?"Searching the NSE directory…":addToWatchlist?"SELECT A COMPANY TO ADD":"FIND YOUR COMPANY"}</div>
+      {items.map((c,i)=>{
+        const watched=addToWatchlist&&companies.some(company=>company.ticker===c.ticker&&company.watched);
+        return <button id={`${id}-${i}`} role="option" aria-selected={active===i} key={c.ticker} className={`nse-result ${active===i?"active":""}`} disabled={selecting} onPointerDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>void choose(c)}>
+          <span className="nse-result-icon">{c.ticker.slice(0,2)}</span><span className="nse-result-copy"><b><Highlight text={c.name} query={query.trim()}/></b><small>{c.sector||"NSE-listed equity"} · {watched?<><Check size={11}/>On watchlist</>:c.verified?<><ShieldCheck size={11}/>Directory confirmed</>:"Saved company"}</small></span><span className="ticker-chip"><Highlight text={c.ticker} query={query.trim()}/></span>{watched?<Check size={14}/>:addToWatchlist?<Plus size={14}/>:<ArrowUpRight size={14}/>}
+        </button>;
+      })}
       {!loading&&!items.length&&<p className="search-empty">{result?.message||"Type at least two characters. Search by company name or NSE ticker; choose a result to continue."}</p>}
       {error&&<p className="search-error" role="status">{error}</p>}
       {result?.warning&&<p className="search-warning">{result.warning}</p>}
-      <div className="search-menu-footer"><span>↑ ↓ choose · Enter open · Esc close</span>{result?.source_date&&<small>Directory checked {new Date(result.source_date).toLocaleDateString("en-IN")}</small>}</div>
+      <div className="search-menu-footer"><span>↑ ↓ choose · Enter {addToWatchlist?"select":"open"} · Esc close</span>{result?.source_date&&<small>Directory checked {new Date(result.source_date).toLocaleDateString("en-IN")}</small>}</div>
     </div>}
+    {!open&&error&&<p className="search-error" role="status">{error}</p>}
   </div>;
 }

@@ -64,6 +64,12 @@ class CompanyDirectory:
         stamp=datetime.fromisoformat(data['retrieved_at'])
         return now-stamp.replace(tzinfo=stamp.tzinfo or timezone.utc)>timedelta(days=7)
 
+    def lookup(self, ticker):
+        data = self.load()
+        if not data:
+            raise SourceError('The NSE company directory is unavailable. Try again later.')
+        return next((entry for entry in data['entries'] if entry['ticker'] == ticker), None)
+
     def refresh(self):
         with self.lock:
             now=datetime.now(timezone.utc)

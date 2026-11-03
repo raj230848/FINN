@@ -12,6 +12,7 @@ from ..models import Chunk, Document, ResearchCache, utcnow
 from ..schemas import AnalysisOut, GroundingReviewOut, SynthesisOut
 
 PROMPT_VERSION = 'gemini-research-v5-fiscal-aliases'
+BUSINESS_OVERVIEW_QUERY = re.compile(r'what (?:does )?[\w .&-]{1,100} do[?!.]?|business (?:snapshot|model)[?!.]?', re.I)
 
 STOP = set('the a an and or to of is are was were in for on at with what how do does did company its it this that from have has us can please'.split())
 SYNONYMS = {'guidance':'outlook expect growth margin', 'cash':'cash flow conversion operations', 'business':'services products segments clients', 'risk':'risk uncertainty adverse litigation', 'debt':'borrowings liabilities leverage', 'profit':'profit income margin operating', 'revenue':'revenue sales growth'}
@@ -48,7 +49,7 @@ def retrieve(db: Session, ticker: str, question: str, limit: int = 6) -> list[di
     if not rows:
         return []
     query = tokens(question)
-    if re.search(r'what.*company.*do|business snapshot|business model',question.lower()):
+    if BUSINESS_OVERVIEW_QUERY.fullmatch(question.strip()) or re.search(r'what.*company.*do|business snapshot|business model',question.lower()):
         query.extend(tokens('business services products segments clients consulting'))
     for word in list(query):
         query.extend(tokens(SYNONYMS.get(word, '')))
@@ -101,14 +102,39 @@ def validate_claims(answer: str, evidence: list[dict]):
             raise ValueError('Unsupported numeric literal in cited passage')
 
 
-def research(db: Session, ticker: str, question: str, use_ai: bool, refresh: bool=False) -> dict:
+def extract_business_overview(question: str, evidence: list[dict]) -> str:
+    if not BUSINESS_OVERVIEW_QUERY.fullmatch(question.strip()):
+        return ''
+    activities = ''
+    segments = ''
+    for passage in evidence:
+        excerpt = passage['excerpt']
+        # BRSR activity tables name the actual products in numbered rows.
+        table = re.search(r'Details of business activities[^\n]*\n(?P<rows>.*?)Products/Services sold by the entity', excerpt, re.I | re.S)
+        if table and not activities:
+            products = re.findall(r'^\s*\d+\.?[ \t]+Manufacturing[ \t]+([A-Za-z][A-Za-z -]{1,44})[ \t]+\d+(?:\.\d+)?%?[ \t]*$', table['rows'], re.I | re.M)
+            if products:
+                products = list(dict.fromkeys(product.lower() for product in products))
+                names = ' and '.join(products) if len(products) < 3 else ', '.join(products[:-1]) + ' and ' + products[-1]
+                activities = f'The company reports manufacturing {names} products [{passage["id"]}].'
+        # Only use explicitly named reportable segments, with their scope intact.
+        segment_list = re.search(r'\bThe Group has classified its operations primarily into \w+ reportable segments viz\.,\s*([A-Za-z][A-Za-z\s,&-]{2,110}?)\s+based on\b', excerpt, re.I)
+        if segment_list and not segments:
+            names = ' '.join(segment_list[1].split())
+            segments = f'The group reports {names} as its operating segments [{passage["id"]}].'
+    return '\n\n'.join(part for part in (activities, segments) if part)
+
+
+def research(db: Session, ticker: str, question: str, use_ai: bool, refresh: bool=False, *, cache_result: bool=True) -> dict:
     evidence = retrieve(db, ticker, question)
     if not evidence:
         return {'ticker':ticker,'question':question,'answer':'The available primary sources do not establish an answer. Import an issuer annual report or earnings-call transcript, then ask again.','evidence':[],'method':'insufficient_evidence','limitations':['No relevant indexed passages. No financial conclusion was generated.'],'cached':False}
     key = hashlib.sha256(json.dumps([PROMPT_VERSION,ticker,question.strip().lower(),[(e['id'],e['excerpt']) for e in evidence],use_ai,settings.gemini_model,bool(settings.gemini_api_key)]).encode()).hexdigest()
     cached = db.get(ResearchCache, key)
     if cached and not refresh:
-        return {**cached.result, 'cached':True}
+        overview = extract_business_overview(question, evidence) if cached.result['method'] == 'extractive' else ''
+        if not overview or cached.result['answer'] == overview:
+            return {**cached.result, 'cached':True}
     result = {'ticker':ticker,'question':question,'evidence':evidence,'cached':False}
     limits = ['Only the indexed historical documents were searched; this is not a statement about current conditions.']
     if use_ai and settings.gemini_api_key:
@@ -133,8 +159,9 @@ def research(db: Session, ticker: str, question: str, use_ai: bool, refresh: boo
     elif use_ai:
         limits.append('No Gemini key configured. Extractive retrieval works without model costs.')
     if 'answer' not in result:
-        result.update(answer='These primary-source passages are the closest matches to your question. They are source extracts, not a generated financial conclusion. Open the evidence to review the full context.',method='extractive',limitations=limits)
-    if result['method']=='grounded_ai' or not use_ai or not settings.gemini_api_key:
+        answer = extract_business_overview(question, evidence)
+        result.update(answer=answer or 'Review the source passages below for the closest matches to your question.',method='extractive',limitations=limits)
+    if cache_result and (result['method']=='grounded_ai' or not use_ai or not settings.gemini_api_key):
         db.merge(ResearchCache(key=key, result=result,created_at=utcnow()))
     db.flush()
     return result

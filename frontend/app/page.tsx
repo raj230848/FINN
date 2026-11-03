@@ -1,6 +1,6 @@
 "use client";
 import {Select} from "@/components/select";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   Activity,
   ArrowRight,
@@ -52,7 +52,8 @@ import {
 } from "@/lib/api";
 import dynamic from "next/dynamic";
 import { Sparkline } from "@/components/sparkline";
-import {CompanyLookup} from "@/components/company-lookup";
+import {CompanyLookup, type CompanyMatch} from "@/components/company-lookup";
+import {AddCompanyDialog} from "@/components/add-company-dialog";
 import {ThemeBubbles} from "@/components/theme-bubbles";
 
 
@@ -73,12 +74,14 @@ const PriceChart=dynamic(()=>import("@/components/charts").then(m=>m.PriceChart)
 const MarketExplorer=dynamic(()=>import("@/components/market-explorer").then(m=>m.MarketExplorer),{ssr:false,loading:()=> <div className="panel chart-loading">Loading market history…</div>});
 const CompanyDrawer=dynamic(()=>import("@/components/market-explorer").then(m=>m.CompanyDrawer),{ssr:false});
 const ResearchWorkspace=dynamic(()=>import("@/components/research").then(m=>m.ResearchWorkspace),{loading:()=> <div className="panel chart-loading">Opening the research desk…</div>});
+const PromiseTracker=dynamic(()=>import("@/components/research").then(m=>m.PromiseTracker),{loading:()=> <div className="panel chart-loading">Opening Promise Tracker…</div>});
 
-type View = "home" | "signals" | "research" | "watchlist";
+type View = "home" | "signals" | "research" | "watchlist" | "promises";
 const navigation = [
   { id: "home" as View, title: "Overview", icon: LayoutDashboard },
   { id: "signals" as View, title: "Signals & alerts", icon: Radar },
   { id: "research" as View, title: "Research desk", icon: BookOpen },
+  { id: "promises" as View, title: "Promise Tracker", icon: Target },
   { id: "watchlist" as View, title: "My watchlist", icon: Activity },
 ];
 const filterCategories = [
@@ -115,6 +118,7 @@ function SignalCard({
   onSave: (filing: Filing) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const insightId = useId();
   const [context,setContext]=useState<{message:string;excerpt?:string;comparison_period?:string}|null>(null);
   useEffect(()=>{
     if(!open || filing.mode!=="sourced" || !["management_change","results"].includes(filing.category))return;
@@ -125,6 +129,11 @@ function SignalCard({
   return (
     <article
       className={`signal-card priority-${filing.priority} ${open ? "is-expanded" : ""}`}
+      onClick={event => {
+        if (event.target instanceof Element && !event.target.closest("button, a")) {
+          setOpen(current => !current);
+        }
+      }}
     >
       <div className="signal-meta">
         <CompanyMark ticker={filing.ticker} />
@@ -159,8 +168,9 @@ function SignalCard({
       <div className="signal-footer">
         <button
           className="text-button subtle"
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpen(current => !current)}
           aria-expanded={open}
+          aria-controls={open ? insightId : undefined}
         >
           <ListFilter size={13} />
           {open ? "Close insight" : "Read insight"}
@@ -187,8 +197,8 @@ function SignalCard({
                 rel="noreferrer"
                 className="filing-link"
               >
-                Original filing
-                <ExternalLink size={12} />
+                <span>Original filing</span>
+                <ExternalLink size={14} aria-hidden="true" />
               </a>
             )
           )}
@@ -202,7 +212,7 @@ function SignalCard({
         </div>
       </div>
       {open && (
-        <div className="signal-reasoning">
+        <div className="signal-reasoning" id={insightId}>
           <b>
             Priority: {filing.score}/100 · {label(filing.priority)}
           </b>
@@ -303,7 +313,6 @@ function Preferences({
       >
         <div className="dialog-heading">
           <div>
-            <div className="eyebrow">MAKE IT YOUR SIGNAL</div>
             <h2 id="settings-title">Monitoring preferences</h2>
           </div>
           <button
@@ -494,6 +503,7 @@ export default function Home() {
   const [mobileNav, setMobileNav] = useState(false);
   const [sourceDetails, setSourceDetails] = useState(false);
   const [watchSearch, setWatchSearch] = useState("");
+  const [addCompanyOpen, setAddCompanyOpen] = useState(false);
   const [watchSector, setWatchSector] = useState("");
   const [watchSort, setWatchSort] = useState("ticker");
   const [savedSignals, setSavedSignals] = useState<Filing[]>([]);
@@ -506,6 +516,26 @@ export default function Home() {
   const autoRequested=useRef(0),displayMode=useRef<Mode>("sourced");
   const [wide,setWide]=useState(false);
   useEffect(()=>{const media=matchMedia("(min-width: 761px)");const changed=()=>setWide(media.matches);changed();media.addEventListener("change",changed);return()=>media.removeEventListener("change",changed);},[]);
+  useEffect(()=>{if(wide)setMobileNav(false);},[wide]);
+  useEffect(()=>{
+    if(!mobileNav||wide)return;
+    const menu=document.getElementById("workspace-navigation");
+    const previous=document.activeElement as HTMLElement|null;
+    const overflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    const controls=()=>Array.from(menu?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href]')||[]).filter(e=>e.getClientRects().length>0&&getComputedStyle(e).visibility!=="hidden");
+    controls()[0]?.focus();
+    const key=(event:KeyboardEvent)=>{
+      if(event.key==="Escape"){event.preventDefault();setMobileNav(false);}
+      if(event.key==="Tab"){
+        const items=controls(),first=items[0],last=items.at(-1);
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+      }
+    };
+    document.addEventListener("keydown",key);
+    return()=>{document.removeEventListener("keydown",key);document.body.style.overflow=overflow;previous?.focus();};
+  },[mobileNav,wide]);
 
   useEffect(() => {
     try {
@@ -592,7 +622,7 @@ export default function Home() {
     if(dashboard.freshness.state==="in_progress"&&dashboard.freshness.run_id){
       setSync({id:dashboard.freshness.run_id,started_at:new Date().toISOString(),completed_at:null,result:{status:"running"}});setRefreshing(true);return;
     }
-    if(dashboard.freshness.should_refresh&&Date.now()-autoRequested.current>60000){autoRequested.current=Date.now();void refresh(undefined,true);}
+    if(!dashboard.guest&&dashboard.freshness.should_refresh&&Date.now()-autoRequested.current>60000){autoRequested.current=Date.now();void refresh(undefined,true);}
   },[dashboard,mode,sessionLocked]);
   useEffect(()=>{
     if(mode!=="sourced"||sessionLocked)return;
@@ -711,6 +741,10 @@ export default function Home() {
   }
   async function refresh(filingDays?: number,automatic=false) {
     if(mode==="demo"&&!automatic){setToast("Replaying the labelled example. No external sources were refreshed.");reload();return;}
+    if (dashboard?.guest) {
+      if (!automatic) setToast("Desk sign-in is required to refresh shared sources.");
+      return;
+    }
     if(refreshing)return;
     setRefreshing(true);
     setError("");
@@ -758,6 +792,18 @@ export default function Home() {
       setError((e as Error).message);
     }
   }
+  async function addCompany(match: CompanyMatch) {
+    const ticker = encodeURIComponent(match.ticker);
+    const company = await api<Company>(`/companies/${ticker}?add_if_listed=true`, {
+      method: "PATCH",
+      body: JSON.stringify({ watched: true }),
+    });
+    setCompanies(current => [company, ...current.filter(c => c.ticker !== company.ticker)]);
+    setWatchSearch("");
+    setWatchSector("");
+    setToast(`${company.ticker} is on your watchlist.`);
+    reload();
+  }
   const chartQuote =
     dashboard?.companies.find((q) => q.ticker === chartTicker) ||
     dashboard?.companies[0];
@@ -780,14 +826,15 @@ export default function Home() {
     : filings;
   const visibleFilings =
     view === "home" && !routine ? feedItems.slice(0, 4) : feedItems;
+  const watchQuery = watchSearch.trim().toLowerCase();
   const watchlist = companies
     .filter(
       (c) =>
         (!watchSector || c.sector === watchSector) &&
-        (!watchSearch ||
+        (!watchQuery ||
           `${c.ticker} ${c.name} ${c.sector}`
             .toLowerCase()
-            .includes(watchSearch.toLowerCase())),
+            .includes(watchQuery)),
     )
     .sort((a, b) => {
       const qa = dashboard?.companies.find((q) => q.ticker === a.ticker),
@@ -802,9 +849,20 @@ export default function Home() {
         );
       return a.ticker.localeCompare(b.ticker);
     });
+  const selectedIssuer = companies.find(company => company.ticker === selectedCompany);
   const selectedQuote = dashboard?.companies.find(
     (q) => q.ticker === selectedCompany,
-  );
+  ) ?? (selectedIssuer && {
+    ...selectedIssuer,
+    close: null,
+    change_pct: null,
+    volume_ratio: null,
+    volume: null,
+    date: null,
+    fetched_at: null,
+    source_url: null,
+    history: [],
+  });
   function focusSignals(kind: "high" | "routine" | "market") {
     navigate("signals");
     setPriority(kind === "high" ? "high" : "");
@@ -826,6 +884,7 @@ export default function Home() {
   if (sessionLocked)
     return (
       <AccessGate
+        onCancel={dashboard?.guest ? () => setSessionLocked(false) : undefined}
         onUnlocked={() => {
           setSessionLocked(false);
           setError("");
@@ -839,7 +898,8 @@ export default function Home() {
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <aside className={`sidebar ${mobileNav ? "mobile-open" : ""}`}>
+      <aside id="workspace-navigation" role={mobileNav&&!wide?"dialog":undefined} aria-modal={mobileNav&&!wide?true:undefined} aria-label={mobileNav&&!wide?"Navigation":undefined} className={`sidebar ${mobileNav ? "mobile-open" : ""}`}>
+        <div className="sidebar-heading">
         <div className="brand" aria-label="FINN">
           <div className="brand-symbol">
             <i />
@@ -850,14 +910,8 @@ export default function Home() {
             finn<span className="brand-dot">.</span>
           </span>
         </div>
-        <div className="workspace-label">
-          <span className="workspace-initial">P</span>
-          <div>
-            Personal workspace<small>INVESTMENT INTELLIGENCE</small>
-          </div>
-          <ChevronDown size={13} />
+        <button className="sidebar-close icon-button" aria-label="Close menu" onClick={()=>setMobileNav(false)}><X size={20}/></button>
         </div>
-        <div className="nav-section-label">YOUR WORKSPACE</div>
         <nav aria-label="Main navigation">
           {navigation.map((item) => (
             <button
@@ -908,30 +962,12 @@ export default function Home() {
           </button>
         </div>
         <div className="sidebar-bottom">
-          <div className="sidebar-promise">
-            <span>
-              <ShieldCheck size={15} /> Clarity over noise.
-            </span>
-            <p>
-              Every insight has a source.
-              <br />
-              Every signal has a reason.
-            </p>
-            <span className="little-line" />
-          </div>
           <button
             className="settings-nav"
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => {setMobileNav(false);setSettingsOpen(true);}}
           >
             <SlidersHorizontal size={16} /> Monitoring preferences
           </button>
-          <div className="profile">
-            <div>ME</div>
-            <span>
-              My investment desk<small>Personal research workspace</small>
-            </span>
-            <ChevronDown size={12} />
-          </div>
         </div>
       </aside>
       {mobileNav && (
@@ -941,12 +977,15 @@ export default function Home() {
           onClick={() => setMobileNav(false)}
         />
       )}
-      <div className="app-main">
+      <div className="app-main" inert={mobileNav&&!wide?true:undefined}>
         <header className="topbar">
           <div className="breadcrumb">
             <button
               className="mobile-menu icon-button"
               aria-label="Toggle navigation"
+              aria-expanded={mobileNav}
+              aria-controls="workspace-navigation"
+              aria-haspopup="dialog"
               onClick={() => setMobileNav(!mobileNav)}
             >
               <Menu size={21} />
@@ -954,16 +993,11 @@ export default function Home() {
             <span className="phone-wordmark">
               finn<span>.</span>
             </span>
-            <span>Workspace</span>
-            <ChevronRight size={12} />
             <b>{navigation.find((n) => n.id === view)?.title}</b>
           </div>
           <CompanyLookup compact companies={companies} onSelect={c=>research(c.ticker,"documents")} />
           <div className="topbar-actions">
             <ThemeToggle />
-            <span className="eod-label">
-              <i /> EOD intelligence
-            </span>
             <button
               className="icon-button notification-button"
               aria-label={`Notifications, ${notificationFeed.unread_count} unread`}
@@ -978,10 +1012,13 @@ export default function Home() {
                 </span>
               )}
             </button>
-            <span className="avatar">ME</span>
           </div>
         </header>
         <main id="main-content">
+          {dashboard?.guest && <div className="notice-banner guest-notice">
+            <span>Public preview. Browse the desk and ask questions about its source documents.</span>
+            <button className="text-button" onClick={() => setSessionLocked(true)}>Desk sign-in</button>
+          </div>}
           <div className="environment-bar">
             <div className="mode-toggle" aria-label="Data mode">
               <button
@@ -1015,7 +1052,7 @@ export default function Home() {
           </div>
           {sourceDetails && (
             <div className="data-notes">
-              <b>Know what you’re looking at.</b>
+              <b>About the data</b>
               <p>
                 Demo replay contains synthetic announcements and prices, with no
                 claim that these events happened. Sourced data is fetched from
@@ -1048,10 +1085,12 @@ export default function Home() {
           {mode==="sourced"&&dashboard&&<div className="source-freshness" aria-label="Source freshness">
             <span className={`freshness-tag ${dashboard.freshness?.state==="due"||dashboard.freshness?.state==="retry_later"?"stale":""}`}>{refreshing?"Updating in background":dashboard.freshness?.state==="retry_later"?(dashboard.companies.some(c=>c.close!==null)?"Last good snapshot · retry scheduled":"Sources unavailable · retry scheduled"):"Sourced EOD"}</span>
             <span>Latest market session <b>{dashboard.companies.map(c=>c.date).filter(Boolean).sort().at(-1)||"not fetched"}</b></span>
-            <span>Last check <b>{dashboard.last_sync?.completed_at?new Date(dashboard.last_sync.completed_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"})+" IST":"not completed"}</b></span>
+            <span>Last complete refresh <b>{dashboard.freshness?.last_successful_at?new Date(dashboard.freshness.last_successful_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"})+" IST":"not yet available"}</b></span>
             <span>{dashboard.scheduler_enabled?`Automatic checks · ${dashboard.freshness?.interval_minutes||60} min`:"Freshness checked when you open the desk"}</span>
           </div>}
-          {view === "research" ? (
+          {view === "promises" ? (
+            <PromiseTracker companies={companies} onOpenResearch={ticker => research(ticker, "documents")} />
+          ) : view === "research" ? (
             <ResearchWorkspace
               initialTicker={researchTicker}
               initialTab={researchTab}
@@ -1086,35 +1125,7 @@ export default function Home() {
               )}
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">
-                    {view === "home"
-                      ? "YOUR DAILY ADVANTAGE"
-                      : view === "signals"
-                        ? "LESS NOISE. MORE CONTEXT."
-                        : "YOUR INVESTMENT UNIVERSE"}
-                  </div>
-                  <h1>
-                    {view === "home" ? (
-                      <>
-                        Your portfolio. In perspective<span>.</span>
-                      </>
-                    ) : view === "signals" ? (
-                      <>
-                        The signals that deserve a closer look<span>.</span>
-                      </>
-                    ) : (
-                      <>
-                        Keep good companies in sight<span>.</span>
-                      </>
-                    )}
-                  </h1>
-                  <p>
-                    {view === "home"
-                      ? "Know what changed. Understand why it matters. Make your next move informed."
-                      : view === "signals"
-                        ? "Material developments first. Every priority explained. The source one tap away."
-                        : "A cross-sector watchlist, with price moves and activity at a glance."}
-                  </p>
+                  <h1>{view === "home" ? "Your portfolio" : view === "signals" ? "Signals & alerts" : "Watchlist"}</h1>
                 </div>
                 <button
                   className="btn primary refresh-button"
@@ -1184,7 +1195,7 @@ export default function Home() {
                             <Activity size={18} />
                           </span>
                           <div>
-                            <span>Companies on your radar</span>
+                            <span>Watched companies</span>
                             <strong>
                               {stats?.companies ?? "—"}
                               <small>
@@ -1213,7 +1224,7 @@ export default function Home() {
                             <Radar size={18} />
                           </span>
                           <div>
-                            <span>Worth your attention</span>
+                            <span>High priority</span>
                             <strong>
                               {stats?.high_priority ?? "—"}
                               <small>high-priority updates</small>
@@ -1256,7 +1267,7 @@ export default function Home() {
                             <ListFilter size={18} />
                           </span>
                           <div>
-                            <span>A little less noise</span>
+                            <span>Routine filings</span>
                             <strong>
                               {stats?.routine ?? "—"}
                               <small>routine filings</small>
@@ -1264,7 +1275,7 @@ export default function Home() {
                           </div>
                           <div className="stat-bottom">
                             <Check size={11} />
-                            Grouped away. Still one tap away.
+                            View routine filings
                           </div>
                         </button>
                       </div>
@@ -1274,12 +1285,8 @@ export default function Home() {
                         </span>
                         <div>
                           <div className="brief-label">
-                            YOUR INTELLIGENCE BRIEF{" "}
-                            <span>
-                              {mode === "demo"
-                                ? "DEMO SCENARIO"
-                                : "RULE-BASED DIGEST"}
-                            </span>
+                            Daily summary{" "}
+                            {mode === "demo" && <span>SIMULATED</span>}
                           </div>
                           <p>{dashboard?.digest}</p>
                         </div>
@@ -1314,7 +1321,7 @@ export default function Home() {
                           <div>
                             <h2>
                               {view === "home"
-                                ? "Your priority inbox"
+                                ? "Latest signals"
                                 : savedOnly
                                   ? "Saved for later"
                                   : "Announcements & alerts"}
@@ -1322,11 +1329,7 @@ export default function Home() {
                                 {feedItems.length}
                               </span>
                             </h2>
-                            <p>
-                              {savedOnly
-                                ? "Your saved signals, across all dates. Stored on this device."
-                                : "The developments worth a closer look."}
-                            </p>
+                            {savedOnly && <p>Saved on this device · all dates</p>}
                           </div>
                           <button
                             className="phone-feed-actions"
@@ -1543,41 +1546,17 @@ export default function Home() {
                             )}
                           </div>
                         )}
-                        {!savedOnly &&
-                          mode === "sourced" &&
-                          feedMeta.coverage && (
-                            <div
-                              className={`coverage-notice ${feedMeta.coverage.partial_coverage ? "partial" : ""}`}
-                              role="status"
-                            >
-                              <ShieldCheck size={16} />
-                              <div>
-                                <b>
-                                  {feedMeta.coverage.partial_coverage
-                                    ? "Partial filing coverage"
-                                    : "Source coverage"}
-                                </b>
-                                <p>{feedMeta.coverage.message}</p>
-                                <small>
-                                  First observed: {feedMeta.coverage.first_observed_at ? new Date(feedMeta.coverage.first_observed_at).toLocaleString("en-IN", {timeZone:"Asia/Kolkata"})+" IST" : "Unknown for legacy filings"}
-                                </small>
-                                {!!feedMeta.coverage.unknown_ingestion_dates&&<small>Observation dates remain unknown for {feedMeta.coverage.unknown_ingestion_dates} legacy filings.</small>}
-                                {feedMeta.coverage.last_successful_fetch_at && (
-                                  <small>
-                                    Last successful exchange fetch:{" "}
-                                    {new Date(
-                                      feedMeta.coverage.last_successful_fetch_at,
-                                    ).toLocaleString("en-IN", {
-                                      timeZone: "Asia/Kolkata",
-                                    })}{" "}
-                                    IST
-                                  </small>
-                                )}
-                                <small>Loaded {filings.length} of {feedMeta.total ?? filings.length} matching filings.</small>
-                                {feedMeta.coverage.partial_coverage&&<button className="text-button" disabled={refreshing} onClick={()=>void refresh(30)}>Fetch 30-day filing history</button>}
-                              </div>
+                        {!savedOnly && mode === "sourced" && feedMeta.coverage?.partial_coverage && (
+                          <div className="coverage-notice partial">
+                            <div className="coverage-summary" role="status">
+                              <ShieldCheck size={16} aria-hidden="true" />
+                              <p>Some filings may be missing for these dates.</p>
                             </div>
-                          )}
+                            <button className="text-button" disabled={refreshing} onClick={() => void refresh(30)}>
+                              {refreshing ? "Refreshing filings…" : "Fetch 30-day filing history"}
+                            </button>
+                          </div>
+                        )}
                         <div className="signal-list">
                           {visibleFilings.map((f) => (
                             <SignalCard
@@ -1596,16 +1575,16 @@ export default function Home() {
                               <Radar size={29} />
                               <h3>
                                 {savedOnly
-                                  ? "Keep a good signal close."
+                                  ? "No saved signals"
                                   : mode === "sourced"
-                                    ? "Your sourced inbox starts here."
-                                    : "A quiet corner of your watchlist."}
+                                    ? "No matching filings"
+                                    : "No matching disclosures"}
                               </h3>
                               <p>
                                 {savedOnly
-                                  ? "Tap the bookmark on any announcement to find it here later. Saved signals are specific to the current data mode."
+                                  ? "Bookmark an announcement to save it in the current data mode."
                                   : mode === "sourced"
-                                    ? "Refresh sources to collect NSE filings. Original timestamps and source links stay with every update."
+                                    ? "Refresh sources or change your filters."
                                     : "No disclosures match these filters. Try a wider window or another category."}
                               </p>
                               {mode === "sourced" && (
@@ -1799,21 +1778,7 @@ export default function Home() {
                           </div>
                         </section>
                         <section className="guidance-teaser">
-                          <div className="teaser-top">
-                            <span>
-                              <Target size={16} /> THE ACCOUNTABILITY LENS
-                            </span>
-                            <ArrowUpRight size={18} />
-                          </div>
-                          <h3>
-                            Promises are easy.
-                            <br />
-                            <em>Delivery is the signal.</em>
-                          </h3>
-                          <p>
-                            Put management’s guidance next to the numbers they
-                            actually reported.
-                          </p>
+                          <h3>Guidance vs. results</h3>
                           <div className="teaser-comparison">
                             <div>
                               <span>ORIGINAL FY25 GUIDANCE</span>
@@ -1832,8 +1797,8 @@ export default function Home() {
                           <p className="teaser-source">
                             Infosys · Historical FY25 primary-source example
                           </p>
-                          <button onClick={() => research("INFY", "guidance")}>
-                            Explore promise vs. reality
+                          <button onClick={() => navigate("promises")}>
+                            Open Promise Tracker
                             <ArrowRight size={14} />
                           </button>
                         </section>
@@ -1850,26 +1815,38 @@ export default function Home() {
                               {companies.filter((c) => c.watched).length}
                             </span>
                           </h2>
-                          <p className="section-description">
-                            Monitor across sectors. Research outside the list.
-                          </p>
                         </div>
                         <button
                           className="btn primary"
-                          onClick={() => research("INFY")}
+                          aria-expanded={addCompanyOpen}
+                          aria-haspopup="dialog"
+                          aria-controls={addCompanyOpen ? "add-company-dialog" : undefined}
+                          onClick={() => setAddCompanyOpen(true)}
                         >
-                          <Plus size={14} /> Find a company
+                          <Plus size={14} /> Add company
                         </button>
                       </div>
-                      <label className="watch-search">
-                        <Search size={15} />
-                        <input
-                          placeholder="Filter by company, ticker, or sector"
-                          value={watchSearch}
-                          onChange={(e) => setWatchSearch(e.target.value)}
-                        />
-                      </label>
+                      <div className="watch-search-group">
+                        <label className="field-label" htmlFor="watchlist-filter">Filter by company, ticker, or sector</label>
+                        <div className="watch-search">
+                          <Search size={15} aria-hidden="true" />
+                          <input
+                            id="watchlist-filter"
+                            type="search"
+                            placeholder="Search watchlist"
+                            value={watchSearch}
+                            onChange={(e) => setWatchSearch(e.target.value)}
+                          />
+                        </div>
+                      </div>
                       <div className="watch-controls">
+                        <label className="phone-sector-filter">
+                          Sector
+                          <Select value={watchSector} onChange={e=>setWatchSector(e.target.value)}>
+                            <option value="">All sectors</option>
+                            {Array.from(new Set(companies.map(c=>c.sector))).map(sector=><option key={sector} value={sector}>{sector}</option>)}
+                          </Select>
+                        </label>
                         <div
                           className="sector-filters"
                           aria-label="Watchlist sector"
@@ -1913,15 +1890,7 @@ export default function Home() {
                       <MobileWatchlist
                         companies={watchlist}
                         quotes={dashboard?.companies || []}
-                        onInspect={(ticker) => {
-                          if (
-                            dashboard?.companies.some(
-                              (q) => q.ticker === ticker,
-                            )
-                          )
-                            setSelectedCompany(ticker);
-                          else research(ticker);
-                        }}
+                        onInspect={setSelectedCompany}
                         onToggle={(company) => void toggleWatch(company)}
                       />
                       <div className="table-scroll watchlist-desktop-table">
@@ -1943,17 +1912,17 @@ export default function Home() {
                                 (q) => q.ticker === c.ticker,
                               );
                               return (
-                                <tr key={c.ticker}>
+                                <tr key={c.ticker} onClick={event => {
+                                  if (event.target instanceof Element && !event.target.closest("button, a")) {
+                                    event.currentTarget.querySelector("button")?.focus({ preventScroll: true });
+                                    setSelectedCompany(c.ticker);
+                                  }
+                                }}>
                                   <td>
                                     <button
                                       className="watch-company"
-                                      onClick={() => {
-                                        const q = dashboard?.companies.find(
-                                          (q) => q.ticker === c.ticker,
-                                        );
-                                        if (q) setSelectedCompany(c.ticker);
-                                        else research(c.ticker);
-                                      }}
+                                      aria-haspopup="dialog"
+                                      onClick={() => setSelectedCompany(c.ticker)}
                                     >
                                       <CompanyMark ticker={c.ticker} />
                                       <span>
@@ -2008,34 +1977,22 @@ export default function Home() {
                           </tbody>
                         </table>
                       </div>
-                      <p className="method-note">
+                      <details className="reading-notes"><summary>Data & calculations</summary><p>
                         {mode === "demo"
                           ? "Synthetic prices for interaction testing. They are not market observations."
                           : "Yahoo Finance historical adjusted closing prices. Each row retains its last completed session date."}{" "}
                         Volume compares the latest session with the preceding{" "}
                         {prefs?.lookback || 20} sessions.
-                      </p>
+                      </p></details>
                     </section>
                   )}
                 </>
               )}
             </>
           )}
-          <footer className="app-footer">
-            <span>
-              <div className="footer-mark" />
-              Built for perspective.
-            </span>
-            <p>Research intelligence · Verify the source before acting.</p>
-            <span>
-              {mode === "demo"
-                ? "DEMONSTRATION WORKSPACE"
-                : "SOURCE-CONNECTED WORKSPACE"}
-            </span>
-          </footer>
         </main>
       </div>
-      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation" inert={mobileNav&&!wide?true:undefined}>
         {navigation.map((n) => (
           <button
             key={n.id}
@@ -2051,13 +2008,15 @@ export default function Home() {
                   ? "Research"
                   : n.id === "watchlist"
                     ? "Watchlist"
-                    : "My brief"}
+                    : n.id === "promises" ? "Promises" : "My brief"}
             </span>
           </button>
         ))}
       </nav>
+      {addCompanyOpen && <AddCompanyDialog companies={companies} onAdd={addCompany} onClose={() => setAddCompanyOpen(false)} />}
       {selectedQuote && (
         <CompanyDrawer
+          key={selectedQuote.ticker}
           quote={selectedQuote}
           mode={mode}
           onClose={closeCompany}

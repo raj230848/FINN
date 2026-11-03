@@ -29,9 +29,15 @@ export function MobileWatchlist({
       {companies.map((c) => {
         const quote = quotes.find((q) => q.ticker === c.ticker);
         return (
-          <article key={c.ticker}>
+          <article key={c.ticker} onClick={event => {
+            if (event.target instanceof Element && !event.target.closest("button, a")) {
+              event.currentTarget.querySelector("button")?.focus({ preventScroll: true });
+              onInspect(c.ticker);
+            }
+          }}>
             <button
               className="phone-watch-company"
+              aria-haspopup="dialog"
               onClick={() => onInspect(c.ticker)}
             >
               <span className="mover-mark">{c.ticker.slice(0, 2)}</span>
@@ -121,10 +127,7 @@ export function MobileBrief({
                 })
               : "TODAY"}
           </span>
-          <h1>
-            A little clarity.
-            <br />A better next move<span>.</span>
-          </h1>
+          <h1>Your portfolio</h1>
         </div>
         <button
           className="phone-refresh"
@@ -155,16 +158,14 @@ export function MobileBrief({
             {stats?.companies ?? "—"}
             <ArrowUpRight size={16} />
           </strong>
-          <span>On your radar</span>
+          <span>Companies</span>
         </button>
       </div>
       <div className={`phone-digest ${expanded ? "expanded" : ""}`}>
         <div className="phone-digest-label">
           <Sparkles size={14} />
-          <span>THE 30-SECOND READ</span>
-          <small>
-            {dashboard?.mode === "demo" ? "SIMULATED" : "SOURCE DIGEST"}
-          </small>
+          <span>Daily summary</span>
+          {dashboard?.mode === "demo" && <small>SIMULATED</small>}
         </div>
         <p>{dashboard?.digest || "Preparing your portfolio brief…"}</p>
         <button onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
@@ -204,7 +205,7 @@ export function MobileMovers({
   return (
     <section className="phone-movers">
       <div>
-        <h2>Moves on your radar</h2>
+        <h2>Daily movers</h2>
         <span>Largest daily moves · EOD</span>
       </div>
       {[...quotes]
@@ -308,7 +309,6 @@ export function FilterSheet({
         <div className="sheet-handle" />
         <header>
           <div>
-            <span>MAKE IT RELEVANT</span>
             <h2 id="filter-title">
               <SlidersHorizontal size={20} />
               Filter your brief

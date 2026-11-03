@@ -2,7 +2,7 @@
 
 Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
-Latest visual update: [Manrope headings and Inter reading text](docs/typography.md), bundled locally with clearer weights, spacing and aligned financial figures. [PDF import reliability](docs/pdf-import-verification.md), [dark/light bubble themes](docs/theme-change.md) and [full NSE name search](docs/ui-ux-upgrade.md) remain available. The static public demo below is a separate version.
+FINN opens in Sourced Data and the light theme. Demo Replay uses labelled synthetic data. Switch themes from the header to save a preference on the device. See the [mobile interface checks](docs/mobile-ui-verification.md) and [PDF import limits](docs/pdf-import-verification.md).
 
 [Open the public interactive demo](https://finn-investment-desk.justfrog26.chatgpt.site). The Sites version uses synthetic market fixtures, historical reviewed financials and compact source extracts; watchlists and preferences are device-local. Live ingestion and document imports use the full Python application.
 
@@ -71,7 +71,7 @@ Run the backend from `backend` with `..\.venv\Scripts\python.exe -m uvicorn app.
 4. **Sourced data:** press Refresh sources to download actual EOD histories and NSE disclosures. Partial failures and original session dates remain visible. Cached source data is never relabelled as a current quote.
 5. **Research desk:** start with INFY, TCS or PERSISTENT. Ask a question; open the returned document/page evidence. The supplied original documents make those demonstrations usable offline.
 6. **Financial snapshot:** INFY and TCS have reviewed three-quarter comparisons. INFY's historical Q4 FY25, Q3 FY25 and Q4 FY24 are compared on the same IFRS consolidated basis. EBITDA remains unavailable. PAT is attributable to owners after minority interests.
-7. **Promise vs. reality:** compare four Infosys FY25 revenue-growth guidance revisions with 4.2% actual constant-currency growth. The final revision was missed by 0.3 percentage points even though the initial range was exceeded. Both sides have primary citations.
+7. **Promise Tracker:** open a comparison card to see separate guidance and results links. Reviewed coverage includes Infosys, Wipro and HCLTech. Select other registered companies to see whether reviewed guidance is available.
 8. **An unfamiliar ticker:** enter an NSE symbol such as POLYCAB, click Find company, then use Source library → Discover. Import a permitted issuer/exchange PDF and ask a question. There is no demo-company restriction in the research code. Availability depends on the actual provider and document size; absence produces an explicit error.
 
 The full five-scenario evaluator walkthrough is in [docs/demo.md](docs/demo.md).
@@ -79,7 +79,7 @@ The full five-scenario evaluator walkthrough is in [docs/demo.md](docs/demo.md).
 ### Interactive workspace
 
 - **Portfolio pulse:** select a company, switch price/volume, choose 1W/1M/3M, and inspect chart tooltips. Watchlist breadth uses actual latest-session movements from the selected data mode.
-- **Company briefs:** open a market-radar or watchlist company for a price chart, trading-volume metrics, source date and a direct research action.
+- **Company briefs:** tap a market-radar or watchlist company for price and volume history, session dates, and a direct research action.
 - **Saved signals:** bookmark an announcement and revisit it under Saved for later. Bookmarks persist on this device and remain separated by demonstration/sourced mode.
 - **Company search:** use Ctrl+K, search by name or ticker, navigate suggestions with arrow keys and open with Enter.
 - **Watchlist exploration:** filter sectors, search company names and sort by gainers, decliners or unusual volume.
@@ -116,13 +116,15 @@ NSE's public announcements endpoint is a best-effort web integration, not a cont
 
 Primary research evidence comes from the issuer's own reports or exchange-hosted issuer documents. Screener is used solely to discover primary URLs. The document index never treats its standardised financial tables or external commentary as primary research. The source catalog includes original URLs, SHA-256 hashes, periods and physical PDF page counts. Original report copyrights remain with their issuers.
 
-No-key mode returns retrieved excerpts and explicitly labels them **extractive research**. To enable AI synthesis, set `GEMINI_API_KEY` and optionally `GEMINI_MODEL` (default `gemini-3.5-flash-lite`) in the project-root `.env`, then restart the backend. The optional provider client sends only relevant public passages and the research question. The result must validate against Pydantic, cite supplied chunk IDs in each substantive segment, and use only numeric literals present in the excerpts. Requests have bounded retries/timeouts; invalid output falls back to excerpts. Failures fall back to evidence with a visible limitation. Two genuine uncached source-grounded Gemini answers have now been verified with a supplied key (see docs/gemini-live-verification.json); valid citations alone cannot guarantee claim entailment.
+Without a model key, FINN returns cited passages or a short answer drawn directly from those passages. To enable synthesis, put a current `GEMINI_API_KEY` in the ignored project-root `.env` or the hosting secret manager and restart the backend. The default model is `gemini-3.5-flash-lite`. Responses must pass schema validation, citation and number checks, and a claim support review. Provider errors fall back to source evidence. [Historical Gemini verification](docs/gemini-live-verification.json) records the results for the credential used in that run.
 
 Financial arithmetic, scoring, thresholds, deduplication and guidance-range assessment run in deterministic Python. Structured financial tables are reviewed for INFY, TCS and WIPRO (11 rows); guidance covers four INFY revisions and four Wipro quarterly targets, including one pending outcome. Arbitrary PDF table extraction is deliberately not portrayed as solved. Research retrieval generalises to any available NSE issuer documents.
 
 ## Verification
 
-The [verification-gap update](docs/verification-gap-resolution.md) adds single-origin full-stack hosting, restart recovery, operational visibility and hosting/push hardening. The current suite passes **248 backend tests** and **11 frontend tests**; actual local process tests verify persistence and two-session proxy outage/recovery. Public hosting, physical-device delivery and credential rotation remain separate acceptance gates. See [the hosted/device runbook](docs/hosted-acceptance.md).
+The backend audit compares the test inventory against FastAPI OpenAPI, and the frontend suite covers the proxy, themes and interaction helpers. The [hosted/device runbook](docs/hosted-acceptance.md) describes the additional checks for a deployed host and physical devices.
+
+The [deployment guide](docs/deployment.md) covers the full-stack container and Render blueprint. On a dedicated evaluator database, enable `FINN_GUEST_MODE=true` to allow browsing and source-based research without a code. Desk sign-in authorizes shared preferences, refreshes, imports, Gemini requests, and push subscriptions. Keep the server API token, session secret and desk code private. Use a fresh database for evaluator access and mount it on persistent storage.
 
 The earlier [full implementation and integration audit](docs/comprehensive-audit.md) records the previous 227-test source revision, all original 24 backend business operations, 18 protected frontend HTTP checks, and four genuine Gemini calls across all three LLM call sites. All 18 watched Yahoo feeds and the NSE adapter worked in that live QA run. These are historical measurements; they are not relabelled as deployed-host results. Raw evidence for both revisions is included in the updated ZIP.
 

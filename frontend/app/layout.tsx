@@ -8,7 +8,11 @@ import "./reliability.css";
 import "./themes.css";
 import "./typography.css";
 import "./filters.css";
-import {THEME_BOOTSTRAP,THEME_CANVAS} from "@/lib/theme";
+import "./responsive.css";
+import "./clarity.css";
+import "./market-art.css";
+import "./select-menu.css";
+import {DEFAULT_THEME,THEME_BOOTSTRAP,THEME_CANVAS} from "@/lib/theme";
 
 const inter=localFont({src:"./fonts/inter-latin-variable.woff2",variable:"--font-inter",weight:"100 900",display:"swap",fallback:["Arial"]});
 const manrope=localFont({src:"./fonts/manrope-latin-variable.woff2",variable:"--font-manrope",weight:"200 800",display:"swap",fallback:["Arial"]});
@@ -30,8 +34,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable}`} data-theme="dark" suppressHydrationWarning>
-      <head><meta name="theme-color" content={THEME_CANVAS.dark}/><script dangerouslySetInnerHTML={{__html:THEME_BOOTSTRAP}}/></head>
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`} data-theme={DEFAULT_THEME} suppressHydrationWarning>
+      <head><meta name="theme-color" content={THEME_CANVAS[DEFAULT_THEME]}/><script dangerouslySetInnerHTML={{__html:THEME_BOOTSTRAP}}/></head>
       <body>{children}</body>
     </html>
   );

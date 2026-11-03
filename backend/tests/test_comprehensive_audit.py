@@ -100,9 +100,13 @@ def endpoint_context(db,monkeypatch):
     return {'device_id':'d'*32,'subscription':{'endpoint':'https://fcm.googleapis.com/fcm/send/audit-only','keys':{'p256dh':encode(b'\x04'+b'x'*64),'auth':encode(b'x'*16)}}}
 
 @pytest.mark.parametrize('method,template,path,expected,body',API_CASES,ids=[m+' '+t for m,t,*_ in API_CASES])
-def test_all_business_endpoints(method,template,path,expected,body,client,endpoint_context):
+def test_all_business_endpoints(method,template,path,expected,body,client,endpoint_context,monkeypatch):
     if body=='subscription':body=endpoint_context
-    response=client.request(method,path,json=body) if body is not None else client.request(method,path)
+    monkeypatch.setattr(settings,'finn_api_token','audit-test-token')
+    if template!='/api/health':
+        assert client.request(method,path).status_code==401
+    headers={'Authorization':'Bearer audit-test-token'}
+    response=client.request(method,path,json=body,headers=headers) if body is not None else client.request(method,path,headers=headers)
     assert response.status_code==expected,response.text
     assert response.headers['content-type'].startswith('application/json')
 
