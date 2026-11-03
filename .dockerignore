@@ -4,6 +4,7 @@ frontend/.next
 frontend/.npm-cache
 .git
 artifacts
+public-site
 .env
 frontend/.env.local
 **/.env*

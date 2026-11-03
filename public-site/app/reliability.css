@@ -1,0 +1,277 @@
+.notification-button {
+  position: relative;
+}
+.unread-badge {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: var(--positive-soft);
+  color: var(--positive);
+  font-size: 9px;
+  font-weight: 750;
+}
+.coverage-notice {
+  display: flex;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--info);
+  padding: 15px;
+  border-radius: 12px;
+  margin: 12px 0 18px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.coverage-notice.partial {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--warning);
+}
+.coverage-notice > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.coverage-notice b {
+  display: block;
+  color: var(--warning);
+  margin-bottom: 3px;
+}
+.coverage-notice small {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.85;
+}
+.load-more-filings {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.load-more-filings .btn {
+  min-height: 44px;
+}
+.notification-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: var(--scrim);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: flex-end;
+}
+.notification-sheet {
+  width: 480px;
+  max-width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 26px;
+  color: var(--primary);
+}
+.notification-sheet header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.notification-sheet header > div > span {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--primary);
+}
+.notification-sheet h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  font-size: 25px;
+  margin-top: 8px;
+}
+.notification-sheet h2 > b {
+  background: var(--primary-soft);
+  padding: 4px 8px;
+  border-radius: 7px;
+  font:
+    600 12px var(--font-ui);
+  color: var(--primary);
+}
+.notification-sheet header > button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  color: var(--primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.notification-sheet > p {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+.notification-sheet .text-button {
+  color: var(--primary);
+  min-height: 44px;
+  font-size: 12px;
+}
+.notification-sheet > article {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-top: 14px;
+  padding: 17px;
+}
+.notification-sheet > article.unread {
+  border-left: 3px solid var(--border);
+}
+.notification-sheet > article.read {
+  opacity: 0.78;
+}
+.notification-sheet article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--primary);
+}
+.notification-sheet h3 {
+  color: var(--primary);
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 12px 0 9px;
+}
+.notification-sheet article > p {
+  font-size: 13px;
+  color: var(--primary);
+  line-height: 1.75;
+}
+.notification-sheet article > small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 10px;
+  margin: 10px 0 4px;
+}
+.notification-sheet article footer {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  margin-top: 11px;
+  padding-top: 3px;
+}
+.notification-sheet article footer a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--info);
+  min-height: 44px;
+  font-size: 11px;
+}
+.access-gate {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at top, var(--primary-soft), var(--surface) 65%);
+  padding: 24px;
+  color: var(--primary);
+}
+.access-gate > section {
+  width: 420px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 30px;
+  border-radius: 22px;
+  box-shadow: 0 15px 80px var(--shadow);
+}
+.access-logo {
+  font-size: 38px;
+  font-weight: 750;
+  letter-spacing: -2px;
+  color: var(--primary);
+  margin-bottom: 30px;
+}
+.access-logo span {
+  color: var(--positive);
+}
+.access-gate section > svg {
+  color: var(--primary);
+}
+.access-gate h1 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 17px 0 12px;
+  color: var(--primary);
+}
+.access-gate p {
+  font-size: 13px;
+  color: var(--primary);
+  line-height: 1.7;
+}
+.access-gate form {
+  display: grid;
+  gap: 12px;
+  margin-top: 25px;
+}
+.access-gate label {
+  font-size: 13px;
+  color: var(--primary);
+}
+.browser-push-settings {padding:16px;border:1px solid var(--border);background:var(--surface);border-radius:15px;margin:14px 0 20px;}
+.browser-push-settings p {font-size:12px;line-height:1.6;color:var(--text-muted);}
+.browser-push-settings button {margin-top:8px;min-height:44px;}
+.quarter-select {display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0;color:var(--primary);}
+.quarter-select select {background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--primary);font:inherit;min-height:44px;}
+.review-flags {border-left:3px solid var(--border);padding:10px 14px;background:var(--surface);color:var(--warning);margin:16px 0;font-size:13px;line-height:1.6;}
+.review-flags p {margin:6px 0;}
+.filing-context {padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);margin-top:12px;font-size:13px;line-height:1.6;}
+.coverage-notice small {display:block;margin-top:6px;}
+.access-gate input {
+  font-size: 16px;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--primary);
+}
+.access-gate .primary {
+  min-height: 48px;
+  justify-content: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  margin-top: 5px;
+}
+@media (max-width: 760px) {
+  .notification-backdrop {
+    align-items: flex-end;
+  }
+  .notification-sheet {
+    height: auto;
+    max-height: 93dvh;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px max(25px, env(safe-area-inset-bottom));
+  }
+  .notification-sheet h2 {
+    font-size: 23px;
+  }
+  .coverage-notice {
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,35 @@
+/* Controls keep their intrinsic label width; narrow rows wrap instead of squeezing. */
+.app-shell .intelligence-grid>* {min-width:0;max-width:100%;}
+.app-shell .right-column {grid-template-columns:minmax(0,1fr);min-width:0;}
+.app-shell .right-column>.panel {min-width:0;max-width:100%;}
+.app-shell .right-column .section-title {flex-wrap:wrap;gap:8px;}
+.app-shell .chart-panel .section-title>label {flex:1 1 140px;min-width:0;max-width:100%;}
+.app-shell .chart-panel .finn-select {width:100%;max-width:100%;}
+.app-shell .radar-row>.company-logo {min-width:27px;flex:0 0 27px;}
+.app-shell .radar-row>div:not(.company-logo) {min-width:0;flex:1 1 auto;}
+.app-shell .radar-row>b {flex-shrink:0;}
+.app-shell .feed-filters {align-items:flex-start;gap:10px;}
+.app-shell .feed-filters .filter-scroll {flex:1 1 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;overflow:visible;}
+.app-shell .feed-filters .signal-view-controls {display:flex;flex:0 1 auto;flex-wrap:wrap;gap:8px;max-width:100%;min-width:0;}
+.app-shell .feed-filters .signal-scope-controls {display:flex;flex:1 1 380px;gap:8px;min-width:0;}
+.app-shell .feed-filters .filter-chip {
+  flex:0 0 auto;width:auto;min-width:max-content;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 12px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface);color:var(--text-secondary);
+  font-family:var(--font-display);font-size:12px;font-weight:650;line-height:1.35;letter-spacing:0;white-space:nowrap;
+}
+.app-shell .feed-filters .filter-chip:hover {border-color:var(--primary);background:var(--surface-raised);}
+.app-shell .feed-filters .filter-chip.active {background:var(--primary-soft);border-color:var(--primary);color:var(--primary);}
+.app-shell .feed-filters .filter-chip>svg {flex:0 0 auto;}
+.app-shell .feed-filters .priority-dot {flex:0 0 6px;width:6px;height:6px;margin:0;}
+.app-shell .feed-filters .filter-chip>span:not(.priority-dot) {
+  display:inline-flex;align-items:center;justify-content:center;min-width:18px;min-height:18px;padding:1px 5px;border-radius:6px;
+  background:var(--surface-raised);font-family:var(--font-ui);font-size:10px;line-height:1.2;font-variant-numeric:tabular-nums;opacity:1;
+}
+.app-shell .feed-filters .filter-select {flex:1 1 0;min-width:0;max-width:none;min-height:44px;padding:0;border:0;border-radius:12px;background:transparent;box-shadow:none;}
+html[data-theme] .app-shell .feed-filters .finn-select {width:100%;max-width:100%;height:44px;min-height:44px;font-size:12px;}
+.app-shell .feed-filters .filter-settings {flex:0 0 44px;width:44px;height:44px;margin-left:0;}
+@media(max-width:760px) {
+  .app-shell .feed-filters .filter-select {display:none;}
+  .app-shell .feed-filters .signal-scope-controls {display:none;}
+  .app-shell .feed-filters .filter-chip {padding-inline:11px;gap:6px;font-size:11px;}
+}

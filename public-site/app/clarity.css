@@ -1,0 +1,23 @@
+/* Quiet backgrounds and readable secondary text, without changing theme identity. */
+html[data-theme="dark"] .theme-bubbles {opacity:.55;}
+html[data-theme="dark"] .app-shell :is(.section-description,.method-note,.source-freshness,.company-strip p,.source-document span,.chart-caption,.explorer-footer,.phone-movers small,.phone-watch-company small) {color:var(--text-secondary);opacity:1;}
+.app-shell .reading-notes {margin-top:16px;font-size:12px;line-height:1.7;color:var(--text-secondary);}
+.app-shell .reading-notes > summary {display:flex;align-items:center;min-height:44px;width:fit-content;padding:6px 0;cursor:pointer;color:var(--primary);font-weight:600;list-style:none;}
+.app-shell .reading-notes > summary::before {content:"+";margin-right:8px;font-size:17px;}
+.app-shell .reading-notes[open] > summary::before {content:"−";}
+.app-shell .reading-notes > p {margin:6px 0 0;}
+.app-shell main {padding-bottom:36px;}
+.app-shell .phone-greeting h1 {text-wrap:balance;}
+@media(max-width:760px) {
+  .app-shell main {padding-bottom:calc(100px + env(safe-area-inset-bottom));}
+  .app-shell .source-freshness {font-size:11px;line-height:1.6;}
+}
+
+.public-demo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.public-demo-label svg { flex-shrink: 0; }

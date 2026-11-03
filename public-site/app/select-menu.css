@@ -1,0 +1,19 @@
+.finn-select-shell {display:inline-flex;position:relative;width:100%;min-width:0;max-width:100%;vertical-align:middle;flex-direction:column;}
+.finn-select-shell > select[hidden] {display:none!important;}
+.app-shell label:has(.finn-select-shell) > .lucide-chevron-down {display:none;}
+.app-shell .window-select:has(.finn-select-shell) {padding:0;border:0;background:transparent;box-shadow:none;gap:0;}
+.app-shell .window-select:has(.finn-select-shell) > svg {display:none;}
+html[data-theme] .app-shell button.finn-select {display:flex;align-items:center;text-align:left;min-width:0;width:100%;line-height:1.45;}
+.finn-select-value {display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.finn-select-shell.is-open .finn-select {border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+.finn-select-popup {position:fixed;z-index:2000;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:6px;border:1px solid var(--border-strong);border-radius:16px;background:var(--surface);color:var(--text);box-shadow:0 20px 60px var(--scrim),0 4px 12px var(--shadow);font-family:var(--font-ui);scrollbar-color:var(--border-strong) var(--surface);scrollbar-width:thin;scroll-padding:6px;}
+.finn-select-option {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:11px 13px;border:1px solid transparent;border-radius:10px;cursor:pointer;font-size:13px;line-height:1.5;overflow-wrap:anywhere;}
+.finn-select-option > span {min-width:0;}
+.finn-select-option small {display:block;color:var(--text-muted);font-size:11px;}
+.finn-select-option > svg {flex:0 0 auto;color:var(--primary);}
+.finn-select-option.is-active {background:var(--surface-raised);border-color:var(--border-strong);}
+.finn-select-option.is-selected {background:var(--primary-soft);color:var(--primary);font-weight:650;}
+.finn-select-option.is-selected.is-active {border-color:var(--primary);}
+.finn-select-option[aria-disabled="true"] {color:var(--text-muted);opacity:.5;cursor:not-allowed;}
+.finn-select-error {color:var(--negative);font-size:12px;margin-top:6px;}
+@media(max-width:760px){.finn-select-option {min-height:48px;font-size:14px;}.finn-select-popup {border-radius:16px;}}

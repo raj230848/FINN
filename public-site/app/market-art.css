@@ -1,0 +1,15 @@
+/* The globe replaces the sphere layer. Separate artwork preserves light contrast. */
+.market-backdrop {--market-globe:url('/images/market/global-markets-v1.webp');--market-stocks:url('/images/market/stock-market-v1.webp');position:fixed;inset:78px 0 0 var(--sidebar);z-index:-2;overflow:hidden;pointer-events:none;user-select:none;}
+.market-art {position:absolute;display:block;background-repeat:no-repeat;background-size:contain;background-position:center;}
+.market-art-globe {top:-95px;right:-90px;width:min(970px,78vw);aspect-ratio:1;background-image:var(--market-globe);opacity:.72;mask-image:radial-gradient(ellipse,#000 38%,transparent 76%);}
+.market-art-stocks {bottom:-110px;left:-40px;width:min(920px,78vw);aspect-ratio:16/9;background-image:var(--market-stocks);opacity:.4;mask-image:radial-gradient(ellipse,#000 30%,transparent 76%);}
+html[data-theme="light"] .market-backdrop {--market-globe:url('/images/market/global-markets-light-v1.webp');--market-stocks:url('/images/market/stock-market-light-v1.webp');}
+html[data-theme="light"] .market-art-globe {opacity:.82;}
+html[data-theme="light"] .market-art-stocks {opacity:.65;}
+@media(max-width:760px) {
+  .market-backdrop {inset:122px 0 0;}
+  .market-art-globe {top:-20px;right:-130px;width:620px;opacity:.58;}
+  .market-art-stocks {bottom:-30px;left:-180px;width:650px;opacity:.28;}
+  html[data-theme="light"] .market-art-globe {opacity:.75;}
+  html[data-theme="light"] .market-art-stocks {opacity:.52;}
+}

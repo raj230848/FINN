@@ -1,6 +1,6 @@
 # Deployment and repository publication
 
-Source is published in the public [raj230848/FINN](https://github.com/raj230848/FINN) repository. The [public ChatGPT Sites demo](https://finn-investment-desk.justfrog26.chatgpt.site) is deployed. It preserves the interactive UI using synthetic market fixtures, reviewed historical financial/guidance facts and bounded primary-source extracts. Preferences and watchlists are device-local. Live Python ingestion and new document imports are not hosted by Sites. Docker is not installed on the build machine; the full-stack root image was instead built and verified in [GitHub Actions](https://github.com/raj230848/FINN/actions/runs/41323904107), including protected frontend checks and persistent-volume restart.
+The [public FINN site](https://finn-investment-desk.bk291269.chatgpt.site/) serves the dated Yahoo Finance and NSE snapshots bundled in [`public-site/`](../public-site/), alongside reviewed financials and cited source excerpts. Preferences and watchlists are stored on the device. The full-stack deployment below runs the Python API for live refresh and document imports.
 
 ## Local production mode
 
@@ -23,7 +23,7 @@ The root `Dockerfile` and `render.yaml` now host the actual Next.js frontend and
 3. Set a newly rotated `GEMINI_API_KEY` in private runtime settings. For optional push, transfer the three VAPID settings directly from the private local `.env` into host secrets. These keys are excluded from the source ZIP.
 4. Render's `RENDER_EXTERNAL_URL` supplies the trusted browser origin. For a custom domain or another host, set `FINN_PUBLIC_ORIGIN=https://your-domain.example` explicitly. It must be an origin without a path/query. Origin validation and Secure cookies use this trusted value rather than an arbitrary forwarded header.
 5. Use public readiness `/api/ready` for the health check. The blueprint also enables `FINN_GUEST_MODE` for evaluator access. Guests can browse the allowlisted public data and query indexed documents using bounded extractive research. A signed desk session is required to change shared settings, refresh, import documents, use Gemini, or subscribe to push. Set `FINN_GUEST_MODE=false` for a private desk.
-6. Run the hosted acceptance and device checklist below on a **separate evaluator/QA instance**, then populate the actual full-stack URL in the covering note. The current Sites URL is still a separate static demo until that deployment succeeds.
+6. Run the hosted acceptance and device checklist below on a **separate evaluator/QA instance**, then populate the verified full-stack URL in the covering note.
 
 Render persistent disks are limited to one service instance and disable zero-downtime deploys; plan a brief interruption during updates. See [Render disk behavior](https://render.com/docs/disks) and the [Blueprint specification](https://render.com/docs/blueprint-spec). This repository configures deployment; it does not create a host account or establish a successful public deployment by itself.
 

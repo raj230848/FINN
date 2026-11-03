@@ -6,7 +6,7 @@ Dear ENAM team,
 Please find my FINN prototype, a mobile-first investment intelligence workspace that connects a prioritised portfolio digest with primary-source company research.
 
 Full-stack prototype: [ADD THE ACTUAL VERIFIED HTTPS FRONTEND URL]
-Public static demonstration: https://finn-investment-desk.justfrog26.chatgpt.site (synthetic market/demo fixtures; not the hosted Python backend)
+Public site: https://finn-investment-desk.bk291269.chatgpt.site/ (dated Yahoo Finance and NSE snapshots)
 Repository: https://github.com/raj230848/FINN (public)
 AI build history: attached AI_BUILD_HISTORY_REDACTED.md (actual saved user/assistant messages; private/internal/tool content excluded)
 
