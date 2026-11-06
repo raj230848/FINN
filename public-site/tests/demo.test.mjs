@@ -128,12 +128,12 @@ test('feed loader deduplicates simultaneous refreshes, recovers offline, and pre
   assert.equal(requests,1);
   assert.equal(loader.status().status,'ready');
   online=false;
-  clock+=61_000;
+  clock+=301_000;
   assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
   assert.equal(loader.status().status,'unavailable');
-  online=true; rollback=true; clock+=61_000;
+  online=true; rollback=true; clock+=301_000;
   assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
-  rollback=false; clock+=61_000;
+  rollback=false; clock+=301_000;
   await loader.load();
   assert.equal(loader.status().status,'ready');
 });
@@ -148,4 +148,18 @@ test('invalid market feed fails closed and first offline load uses bundled recor
   });
   assert.deepEqual((await loader.load()).quotes,snapshot.quotes);
   assert.equal(loader.status().status,'unavailable');
+});
+
+
+test('GitHub API transport recovers when the raw feed is blocked',async()=>{
+  const urls=[];
+  const loader=createFeedLoader(async url=>{
+    urls.push(String(url));
+    if(String(url).includes('raw.githubusercontent.com')) throw new Error('blocked');
+    return new Response(JSON.stringify({encoding:'base64',content:Buffer.from(JSON.stringify(snapshot)).toString('base64')}));
+  });
+  assert.deepEqual((await loader.load()).quotes,snapshot.quotes);
+  assert.equal(urls.length,2);
+  assert.ok(urls[1].startsWith('https://api.github.com/repos/raj230848/FINN/contents/'));
+  assert.notEqual(loader.status().status,'unavailable');
 });

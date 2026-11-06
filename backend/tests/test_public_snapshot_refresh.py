@@ -1,5 +1,4 @@
 import importlib.util
-import json
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -65,3 +64,20 @@ def test_public_refresh_preserves_filing_ids_on_retry():
     twice = module.refresh(once, fail, filings, lambda *_: {}, now)
     assert len(twice["announcements"]) == 1
     assert once["announcements"][0]["id"] == twice["announcements"][0]["id"]
+
+
+def test_recent_success_does_not_hide_failed_ticker_retries():
+    before = fixture()
+    before["refresh_status"] = {
+        "market_last_successful_at": "2026-11-06T06:00:00+00:00",
+        "prices": {"INFY": {"ok": False}},
+    }
+    calls = []
+    def prices(ticker):
+        calls.append(ticker)
+        return [{"date": date(2026, 11, 5), "close": 112, "volume": 42,
+                 "source_url": f"https://finance.yahoo.com/quote/{ticker}.NS/history/"}]
+    updated = module.refresh(before, prices, lambda *_a, **_k: [], lambda *_: {}, datetime(2026, 11, 6, 7, tzinfo=timezone.utc))
+    assert calls == ["INFY"]
+    assert updated["refresh_status"]["prices"]["INFY"]["ok"] is True
+    assert updated["market_as_of"] == "2026-11-05"

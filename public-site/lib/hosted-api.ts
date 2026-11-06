@@ -171,7 +171,8 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
 
 
 export const PUBLIC_FEED_URL = 'https://raw.githubusercontent.com/raj230848/FINN/main/public-site/public/data/snapshot-sourced.json';
-const FEED_POLL_MS = 60_000;
+const PUBLIC_API_FEED_URL = 'https://api.github.com/repos/raj230848/FINN/contents/public-site/public/data/snapshot-sourced.json?ref=main';
+const FEED_POLL_MS = 5 * 60_000;
 type FeedStatus = {
   checked_at: string | null;
   source_checked_at: string | null;
@@ -223,16 +224,27 @@ export function createFeedLoader(
   let checkedAt = 0;
   let pending: Promise<DemoSnapshot> | null = null;
   let error = '';
-  async function read(url: string) {
-    const response = await request(url, {cache: 'no-store', signal: AbortSignal.timeout(15000)});
+  async function read(url: string, timeout = 10000) {
+    const response = await request(url, {cache: 'no-store', signal: AbortSignal.timeout(timeout)});
     if (!response.ok) throw new Error('Update feed HTTP ' + response.status);
     const text = await response.text();
     if (text.length > 3_000_000) throw new Error('The update feed is too large.');
-    return validateSnapshot(JSON.parse(text));
+    let payload = JSON.parse(text);
+    if (url.startsWith(PUBLIC_API_FEED_URL)) {
+      if (payload.encoding !== 'base64' || typeof payload.content !== 'string') throw new Error('Invalid public feed encoding.');
+      const bytes = Uint8Array.from(atob(payload.content.replace(/\s/g, '')), character => character.charCodeAt(0));
+      payload = JSON.parse(new TextDecoder().decode(bytes));
+    }
+    return validateSnapshot(payload);
   }
   async function update() {
     try {
-      const next = await read(PUBLIC_FEED_URL + '?v=' + Math.floor(now() / FEED_POLL_MS));
+      let next: DemoSnapshot;
+      try {
+        next = await read(PUBLIC_FEED_URL + '?v=' + Math.floor(now() / FEED_POLL_MS), 5000);
+      } catch {
+        next = await read(PUBLIC_API_FEED_URL + '&v=' + Math.floor(now() / FEED_POLL_MS));
+      }
       const oldTime = current?.refresh_status?.checked_at || current?.as_of;
       const newTime = next.refresh_status?.checked_at || next.as_of;
       if (oldTime && Date.parse(newTime) < Date.parse(oldTime)) throw new Error('An older feed was returned.');
@@ -305,7 +317,7 @@ export async function hostedApi<T>(path: string, options?: RequestInit): Promise
     passages ||= fetch('/data/research.json').then(r=>{if(!r.ok)throw new Error('Source summaries are unavailable.');return r.json();}).catch(error=>{passages=null;throw error;});
     const evidence = matchResearchPassages(input.ticker, input.question, await passages);
     options?.signal?.throwIfAborted();
-    return {ticker:input.ticker,question:input.question,answer:evidence.length?'These primary-source excerpts may help with your question. They are historical source passages, not a generated financial conclusion. Open the linked original pages for the full context.':'The limited public source extracts do not establish an answer. Open the source library, or use the full GitHub application to index additional documents.',evidence,method:evidence.length?'extractive':'insufficient_evidence',limitations:['Public demo: only a compact selection of historical primary-source extracts is searched.','No AI model or live data feed is connected. Your monitoring preferences are saved only on this device.'],cached:false} as T;
+    return {ticker:input.ticker,question:input.question,answer:evidence.length?'These primary-source excerpts may help with your question. They are historical source passages, not a generated financial conclusion. Open the linked original pages for the full context.':'The limited public source extracts do not establish an answer. Open the source library, or use the full GitHub application to index additional documents.',evidence,method:evidence.length?'extractive':'insufficient_evidence',limitations:['Only a compact selection of historical primary-source extracts is searched.','No AI model is connected. Monitoring preferences are saved only on this device.'],cached:false} as T;
   }
   const result = await store!(path,options);
   if (path.split('?')[0] === '/dashboard') return {...result as object, source_refresh: feed.status()} as T;

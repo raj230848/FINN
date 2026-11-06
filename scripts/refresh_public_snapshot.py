@@ -51,7 +51,9 @@ def refresh(snapshot, fetch_prices, fetch_announcements, classify, now, force_ma
             recent = now - datetime.fromisoformat(last_price_check.replace("Z", "+00:00")) < timedelta(hours=12)
         except (TypeError, ValueError):
             pass
-    needs_market = force_market or not recent or (local.hour, local.minute) >= (18, 30)
+    retry_tickers = {ticker for ticker, source in previous.get("prices", {}).items() if not source.get("ok")}
+    full_market = force_market or not recent or (local.hour, local.minute) >= (18, 30)
+    needs_market = full_market or bool(retry_tickers)
 
     def market(company):
         ticker = company["ticker"]
@@ -69,8 +71,10 @@ def refresh(snapshot, fetch_prices, fetch_announcements, classify, now, force_ma
             return ticker, None, type(error).__name__
 
     if needs_market:
+        selected = result["companies"] if full_market else [company for company in result["companies"] if company["ticker"] in retry_tickers]
+        status["prices"] = {ticker: {"ok": True, "retained_completed_sessions": True} for ticker in quotes}
         with ThreadPoolExecutor(max_workers=3) as pool:
-            for ticker, points, error in pool.map(market, result["companies"]):
+            for ticker, points, error in pool.map(market, selected):
                 status["prices"][ticker] = {"ok": points is not None}
                 if points is None:
                     status["prices"][ticker]["error"] = error
