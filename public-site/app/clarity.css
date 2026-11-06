@@ -21,3 +21,48 @@ html[data-theme="dark"] .app-shell :is(.section-description,.method-note,.source
   color: var(--text-muted);
 }
 .public-demo-label svg { flex-shrink: 0; }
+
+/* Keep the update action visible and separate from the small source metadata. */
+.app-shell .source-freshness {
+  align-items:center;
+  gap:16px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--surface);
+}
+.source-freshness-details {
+  flex:1 1 300px;
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 16px;
+  line-height:1.6;
+}
+.source-freshness-details [role="status"] {flex-basis:100%;}
+.app-shell .source-refresh-button {
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:48px;
+  padding:12px 20px;
+  border:1px solid var(--primary);
+  border-radius:12px;
+  font-size:14px;
+  font-weight:750;
+  line-height:1.4;
+  white-space:normal;
+  box-shadow:0 3px 10px var(--shadow);
+  transition:background .16s ease,box-shadow .16s ease;
+}
+.source-refresh-button svg {flex-shrink:0;}
+.app-shell .source-refresh-button:hover:not(:disabled) {box-shadow:0 5px 16px var(--shadow);}
+.app-shell .source-refresh-button:disabled {opacity:.8;cursor:wait;}
+@media(max-width:760px) {
+  .app-shell .source-freshness {align-items:stretch;gap:14px;padding:14px;}
+  .source-freshness-details {flex-basis:100%;}
+  .app-shell .source-refresh-button {width:100%;min-height:50px;font-size:15px;}
+}

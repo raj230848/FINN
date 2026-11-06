@@ -1050,13 +1050,15 @@ export default function Home() {
             </div>
           )}
           {dashboard && <div className="source-freshness" aria-label="Source freshness">
+            <div className="source-freshness-details">
             <span className={`freshness-tag ${dashboard.source_refresh?.status !== "ready" ? "stale" : ""}`}>
               {refreshing ? "Checking for updates…" : dashboard.source_refresh?.status === "ready" ? "Sourced EOD" : "Update delayed"}
             </span>
             <span>Latest completed session <b>{dashboard.companies.map(company => company.date).filter(Boolean).sort().at(-1) || "unavailable"}</b></span>
             <span>Sources checked <b>{dashboard.source_refresh?.source_checked_at ? new Date(dashboard.source_refresh.source_checked_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}) + " IST" : "awaiting first refresh"}</b></span>
             {dashboard.source_refresh?.status !== "ready" && <span role="status">{dashboard.source_refresh?.message}</span>}
-            <button className="text-button" disabled={refreshing} onClick={() => void refresh()}><RefreshCw size={14} className={refreshing ? "spin" : ""}/>{refreshing ? "Checking…" : "Check for updates"}</button>
+            </div>
+            <button className="btn primary source-refresh-button" disabled={refreshing} aria-busy={refreshing} onClick={() => void refresh()}><RefreshCw size={18} aria-hidden="true" className={refreshing ? "spin" : ""}/><span>{refreshing ? "Checking for updates…" : "Check for updates"}</span></button>
           </div>}
           {view === "promises" ? (
             <PromiseTracker companies={companies} onOpenResearch={ticker => research(ticker, "documents")} />
