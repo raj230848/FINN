@@ -8,12 +8,15 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import json
 import math
+import re
 from pathlib import Path
 import sys
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
+ISSUER_HOSTS = {"INFY": {"www.infosys.com"}, "WIPRO": {"www.wipro.com"},
+                "TCS": {"www.tcs.com"}, "HCLTECH": {"www.hcltech.com"}}
 
 
 def valid_history(rows, today):
@@ -38,8 +41,7 @@ def sync_reviewed_guidance(snapshot, manifest, now):
     from app.services.calculations import guidance_comparison
     result = json.loads(json.dumps(snapshot))
     tickers = {company["ticker"] for company in result["companies"]}
-    allowed = {"INFY": {"www.infosys.com"}, "WIPRO": {"www.wipro.com"},
-               "HCLTECH": {"www.hcltech.com"}}
+    allowed = ISSUER_HOSTS
     grouped = {}
     for row in manifest["guidance"]:
         if row.get("ticker") in tickers:
@@ -87,6 +89,64 @@ def sync_reviewed_guidance(snapshot, manifest, now):
         "automatic_discovery": False, "failed_companies": sorted(errors),
         "reviewed_companies": sum(bool(group["items"]) for group in result.get("guidance", {}).values()),
         "comparisons": len(all_items), "latest_statement_date": max((row["statement_date"] for row in all_items), default=None)}
+    return result
+
+
+def sync_reviewed_financials(snapshot, manifest, now):
+    """Publish reviewed financial tables with matching fiscal-quarter comparisons."""
+    from app.services.calculations import percent_change
+    result = json.loads(json.dumps(snapshot))
+    covered = {company["ticker"] for company in result["companies"]}
+    grouped, errors = {}, []
+    for row in manifest["financials"]:
+        if row.get("ticker") in covered:
+            grouped.setdefault(row["ticker"], []).append(row)
+    for ticker, rows in grouped.items():
+        try:
+            history, seen = [], set()
+            for row in rows:
+                url = urlsplit(row["source_url"])
+                if (url.scheme != "https" or url.hostname not in ISSUER_HOSTS.get(ticker, set()) or url.username
+                        or type(row["page"]) is not int or row["page"] < 1
+                        or not re.fullmatch(r"20\d{2}-Q[1-4]", row["period"])
+                        or not row["basis"] or not row["currency"]):
+                    raise ValueError("Invalid reviewed financial source")
+                key = (row["period"], row["basis"], row["currency"])
+                if key in seen:
+                    raise ValueError("Duplicate financial quarter")
+                seen.add(key)
+                metrics = {name: row["metrics"].get(name) for name in ("revenue", "ebitda", "pbt", "pat")}
+                if any(value is not None and (isinstance(value, bool) or not math.isfinite(value)) for value in metrics.values()):
+                    raise ValueError("Invalid financial metric")
+                if "_review_flags" in row["metrics"]:
+                    flags = row["metrics"]["_review_flags"]
+                    if not isinstance(flags, list) or any(not isinstance(flag, str) for flag in flags):
+                        raise ValueError("Invalid accounting review notes")
+                    metrics["_review_flags"] = flags
+                history.append({**{key: row[key] for key in ("period", "basis", "currency", "source_url", "page")}, "metrics": metrics})
+            history.sort(key=lambda row: row["period"], reverse=True)
+            current = history[0]
+            by_period = {row["period"]: row for row in history if row["basis"] == current["basis"] and row["currency"] == current["currency"]}
+            year, quarter = int(current["period"][:4]), int(current["period"][-1])
+            previous_period = f"{year}-Q{quarter-1}" if quarter > 1 else f"{year-1}-Q4"
+            prior_year = f"{year-1}-Q{quarter}"
+            output = []
+            for metric in ("revenue", "ebitda", "pbt", "pat"):
+                current_value = current["metrics"].get(metric)
+                previous = by_period.get(previous_period, {}).get("metrics", {}).get(metric)
+                last_year = by_period.get(prior_year, {}).get("metrics", {}).get(metric)
+                output.append({"metric": metric, "current": current_value, "previous": previous, "last_year": last_year,
+                    "qoq": percent_change(current_value, previous), "yoy": percent_change(current_value, last_year)})
+            result.setdefault("financials", {})[ticker] = {"rows": output, "current_period": current["period"],
+                "previous_period": previous_period, "last_year_period": prior_year, "basis": current["basis"], "currency": current["currency"],
+                "periods": list(by_period), "history": history, "sources": history,
+                "review_flags": current["metrics"].get("_review_flags", []),
+                "note": "Historical reviewed figures; source review may lag new filings. EBITDA is unavailable without reviewed evidence. Comparisons require matching periods, units and accounting bases; missing quarters stay unavailable."}
+        except (KeyError, TypeError, ValueError, OverflowError):
+            errors.append(ticker)
+    result["financials_refresh"] = {"checked_at": now.isoformat(), "automatic_discovery": False,
+        "failed_companies": sorted(errors), "reviewed_companies": sum(bool(data.get("rows")) for data in result.get("financials", {}).values()),
+        "reviewed_periods": {ticker: data.get("current_period") for ticker, data in result.get("financials", {}).items() if data.get("rows")}}
     return result
 
 
@@ -149,9 +209,9 @@ def refresh(snapshot, fetch_prices, fetch_announcements, classify, now, force_ma
 
     try:
         tickers = {company["ticker"] for company in result["companies"]}
-        rows = fetch_announcements(tickers, days=7)
+        rows = fetch_announcements(tickers, days=31)
         existing = {(f["ticker"], f["source_url"], f["published_at"]): f for f in result["announcements"]}
-        next_id = max((f["id"] for f in existing.values()), default=0) + 1
+        next_id = max(result.get("next_filing_id", 1), max((f["id"] for f in existing.values()), default=0) + 1)
         for row in rows:
             url = row["source_url"]
             parsed = urlsplit(url)
@@ -170,6 +230,7 @@ def refresh(snapshot, fetch_prices, fetch_announcements, classify, now, force_ma
                 "published_at": date, "source_url": url, "mode": "sourced",
                 "analysis_method": "FINN filing classification", **detail}
             next_id += 1
+        result["next_filing_id"] = next_id
         cutoff = now - timedelta(days=31)
         result["announcements"] = sorted((f for f in existing.values()
             if datetime.fromisoformat(f["published_at"].replace("Z", "+00:00")) >= cutoff),
@@ -201,6 +262,7 @@ def main():
     result = snapshot if args.guidance_only else refresh(snapshot, fetch_prices, fetch_announcements, classify, now, args.force_market)
     manifest = json.loads((ROOT / "backend/data/primary/verified.json").read_text(encoding="utf-8"))
     result = sync_reviewed_guidance(result, manifest, now)
+    result = sync_reviewed_financials(result, manifest, now)
     temporary = args.file.with_suffix(".tmp")
     temporary.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     temporary.replace(args.file)

@@ -92,3 +92,10 @@ def test_unverified_company_is_rejected(monkeypatch, info):
 def test_verified_nse_company_metadata(monkeypatch):
     monkeypatch.setattr(market.yf, 'Ticker', lambda _: SimpleNamespace(get_info=lambda: {'quoteType': 'EQUITY', 'currency': 'INR', 'longName': 'Infosys Limited', 'exchange': 'NSI'}))
     assert market.resolve_company('infy') == {'ticker': 'INFY', 'name': 'Infosys Limited', 'sector': 'Unclassified', 'website': '', 'verified': True}
+
+
+@pytest.mark.parametrize('attachment',['-','',None,'N/A'])
+def test_exchange_missing_attachment_links_to_real_exchange_page(monkeypatch,attachment):
+    nse_response(monkeypatch,[{'symbol':'INFY','an_dt':'30-Oct-2026 12:30','desc':'Exchange update','attchmntFile':attachment}])
+    row=exchange.fetch_announcements({'INFY'})[0]
+    assert row['source_url']==exchange.ANNOUNCEMENTS_PAGE

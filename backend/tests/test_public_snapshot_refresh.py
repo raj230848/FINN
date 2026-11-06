@@ -123,3 +123,43 @@ def test_recent_success_does_not_hide_failed_ticker_retries():
     assert calls == ["INFY"]
     assert updated["refresh_status"]["prices"]["INFY"]["ok"] is True
     assert updated["market_as_of"] == "2026-11-05"
+
+
+def test_reviewed_financials_publish_wipro_and_match_adjacent_quarters():
+    before = fixture()
+    before['companies'].extend([{'ticker':'WIPRO'},{'ticker':'TCS'}])
+    now = datetime(2026,11,6,7,tzinfo=timezone.utc)
+    result = module.sync_reviewed_financials(before,guidance_manifest(),now)
+    wipro = result['financials']['WIPRO']
+    assert wipro['current_period'] == '2027-Q2'
+    assert len(wipro['history']) == 5
+    revenue = next(row for row in wipro['rows'] if row['metric']=='revenue')
+    assert revenue == {'metric':'revenue','current':247527,'previous':244786,'last_year':226973,'qoq':1.12,'yoy':9.06}
+    assert next(row for row in wipro['rows'] if row['metric']=='ebitda')['current'] is None
+    assert result['financials_refresh']['failed_companies'] == []
+    assert result['financials']['TCS']['currency'] == 'USD million'
+    assert 'financials' not in before
+
+
+def test_financials_invalid_tables_preserve_previous_verified_values():
+    now = datetime(2026,11,6,7,tzinfo=timezone.utc)
+    before = module.sync_reviewed_financials(fixture(),guidance_manifest(),now)
+    for invalid in [{'source_url':'https://example.com/false.pdf'},{'page':False},{'period':'2025-Q9'},
+                    {'metrics':{'revenue':float('nan')}}]:
+        manifest = copy.deepcopy(guidance_manifest())
+        next(row for row in manifest['financials'] if row['ticker']=='INFY').update(invalid)
+        result = module.sync_reviewed_financials(before,manifest,now)
+        assert result['financials']['INFY'] == before['financials']['INFY']
+        assert result['financials_refresh']['failed_companies'] == ['INFY']
+
+
+def test_archived_filing_ids_are_never_reused():
+    before = fixture()
+    before['next_filing_id'] = 900
+    def rows(*args,**kwargs):
+        return [{'ticker':'INFY','title':'New filing','source_url':'https://nsearchives.nseindia.com/corporate/new.pdf',
+                 'published_at':datetime(2026,11,6,6),'text':''}]
+    def fail(*args,**kwargs): raise RuntimeError('offline')
+    result = module.refresh(before,fail,rows,lambda *_:{},datetime(2026,11,6,7,tzinfo=timezone.utc))
+    assert result['announcements'][0]['id'] == 900
+    assert result['next_filing_id'] == 901

@@ -197,7 +197,7 @@ function SignalCard({
                 rel="noreferrer"
                 className="filing-link"
               >
-                <span>Original filing · PDF</span>
+                <span>{filing.source_url.includes('/companies-listing/corporate-filings-announcements') ? 'NSE announcement page' : /\.pdf(?:[?#]|$)/i.test(filing.source_url) ? 'Original filing · PDF' : /\.zip(?:[?#]|$)/i.test(filing.source_url) ? 'Original filing · ZIP' : 'Original filing'}</span>
                 <ExternalLink size={14} aria-hidden="true" />
               </a>
             )

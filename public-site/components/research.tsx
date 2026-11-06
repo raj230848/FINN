@@ -268,6 +268,7 @@ export function ResearchWorkspace({
                 <Sparkles size={17} /> Ask a question
               </h2>
             </div>
+            <p className="section-description">Answers use the dated source extracts available below. New filings are not automatically added to these extracts.</p>
             <div className="question-chips">
               {questions.map((q) => (
                 <button key={q} disabled={!!busy || dataLoading} onClick={() => void ask(q)}>
@@ -420,7 +421,7 @@ export function ResearchWorkspace({
             <>
               <p className="section-description">
                 {financials.basis} · Historical, reviewed source figures.
-                Percentages calculated in Python.
+                Reviewed quarter: {financials.current_period}. Newer filings may await review.
               </p>
               {!!financials.periods?.length && <label className="quarter-select">Reviewed quarter
                 <Select aria-label="Reviewed quarter" value={financials.current_period} disabled={busy==="quarter"} onChange={e=>void chooseQuarter(e.target.value)}>

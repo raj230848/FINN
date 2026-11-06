@@ -43,8 +43,11 @@ def fetch_announcements(tickers: set[str], days: int = 7) -> list[dict]:
         if not title:
             continue
         filing_id = row.get('seq_id') or row.get('an_seq') or row.get('broadcast_id') or row.get('id')
+        attachment = row.get('attchmntFile')
+        if not isinstance(attachment, str) or attachment.strip() in ('', '-', 'NA', 'N/A'):
+            attachment = ANNOUNCEMENTS_PAGE
         results.append({'ticker':ticker,'title':title,'published_at':parsed,
                         'source_filing_id':str(filing_id)[:160] if filing_id is not None else None,
-                        'source_url':row.get('attchmntFile') or ANNOUNCEMENTS_PAGE,
+                        'source_url':attachment,
                         'text':str(row.get('attchmntText') or '')})
     return results

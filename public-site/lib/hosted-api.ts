@@ -44,6 +44,34 @@ export function matchResearchPassages(ticker: string, question: string, passages
   }).slice(0, 4);
 }
 
+export function selectFinancialPeriod(financials: Financials, period?: string | null): Financials {
+  if (!period || period === financials.current_period) return structuredClone(financials);
+  if (!/^20\d{2}-Q[1-4]$/.test(period)) throw new Error('Choose a valid reviewed quarter.');
+  const current = financials.history?.find(row=>row.period===period);
+  if (!current) throw new Error('That quarter has not been reviewed for this issuer.');
+  const sameBasis = financials.history!.filter(row=>row.basis===current.basis && row.currency===current.currency);
+  const year = Number(period.slice(0,4)), quarter = Number(period.at(-1));
+  const previousPeriod = quarter > 1 ? `${year}-Q${quarter-1}` : `${year-1}-Q4`;
+  const lastYearPeriod = `${year-1}-Q${quarter}`;
+  const previous = sameBasis.find(row=>row.period===previousPeriod);
+  const lastYear = sameBasis.find(row=>row.period===lastYearPeriod);
+  const numeric = (row: typeof current | undefined, name: string) => {
+    const value = row?.metrics[name];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  };
+  const change = (value: number | null, base: number | null) => {
+    const result = percent(value,base);
+    return result === null ? null : Number(result.toFixed(2));
+  };
+  return {...financials,current_period:period,previous_period:previousPeriod,last_year_period:lastYearPeriod,
+    basis:current.basis,currency:current.currency,periods:sameBasis.map(row=>row.period),
+    review_flags:Array.isArray(current.metrics._review_flags) ? current.metrics._review_flags.filter((flag): flag is string=>typeof flag==='string') : [],
+    rows:['revenue','ebitda','pbt','pat'].map(metric=>{
+      const value=numeric(current,metric),prev=numeric(previous,metric),yearAgo=numeric(lastYear,metric);
+      return {metric,current:value,previous:prev,last_year:yearAgo,qoq:change(value,prev),yoy:change(value,yearAgo)};
+    })};
+}
+
 export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
   let companies = structuredClone(snapshot.companies);
   let preferences = structuredClone(snapshot.preferences);
@@ -77,7 +105,7 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
       return result;
     });
   }
-  function filings(params: URLSearchParams) {
+  function filings(params: URLSearchParams, paginate = true) {
     const mode = params.get('mode') || 'sourced', window = params.get('window') || '24h';
     const archive = mode === 'sourced';
     const asOf = archive ? snapshot.filings_as_of : snapshot.as_of;
@@ -86,14 +114,14 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
     const items = snapshot.announcements.filter(f=>f.mode===mode && companies.some(c=>c.ticker===f.ticker && c.watched) && Date.parse(f.published_at)>=start && Date.parse(f.published_at)<=end && (!params.get('ticker') || f.ticker===params.get('ticker')) && (!params.get('category') || f.category===params.get('category')) && (!params.get('priority') || f.priority===params.get('priority'))).sort((a,b)=>b.score-a.score || Date.parse(b.published_at)-Date.parse(a.published_at));
     const filtered=params.get('include_routine')==='true' ? items : items.filter(f=>f.priority!=='low');
     const offset=Math.max(0,Number(params.get('offset'))||0), limit=Math.min(300,Math.max(1,Number(params.get('limit'))||100));
-    return {items:filtered.slice(offset,offset+limit),routine_count:items.filter(f=>f.priority==='low').length,total:filtered.length,has_more:offset+limit<filtered.length,next_offset:offset+limit<filtered.length?offset+limit:null,coverage:{kind:archive?'filing_snapshot':'demo_fixture',partial_coverage:archive,message:archive?'Dated NSE filing snapshot. Some filings may be missing.':'No sourced filings for this mode.'},as_of:asOf};
+    return {items:paginate?filtered.slice(offset,offset+limit):filtered,routine_count:items.filter(f=>f.priority==='low').length,total:filtered.length,has_more:paginate&&offset+limit<filtered.length,next_offset:paginate&&offset+limit<filtered.length?offset+limit:null,coverage:{kind:archive?'filing_snapshot':'demo_fixture',partial_coverage:archive,message:archive?'Dated NSE filing snapshot. Some filings may be missing.':'No sourced filings for this mode.'},as_of:asOf};
   }
   function recordEvents() {
     const add=(key:string, event: Omit<NotificationEvent,'id'|'read_at'|'created_at'>)=>{
       if (!events.some(e=>e.key===key)) events.push({...event,key,id:Math.max(0,...events.map(e=>e.id))+1,read_at:null,created_at:snapshot.as_of});
     };
     for(const alert of alerts('sourced')) add(`market:${alert.ticker}:${alert.kind}:${alert.date}`,{ticker:alert.ticker,mode:'sourced',kind:alert.kind,severity:'medium',title:alert.title,explanation:alert.explanation,source_url:alert.source_url,occurred_at:`${alert.date}T13:00:00Z`});
-    for(const filing of filings(new URLSearchParams({mode:'sourced',window:'24h'})).items.filter(f=>(f.priority==='high'||f.needs_review) && (!preferences.companies.length||preferences.companies.includes(f.ticker)))) add(`filing:${filing.id}`,{ticker:filing.ticker,mode:'sourced',kind:'filing',severity:filing.priority,title:filing.title,explanation:filing.why_matters,source_url:filing.source_url,occurred_at:filing.published_at});
+    for(const filing of filings(new URLSearchParams({mode:'sourced',window:'24h'}),false).items.filter(f=>(f.priority==='high'||f.needs_review) && (!preferences.companies.length||preferences.companies.includes(f.ticker)) && (!preferences.categories.length||preferences.categories.includes(f.category)))) add(`filing:${filing.id}`,{ticker:filing.ticker,mode:'sourced',kind:'filing',severity:filing.priority,title:filing.title,explanation:filing.why_matters,source_url:filing.source_url,occurred_at:filing.published_at});
     persist();
   }
   const request = async function request(path: string, options?: RequestInit): Promise<unknown> {
@@ -146,7 +174,7 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
     }
     if (url.pathname==='/alerts') return alerts(mode);
     if (url.pathname==='/dashboard') {
-      const qs=quotes(mode), fs=filings(new URLSearchParams({mode:'sourced',window:'24h',include_routine:'true'})), as=alerts(mode);
+      const qs=quotes(mode), fs=filings(new URLSearchParams({mode:'sourced',window:'24h',include_routine:'true'}),false), as=alerts(mode);
       const high=fs.items.filter(f=>f.priority==='high').length, volumes=as.filter(a=>a.kind==='volume').length;
       return {mode,as_of:snapshot.filings_as_of || snapshot.as_of,companies:qs,stats:{companies:qs.length,high_priority:high,volume_alerts:volumes,price_alerts:as.filter(a=>a.kind==='price').length,routine:fs.routine_count,total_filings:fs.items.length,coverage:qs.filter(q=>q.close!==null && q.date===snapshot.market_as_of).length},digest:`${high} high-priority disclosures in the NSE snapshot. ${snapshot.market_as_of ? `${volumes} unusual-volume alerts for the market snapshot dated ${snapshot.market_as_of}.` : 'Market data is unavailable.'}`,last_sync:null,ai_configured:false,scheduler_enabled:false};
     }
@@ -155,7 +183,7 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
       if (!company) throw new Error('This public demo covers the prepared portfolio. Use the full GitHub application to discover another NSE ticker.');
       if (options?.method==='PATCH') { if (typeof body?.watched !== 'boolean') throw new Error('Choose whether to watch this company.'); companies=companies.map(c=>c.ticker===ticker?{...c,watched:Boolean(body.watched)}:c);persist();return companies.find(c=>c.ticker===ticker); }
       if (action==='documents') return snapshot.documents[ticker] || [];
-      if (action==='financials') return snapshot.financials[ticker] || {rows:[]};
+      if (action==='financials') return selectFinancialPeriod(snapshot.financials[ticker] || {rows:[]}, url.searchParams.get('period'));
       if (action==='guidance') return snapshot.guidance[ticker] || {items:[],note:'No reviewed comparisons available.'};
       if (action==='discover') return {company,documents:[],message:'Prepared source library loaded. New document discovery and imports are available in the full application on GitHub.'};
     }
@@ -234,6 +262,25 @@ export function validateSnapshot(input: unknown): DemoSnapshot {
           ? item.actual_url !== null || item.actual_page !== null || item.deviation_pp !== null
           : !Number.isFinite(item.actual) || !source(item.actual_url,item.actual_page))) {
         throw new Error('The update contains an unsupported guidance outcome.');
+      }
+    }
+  }
+  const financialHosts = {...issuerHosts,TCS:'www.tcs.com'};
+  for (const [ticker, financials] of Object.entries(data.financials)) {
+    if (!tickers.has(ticker) || !Array.isArray(financials.rows)) throw new Error('Invalid financial coverage.');
+    for (const row of financials.rows) {
+      if (!['revenue','ebitda','pbt','pat'].includes(row.metric)
+          || [row.current,row.previous,row.last_year,row.qoq,row.yoy].some(value=>value!==null && !Number.isFinite(value))) {
+        throw new Error('The update contains invalid financial metrics.');
+      }
+    }
+    for (const row of financials.history || []) {
+      const url = new URL(row.source_url);
+      if (!/^20\d{2}-Q[1-4]$/.test(row.period) || !row.basis || !row.currency
+          || !Number.isInteger(row.page) || row.page < 1 || url.protocol!=='https:' || url.username
+          || url.hostname!==financialHosts[ticker]
+          || ['revenue','ebitda','pbt','pat'].some(metric=>row.metrics[metric]!==null && !Number.isFinite(row.metrics[metric]))) {
+        throw new Error('The update contains an unverified financial table.');
       }
     }
   }

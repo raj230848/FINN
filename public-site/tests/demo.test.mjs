@@ -185,3 +185,43 @@ test('reviewed guidance refresh retains pending outcomes and rejects fabricated 
     assert.throws(()=>validateSnapshot(invalid),/guidance/);
   }
 });
+
+
+test('financial quarter selection uses adjacent reviewed periods and correct units',async()=>{
+  const store=createDemoStore(snapshot);
+  const newest=await store('/companies/WIPRO/financials');
+  assert.equal(newest.current_period,'2027-Q2');
+  assert.equal(newest.periods.length,5);
+  assert.equal(newest.currency,'INR million');
+  const prior=await store('/companies/WIPRO/financials?period=2027-Q1');
+  assert.equal(prior.current_period,'2027-Q1');
+  assert.equal(prior.previous_period,'2026-Q4');
+  assert.equal(prior.rows.find(row=>row.metric==='revenue').current,244786);
+  assert.equal(prior.rows.find(row=>row.metric==='revenue').previous,242363);
+  assert.equal(prior.rows.find(row=>row.metric==='revenue').last_year,null);
+  const missing=await store('/companies/INFY/financials?period=2025-Q3');
+  assert.equal(missing.rows.find(row=>row.metric==='revenue').previous,null);
+  assert.equal(missing.rows.find(row=>row.metric==='revenue').qoq,null);
+  await assert.rejects(store('/companies/WIPRO/financials?period=2026-Q1'),/not been reviewed/);
+  assert.equal((await store('/companies/WIPRO/financials')).current_period,'2027-Q2');
+  const invalid=structuredClone(snapshot);invalid.financials.WIPRO.history[0].metrics.revenue=Infinity;
+  assert.throws(()=>validateSnapshot(invalid),/financial/);
+});
+
+test('category monitoring prevents new unrelated filing notifications',async()=>{
+  const store=createDemoStore(snapshot);
+  await store('/preferences',{method:'PUT',body:JSON.stringify({...snapshot.preferences,categories:['not-a-matching-category']})});
+  assert.equal((await store('/notifications')).items.filter(item=>item.kind==='filing').length,0);
+});
+
+
+test('busy filing days are fully counted and notifications do not stop at one page',async()=>{
+  const busy=structuredClone(snapshot);
+  const source=busy.announcements.find(row=>row.priority==='high');
+  busy.announcements=Array.from({length:125},(_,i)=>({...source,id:i+1,published_at:busy.filings_as_of}));
+  const store=createDemoStore(busy);
+  assert.equal((await store('/dashboard')).stats.high_priority,125);
+  assert.equal((await store('/dashboard')).stats.total_filings,125);
+  assert.equal((await store('/notifications')).items.filter(row=>row.kind==='filing').length,50);
+  assert.equal((await store('/notifications')).total>=125,true);
+});
