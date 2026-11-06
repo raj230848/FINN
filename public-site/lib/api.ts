@@ -66,6 +66,12 @@ export type SyncRun = {
   };
 };
 export type Dashboard = {
+  source_refresh?: {
+    checked_at: string | null;
+    source_checked_at: string | null;
+    status: 'ready' | 'partial' | 'delayed' | 'unavailable';
+    message: string;
+  };
   guest?: boolean;
   freshness?: Freshness;
   mode: Mode;

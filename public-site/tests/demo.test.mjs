@@ -1,20 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createDemoStore, matchResearchPassages } from '../lib/hosted-api.ts';
+import { createDemoStore, matchResearchPassages, createFeedLoader, validateSnapshot } from '../lib/hosted-api.ts';
 
 const snapshot=JSON.parse(await readFile(new URL('../public/data/snapshot-sourced.json',import.meta.url),'utf8'));
 
 test('public notification read state survives reload and threshold recalculation',async()=>{
   const saved=new Map();
   const storage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)};
-  const store=createDemoStore(snapshot,storage);
+  const sample=structuredClone(snapshot);
+  const guaranteed=sample.quotes[0].history;
+  guaranteed.at(-1).close=guaranteed.at(-2).close*1.6;
+  const store=createDemoStore(sample,storage);
   const initial=await store('/notifications?mode=sourced');
   assert.ok(initial.unread_count>0);
   await store('/notifications/read-all?mode=sourced',{method:'POST'});
   const prefs=await store('/preferences');
   await store('/preferences',{method:'PUT',body:JSON.stringify({...prefs,price_threshold:50,volume_multiplier:20})});
-  const restored=createDemoStore(snapshot,storage);
+  const restored=createDemoStore(sample,storage);
   const final=await restored('/notifications?mode=sourced');
   assert.equal(final.unread_count,0);
   assert.equal(final.total,initial.total);
@@ -93,4 +96,56 @@ test('invalid saved state cannot break alerts or restore simulated events',async
   assert.ok((await store('/notifications')).items.every(e=>e.mode==='sourced' && e.source_url));
   await assert.rejects(store('/companies/INFY',{method:'PATCH',body:'{"watched":"false"}'}),/watch/);
   await assert.rejects(store('/preferences',{method:'PUT',body:JSON.stringify(stored.preferences)}),/thresholds/);
+});
+
+test('new feed replaces market history without changing local watchlist and thresholds', async () => {
+  const store = createDemoStore(snapshot);
+  await store('/companies/INFY', {method:'PATCH',body:JSON.stringify({watched:false})});
+  await store('/preferences', {method:'PUT',body:JSON.stringify({...snapshot.preferences,price_threshold:12})});
+  const next = structuredClone(snapshot);
+  const reliance = next.quotes.find(q=>q.ticker==='RELIANCE');
+  reliance.history.at(-1).close += 7;
+  store.replaceSnapshot(next);
+  const dashboard = await store('/dashboard');
+  assert.equal(dashboard.companies.some(q=>q.ticker==='INFY'),false);
+  assert.equal(dashboard.companies.find(q=>q.ticker==='RELIANCE').close,reliance.history.at(-1).close);
+  assert.equal((await store('/preferences')).price_threshold,12);
+});
+
+test('feed loader deduplicates simultaneous refreshes, recovers offline, and prevents rollback', async () => {
+  let requests = 0, online = true, rollback = false;
+  let clock = Date.parse('2026-11-06T10:00:00Z');
+  const current = structuredClone(snapshot);
+  current.refresh_status = {checked_at:'2026-11-06T10:00:00Z',status:'complete'};
+  const loader = createFeedLoader(async url => {
+    requests++;
+    if (!online && String(url).startsWith('https://')) throw new Error('offline');
+    const result = String(url).startsWith('/') ? snapshot : structuredClone(current);
+    if (rollback) result.refresh_status = {checked_at:'2026-11-01T10:00:00Z',status:'complete'};
+    return new Response(JSON.stringify(result));
+  }, () => clock);
+  await Promise.all([loader.load(),loader.load(),loader.load()]);
+  assert.equal(requests,1);
+  assert.equal(loader.status().status,'ready');
+  online=false;
+  clock+=61_000;
+  assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
+  assert.equal(loader.status().status,'unavailable');
+  online=true; rollback=true; clock+=61_000;
+  assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
+  rollback=false; clock+=61_000;
+  await loader.load();
+  assert.equal(loader.status().status,'ready');
+});
+
+test('invalid market feed fails closed and first offline load uses bundled records honestly',async()=>{
+  const invalid=structuredClone(snapshot);
+  invalid.quotes[0].history[0].close=-1;
+  assert.throws(()=>validateSnapshot(invalid),/invalid market/);
+  const loader=createFeedLoader(async url=>{
+    if(String(url).startsWith('https://')) throw new Error('offline');
+    return new Response(JSON.stringify(snapshot));
+  });
+  assert.deepEqual((await loader.load()).quotes,snapshot.quotes);
+  assert.equal(loader.status().status,'unavailable');
 });

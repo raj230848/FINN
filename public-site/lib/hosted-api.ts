@@ -1,7 +1,11 @@
 import type { Company, Filing, Prefs, Quote, Evidence, Financials, GuidanceItem, SourceDocument, NotificationEvent } from './api';
 
 export type DemoSnapshot = {
-  as_of: string; filings_as_of?: string; market_as_of?: string | null; market_sessions: string[]; companies: Company[]; quotes: Quote[]; announcements: Filing[]; preferences: Prefs;
+  as_of: string; filings_as_of?: string; refresh_status?: {
+    checked_at: string; status: 'complete' | 'partial' | 'failed';
+    market_last_successful_at?: string | null; filings_last_successful_at?: string | null;
+  };
+  market_as_of?: string | null; market_sessions: string[]; companies: Company[]; quotes: Quote[]; announcements: Filing[]; preferences: Prefs;
   documents: Record<string, SourceDocument[]>; financials: Record<string, Financials>;
   guidance: Record<string, {items: GuidanceItem[]; note: string}>;
 };
@@ -92,7 +96,7 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
     for(const filing of filings(new URLSearchParams({mode:'sourced',window:'24h'})).items.filter(f=>(f.priority==='high'||f.needs_review) && (!preferences.companies.length||preferences.companies.includes(f.ticker)))) add(`filing:${filing.id}`,{ticker:filing.ticker,mode:'sourced',kind:'filing',severity:filing.priority,title:filing.title,explanation:filing.why_matters,source_url:filing.source_url,occurred_at:filing.published_at});
     persist();
   }
-  return async function request(path: string, options?: RequestInit): Promise<unknown> {
+  const request = async function request(path: string, options?: RequestInit): Promise<unknown> {
     const url = new URL(path,'https://finn.local');
     const mode = url.searchParams.get('mode') || 'sourced';
     const body = options?.body ? JSON.parse(String(options.body)) : {};
@@ -156,17 +160,142 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
     if (url.pathname==='/sync' || url.pathname==='/documents') throw new Error('Live refresh and document uploads are available in the full application: github.com/raj230848/FINN. This public site uses dated snapshots.');
     throw new Error('This operation is not included in the public demo.');
   };
+  return Object.assign(request, {
+    replaceSnapshot(next: DemoSnapshot) {
+      const watched = new Map(companies.map(company => [company.ticker, company.watched]));
+      companies = next.companies.map(company => ({...company, watched: watched.get(company.ticker) ?? company.watched}));
+      snapshot = next;
+    },
+  });
+}
+
+
+export const PUBLIC_FEED_URL = 'https://raw.githubusercontent.com/raj230848/FINN/main/public-site/public/data/snapshot-sourced.json';
+const FEED_POLL_MS = 60_000;
+type FeedStatus = {
+  checked_at: string | null;
+  source_checked_at: string | null;
+  status: 'ready' | 'partial' | 'delayed' | 'unavailable';
+  message: string;
+};
+
+export function validateSnapshot(input: unknown): DemoSnapshot {
+  if (!input || typeof input !== 'object') throw new Error('The update feed is not a valid snapshot.');
+  const data = input as DemoSnapshot;
+  if (!Array.isArray(data.companies) || !data.companies.length || !Array.isArray(data.quotes)
+      || !Array.isArray(data.announcements) || !Array.isArray(data.market_sessions)
+      || !data.guidance || !data.documents || !data.financials || !validPreferences(data.preferences)) {
+    throw new Error('The update feed has missing data.');
+  }
+  const tickers = new Set(data.companies.map(company => company.ticker));
+  if (tickers.size !== data.companies.length || data.quotes.length !== tickers.size) throw new Error('Duplicate or missing companies in the update.');
+  const quoteTickers = new Set<string>();
+  for (const quote of data.quotes) {
+    if (!tickers.has(quote.ticker) || quoteTickers.has(quote.ticker) || !Array.isArray(quote.history)
+        || (quote.history.length && quote.source_url !== 'https://finance.yahoo.com/quote/' + quote.ticker + '.NS/history/')) {
+      throw new Error('The update contains an unverified market source.');
+    }
+    quoteTickers.add(quote.ticker);
+    for (let i = 0; i < quote.history.length; i++) {
+      const point = quote.history[i];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(point.date) || !Number.isFinite(Date.parse(point.date))
+          || !Number.isFinite(point.close) || point.close <= 0
+          || !Number.isInteger(point.volume) || point.volume < 0
+          || (i > 0 && point.date <= quote.history[i - 1].date)) {
+        throw new Error('The update contains invalid market observations.');
+      }
+    }
+  }
+  for (const filing of data.announcements) {
+    if (filing.mode !== 'sourced' || !tickers.has(filing.ticker) || !Number.isFinite(Date.parse(filing.published_at))
+        || !/^https:\/\/(nsearchives\.nseindia\.com|archives\.nseindia\.com|www\.nseindia\.com)\//.test(filing.source_url || '')) {
+      throw new Error('The update contains an unverified filing.');
+    }
+  }
+  return data;
+}
+
+export function createFeedLoader(
+  request: typeof fetch = fetch,
+  now: () => number = Date.now,
+) {
+  let current: DemoSnapshot | null = null;
+  let checkedAt = 0;
+  let pending: Promise<DemoSnapshot> | null = null;
+  let error = '';
+  async function read(url: string) {
+    const response = await request(url, {cache: 'no-store', signal: AbortSignal.timeout(15000)});
+    if (!response.ok) throw new Error('Update feed HTTP ' + response.status);
+    const text = await response.text();
+    if (text.length > 3_000_000) throw new Error('The update feed is too large.');
+    return validateSnapshot(JSON.parse(text));
+  }
+  async function update() {
+    try {
+      const next = await read(PUBLIC_FEED_URL + '?v=' + Math.floor(now() / FEED_POLL_MS));
+      const oldTime = current?.refresh_status?.checked_at || current?.as_of;
+      const newTime = next.refresh_status?.checked_at || next.as_of;
+      if (oldTime && Date.parse(newTime) < Date.parse(oldTime)) throw new Error('An older feed was returned.');
+      current = next;
+      error = '';
+    } catch {
+      error = 'The latest update could not be checked. Showing the last available source data.';
+      if (!current) current = await read('/data/snapshot-sourced.json');
+    }
+    checkedAt = now();
+    return current!;
+  }
+  return {
+    async load(force = false) {
+      if (pending) return pending;
+      if (!force && current && now() - checkedAt < FEED_POLL_MS) return current;
+      pending = update().finally(() => { pending = null; });
+      return pending;
+    },
+    status(): FeedStatus {
+      const source = current?.refresh_status;
+      const age = source ? now() - Date.parse(source.checked_at) : Infinity;
+      const local = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Kolkata', weekday:'short', hour:'numeric', hourCycle:'h23'}).formatToParts(new Date(now()));
+      const weekend = ['Sat','Sun'].includes(local.find(part => part.type === 'weekday')?.value || '');
+      const hour = Number(local.find(part => part.type === 'hour')?.value);
+      const expected = !weekend && hour >= 10 && hour <= 19;
+      const delayed = age > (expected ? 90 * 60_000 : 4 * 86400_000);
+      return {
+        checked_at: checkedAt ? new Date(checkedAt).toISOString() : null,
+        source_checked_at: source?.checked_at || null,
+        status: error ? 'unavailable' : source?.status === 'failed' ? 'unavailable'
+          : source?.status === 'partial' ? 'partial' : delayed ? 'delayed' : 'ready',
+        message: error || (source?.status === 'failed'
+          ? 'Sources are unavailable. The last verified records are retained.'
+          : source?.status === 'partial' ? 'Some sources could not refresh. Their previous dated records are retained.'
+          : delayed ? 'Source updates are delayed. Dates below show the available records.'
+          : 'Automatic source checks every 30 minutes on weekdays. Prices use completed trading sessions.'),
+      };
+    },
+  };
 }
 
 let store: ReturnType<typeof createDemoStore> | null = null;
-let loading: Promise<void> | null = null;
+let activeSnapshot: DemoSnapshot | null = null;
+const feed = createFeedLoader();
 let passages: Promise<Passage[]> | null = null;
 export async function hostedApi<T>(path: string, options?: RequestInit): Promise<T> {
   options?.signal?.throwIfAborted();
+  const checking = path.split('?')[0] === '/sync';
+  const snapshot = await feed.load(checking);
+  options?.signal?.throwIfAborted();
   if (!store) {
-    loading ||= fetch('/data/snapshot-sourced.json').then(r=>{if(!r.ok)throw new Error('Could not load the sourced snapshot. Please reload.');return r.json();}).then(data=>{let storage: Storage | undefined; try { storage = window.localStorage; } catch { /* Use session state when storage is blocked. */ } store=createDemoStore(data,storage);}).catch(error=>{loading=null;throw error;});
-    await loading;
-    options?.signal?.throwIfAborted();
+    let storage: Storage | undefined;
+    try { storage = window.localStorage; } catch { /* Keep session state when browser storage is blocked. */ }
+    store = createDemoStore(snapshot, storage);
+    activeSnapshot = snapshot;
+  } else if (activeSnapshot !== snapshot) {
+    store.replaceSnapshot(snapshot);
+    activeSnapshot = snapshot;
+  }
+  if (checking) {
+    const status = feed.status();
+    return {id:null, status:status.status, message:status.message} as T;
   }
   if (path==='/research') {
     const input = JSON.parse(String(options?.body || '{}'));
@@ -178,5 +307,7 @@ export async function hostedApi<T>(path: string, options?: RequestInit): Promise
     options?.signal?.throwIfAborted();
     return {ticker:input.ticker,question:input.question,answer:evidence.length?'These primary-source excerpts may help with your question. They are historical source passages, not a generated financial conclusion. Open the linked original pages for the full context.':'The limited public source extracts do not establish an answer. Open the source library, or use the full GitHub application to index additional documents.',evidence,method:evidence.length?'extractive':'insufficient_evidence',limitations:['Public demo: only a compact selection of historical primary-source extracts is searched.','No AI model or live data feed is connected. Your monitoring preferences are saved only on this device.'],cached:false} as T;
   }
-  return await store!(path,options) as T;
+  const result = await store!(path,options);
+  if (path.split('?')[0] === '/dashboard') return {...result as object, source_refresh: feed.status()} as T;
+  return result as T;
 }

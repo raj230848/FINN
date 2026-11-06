@@ -4,7 +4,7 @@ Public repository: [raj230848/FINN](https://github.com/raj230848/FINN).
 
 FINN opens in Sourced Data and the light theme. Demo Replay uses labelled synthetic data. Switch themes from the header to save a preference on the device. See the [mobile interface checks](docs/mobile-ui-verification.md) and [PDF import limits](docs/pdf-import-verification.md).
 
-[Open the public FINN site](https://finn-investment-desk.bk291269.chatgpt.site/). The [public site source](public-site/) uses dated Yahoo Finance prices and NSE filings, reviewed historical financials, and cited source excerpts. Watchlists and preferences are stored on the device. The full Python application handles live refresh and document imports.
+[Open the public FINN site](https://finn-investment-desk.bk291269.chatgpt.site/). The [public site source](public-site/) automatically reads a shared feed of Yahoo Finance completed-session prices and NSE filings. The cloud workflow checks sources every 30 minutes on weekdays. Reviewed historical financials and cited source excerpts retain their original periods. Watchlists and preferences are stored on the device. The full Python application handles live refresh and document imports.
 
 **Your portfolio. In perspective.** A mobile-first investment intelligence prototype for the ENAM Holdings AI Engineer Build Challenge.
 

@@ -634,15 +634,21 @@ export default function Home() {
     if(dashboard.freshness.state==="in_progress"&&dashboard.freshness.run_id){
       setSync({id:dashboard.freshness.run_id,started_at:new Date().toISOString(),completed_at:null,result:{status:"running"}});setRefreshing(true);return;
     }
-    if(!dashboard.guest&&dashboard.freshness.should_refresh&&Date.now()-autoRequested.current>60000){autoRequested.current=Date.now();void refresh(undefined,true);}
+    if(!dashboard.guest&&dashboard.freshness.should_refresh&&Date.now()-autoRequested.current>60000){autoRequested.current=Date.now();void refresh();}
   },[dashboard,mode,sessionLocked]);
-  useEffect(()=>{
-    if(mode!=="sourced"||sessionLocked)return;
-    let cancelled=false;
-    const update=()=>{if(document.visibilityState!=="visible")return;api<Dashboard>("/dashboard?mode=sourced").then(d=>{if(!cancelled){setDashboard(d);setSync(d.last_sync);}}).catch(()=>{});};
-    const timer=setInterval(update,60000);window.addEventListener("online",update);
-    return()=>{cancelled=true;clearInterval(timer);window.removeEventListener("online",update);};
-  },[mode,sessionLocked]);
+  useEffect(() => {
+    const update = () => { if (document.visibilityState === "visible") reload(); };
+    const timer = setInterval(update, 60_000);
+    window.addEventListener("online", update);
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("online", update);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [reload]);
   useEffect(() => {
     let cancelled = false;
     feedVersion.current++;
@@ -752,27 +758,17 @@ export default function Home() {
       if (version === feedVersion.current) setLoadingMore(false);
     }
   }
-  async function refresh(filingDays?: number,automatic=false) {
-    if(mode==="demo"&&!automatic){setToast("Replaying the labelled example. No external sources were refreshed.");reload();return;}
-    if (dashboard?.guest) {
-      if (!automatic) setToast("Desk sign-in is required to refresh shared sources.");
-      return;
-    }
-    if(refreshing)return;
+  async function refresh() {
+    if (refreshing) return;
     setRefreshing(true);
     setError("");
     try {
-      const params=new URLSearchParams();if(filingDays)params.set("filing_days",String(filingDays));if(automatic)params.set("only_if_stale","true");
-      const result = await api<{ id: number|null;status:string }>(`/sync?${params}`, { method: "POST" });
-      if(result.id===null){setRefreshing(false);return;}
-      setSync({
-        id: result.id,
-        started_at: new Date().toISOString(),
-        completed_at: null,
-        result: { status: result.status },
-      });
+      const result = await api<{message:string}>("/sync", {method:"POST"});
+      reload();
+      setToast(result.message);
     } catch (e) {
       setError((e as Error).message);
+    } finally {
       setRefreshing(false);
     }
   }
@@ -1033,14 +1029,14 @@ export default function Home() {
             <button className="text-button" onClick={() => setSessionLocked(true)}>Desk sign-in</button>
           </div>}
           <div className="environment-bar">
-            <strong className="public-demo-label"><FlaskConical size={14} aria-hidden="true" /> Sourced end-of-day snapshots</strong>
+            <strong className="public-demo-label"><ShieldCheck size={14} aria-hidden="true" /> Automatically updated source data</strong>
             <button className="text-button subtle" aria-label="Data notes" aria-expanded={sourceDetails} onClick={() => setSourceDetails(!sourceDetails)}>
               <CircleHelp size={13} /> <span>Data notes</span>
             </button>
           </div>
           {sourceDetails && (
             <div className="data-notes">
-              <p>Market history and alerts use dated Yahoo Finance end-of-day observations. NSE filings have their own snapshot date. This site updates when a new snapshot is published. The research desk uses selected historical company reports and links to their original pages. Your watchlist and preferences are saved on this device.</p>
+              <p>Market history and alerts use Yahoo Finance end-of-day observations. NSE filings have their own source date. Sources are checked automatically on weekdays. This page checks the update feed every minute and when reopened. Prices use completed trading sessions; holidays and provider delays can leave the last session date unchanged. The research desk uses selected historical company reports. Your watchlist and preferences are saved on this device.</p>
               <a href="https://github.com/raj230848/FINN" target="_blank" rel="noreferrer">View the full FINN application on GitHub</a>
             </div>
           )}
@@ -1053,11 +1049,14 @@ export default function Home() {
               </button>
             </div>
           )}
-          {mode==="sourced"&&dashboard&&<div className="source-freshness" aria-label="Source freshness">
-            <span className={`freshness-tag ${dashboard.freshness?.state==="due"||dashboard.freshness?.state==="retry_later"?"stale":""}`}>{refreshing?"Updating in background":dashboard.freshness?.state==="retry_later"?(dashboard.companies.some(c=>c.close!==null)?"Last good snapshot · retry scheduled":"Sources unavailable · retry scheduled"):"Sourced EOD"}</span>
-            <span>Latest market session <b>{dashboard.companies.map(c=>c.date).filter(Boolean).sort().at(-1)||"not fetched"}</b></span>
-            <span>Yahoo Finance · Published snapshot</span>
-            {dashboard.stats.coverage < dashboard.stats.companies && <span>{dashboard.stats.companies - dashboard.stats.coverage} watched companies lack data for this session.</span>}
+          {dashboard && <div className="source-freshness" aria-label="Source freshness">
+            <span className={`freshness-tag ${dashboard.source_refresh?.status !== "ready" ? "stale" : ""}`}>
+              {refreshing ? "Checking for updates…" : dashboard.source_refresh?.status === "ready" ? "Sourced EOD" : "Update delayed"}
+            </span>
+            <span>Latest completed session <b>{dashboard.companies.map(company => company.date).filter(Boolean).sort().at(-1) || "unavailable"}</b></span>
+            <span>Sources checked <b>{dashboard.source_refresh?.source_checked_at ? new Date(dashboard.source_refresh.source_checked_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}) + " IST" : "awaiting first refresh"}</b></span>
+            {dashboard.source_refresh?.status !== "ready" && <span role="status">{dashboard.source_refresh?.message}</span>}
+            <button className="text-button" disabled={refreshing} onClick={() => void refresh()}><RefreshCw size={14} className={refreshing ? "spin" : ""}/>{refreshing ? "Checking…" : "Check for updates"}</button>
           </div>}
           {view === "promises" ? (
             <PromiseTracker companies={companies} onOpenResearch={ticker => research(ticker, "documents")} />
@@ -1097,46 +1096,10 @@ export default function Home() {
                   <h1>{view === "home" ? "Your portfolio" : view === "signals" ? "Signals & alerts" : "Watchlist"}</h1>
                 </div>
               </div>
-              {mode === "sourced" && (refreshing || (sync&&sync.result.status!=="complete")) && (
-                <div className="sync-banner">
-                  <div>
-                    <span
-                      className={`status-dot ${refreshing ? "working" : ""}`}
-                    />
-                    <b>
-                      {refreshing
-                        ? "Fetching market sessions and exchange disclosures"
-                        : `Source refresh ${sync?.result.status || "pending"}`}
-                    </b>
-                    <span>
-                      {sync?.completed_at
-                        ? new Date(sync.completed_at).toLocaleString("en-IN", {
-                            timeZone: "Asia/Kolkata",
-                          })
-                        : "Results save incrementally. You can continue exploring."}
-                    </span>
-                  </div>
-                  <button
-                    className="text-button"
-                    onClick={() => setSourceDetails(true)}
-                  >
-                    Data notes
-                    <ArrowRight size={12} />
-                  </button>
-                  {!refreshing &&
-                    sync?.result.message && <p role="status">{sync.result.message}</p>}
-                  {!refreshing &&
-                    (syncErrors.length > 0 ||
-                      sync?.result.announcements?.ok === false) && (
-                      <p>
-                        {syncErrors.length} company feed(s) unavailable.{" "}
-                        {sync?.result.announcements?.error ||
-                          syncErrors[0]?.error}{" "}
-                        Cached results retain their original dates.
-                      </p>
-                    )}
-                </div>
-              )}
+              {refreshing && <div className="sync-banner" role="status">
+                <Loader2 size={16} className="spin" />
+                Checking the latest published source feed…
+              </div>}
               {loading && !dashboard ? (
                 <div className="loading-state">
                   <Loader2 size={25} className="spin" />
@@ -1509,7 +1472,7 @@ export default function Home() {
                         {!savedOnly && filingMode === "sourced" && (
                           <div className="coverage-summary" role="status">
                             <ShieldCheck size={16} aria-hidden="true" />
-                            <p>NSE filing snapshot{filingsAsOf ? ` through ${shortDate(filingsAsOf)}` : ""}. Date ranges end at the snapshot date.</p>
+                            <p>NSE filing snapshot{filingsAsOf ? ` through ${shortDate(filingsAsOf)}` : ""}. Date ranges end at the latest successful source check.</p>
                           </div>
                         )}
                         <div className="signal-list">
