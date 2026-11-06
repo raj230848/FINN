@@ -265,7 +265,7 @@ export function validateSnapshot(input: unknown): DemoSnapshot {
       }
     }
   }
-  const financialHosts = {...issuerHosts,TCS:'www.tcs.com'};
+  const financialHosts: Record<string,string> = {...issuerHosts,TCS:'www.tcs.com'};
   for (const [ticker, financials] of Object.entries(data.financials)) {
     if (!tickers.has(ticker) || !Array.isArray(financials.rows)) throw new Error('Invalid financial coverage.');
     for (const row of financials.rows) {
