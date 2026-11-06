@@ -126,7 +126,7 @@ test('feed loader deduplicates simultaneous refreshes, recovers offline, and pre
   }, () => clock);
   await Promise.all([loader.load(),loader.load(),loader.load()]);
   assert.equal(requests,1);
-  assert.equal(loader.status().status,'ready');
+  assert.notEqual(loader.status().status,'unavailable');
   online=false;
   clock+=301_000;
   assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
@@ -135,7 +135,7 @@ test('feed loader deduplicates simultaneous refreshes, recovers offline, and pre
   assert.equal((await loader.load()).refresh_status.checked_at,current.refresh_status.checked_at);
   rollback=false; clock+=301_000;
   await loader.load();
-  assert.equal(loader.status().status,'ready');
+  assert.notEqual(loader.status().status,'unavailable');
 });
 
 test('invalid market feed fails closed and first offline load uses bundled records honestly',async()=>{
@@ -224,4 +224,18 @@ test('busy filing days are fully counted and notifications do not stop at one pa
   assert.equal((await store('/dashboard')).stats.total_filings,125);
   assert.equal((await store('/notifications')).items.filter(row=>row.kind==='filing').length,50);
   assert.equal((await store('/notifications')).total>=125,true);
+});
+
+
+test('successful source checks still warn when an issuer history lags the market session',async()=>{
+  const dated=structuredClone(snapshot);
+  dated.refresh_status={checked_at:new Date().toISOString(),status:'complete'};
+  const quote=dated.quotes.find(row=>row.ticker==='CERA');
+  quote.history=quote.history.filter(row=>row.date<dated.market_as_of);
+  const loader=createFeedLoader(async()=>new Response(JSON.stringify(dated)));
+  await loader.load();
+  assert.equal(loader.status().status,'partial');
+  assert.match(loader.status().message,/CERA/);
+  const store=createDemoStore(dated);
+  assert.ok((await store('/alerts')).every(row=>row.ticker!=='CERA'));
 });

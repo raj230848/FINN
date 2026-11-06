@@ -343,16 +343,18 @@ export function createFeedLoader(
       const hour = Number(local.find(part => part.type === 'hour')?.value);
       const expected = !weekend && hour >= 10 && hour <= 19;
       const delayed = age > (expected ? 90 * 60_000 : 4 * 86400_000);
+      const lagging = current?.market_as_of ? current.quotes.filter(quote=>quote.history.at(-1)?.date!==current!.market_as_of) : [];
+      const lagMessage = lagging.length ? 'Older market history: ' + lagging.map(quote=>quote.ticker+' ('+(quote.history.at(-1)?.date||'unavailable')+')').join(', ') + '. Excluded from current-session alerts.' : '';
       return {
         checked_at: checkedAt ? new Date(checkedAt).toISOString() : null,
         source_checked_at: source?.checked_at || null,
         status: error ? 'unavailable' : source?.status === 'failed' ? 'unavailable'
-          : source?.status === 'partial' ? 'partial' : delayed ? 'delayed' : 'ready',
+          : source?.status === 'partial' || lagging.length ? 'partial' : delayed ? 'delayed' : 'ready',
         message: error || (source?.status === 'failed'
           ? 'Sources are unavailable. The last verified records are retained.'
           : source?.status === 'partial' ? 'Some sources could not refresh. Their previous dated records are retained.'
-          : delayed ? 'Source updates are delayed. Dates below show the available records.'
-          : 'Automatic source checks every 30 minutes on weekdays. Prices use completed trading sessions.'),
+          : lagMessage || (delayed ? 'Source updates are delayed. Dates below show the available records.'
+          : 'Automatic source checks every 30 minutes on weekdays. Prices use completed trading sessions.')),
       };
     },
   };

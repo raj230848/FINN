@@ -256,7 +256,7 @@ export function MarketExplorer({
             <ShieldCheck size={12} />
             {mode === "demo"
               ? "Simulated market history"
-              : "Yahoo Finance · Adjusted daily closes"}
+              : metric === "volume" ? "Yahoo Finance · Daily shares traded" : "Yahoo Finance · Adjusted daily closes"}
             {quote?.date && ` · ${quote.date}`}
           </span>
           <button onClick={() => quote && onInspect(quote.ticker)}>
