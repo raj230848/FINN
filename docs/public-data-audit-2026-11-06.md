@@ -31,7 +31,7 @@ The public app contains sourced records, but its sections have different update 
 
 The audit includes real-provider fetches, source-page checks, public adapter checks, frontend tests, backend tests and a production Site build. Local raw evidence is saved under `artifacts/audit-2026-11-06/`, which is ignored by Git. Public-code tests use isolated data and never consume a Gemini key or send notifications.
 
-The complete backend run passed 313 tests before the four new missing-attachment cases were added; the focused ingestion/publisher run then passed 37 tests. The public regression suite passed 14 tests and the frontend suite passed 27 tests. Final GitHub validation runs the complete suites, builds and isolated full-stack container again.
+The complete backend run passed 313 tests before the four new missing-attachment cases were added; the focused ingestion/publisher run then passed 37 tests. The public regression suite passed 14 tests and the frontend suite passed 27 tests. Final GitHub validation runs the complete suites, builds and isolated full-stack container again. The final live audit matched 284/284 retained filings, 1,170/1,170 market observations and 27/27 source extracts. All 359 public adapter cases passed, including every covered company and reviewed financial period.
 
 Initial live source comparison: 18/18 companies, 1,170/1,170 price/volume observations, 280/280 stored filings and 27/27 research extracts. The provider's larger raw filing response also contained records outside the rolling archive, valid ZIP attachments and a missing-attachment placeholder; raw row counts were not treated as proof of newly published filings.
 
