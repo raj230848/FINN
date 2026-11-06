@@ -1,4 +1,6 @@
 import importlib.util
+import copy
+import json
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -41,6 +43,46 @@ def test_public_refresh_updates_prices_and_preserves_failed_filings():
     assert updated["quotes"][0]["history"][0]["close"] == 112
     assert updated["filings_as_of"] == before["filings_as_of"]
     assert updated["refresh_status"]["status"] == "partial"
+
+
+def guidance_manifest():
+    return json.loads((ROOT / "backend/data/primary/verified.json").read_text(encoding="utf-8"))
+
+
+def test_guidance_publishes_covered_reviewed_rows_and_keeps_future_outcomes_pending():
+    before = fixture()
+    before["companies"].append({"ticker": "WIPRO"})
+    now = datetime(2026, 11, 6, 7, tzinfo=timezone.utc)
+    result = module.sync_reviewed_guidance(before, guidance_manifest(), now)
+    assert len(result["guidance"]["INFY"]["items"]) == 4
+    wipro = result["guidance"]["WIPRO"]["items"]
+    assert len(wipro) == 4
+    assert [row["status"] for row in wipro] == ["achieved", "achieved", "achieved", "pending"]
+    assert wipro[-1]["actual"] is None
+    assert wipro[-1]["actual_url"] is None
+    assert wipro[-1]["deviation_pp"] is None
+    assert result["guidance_refresh"]["latest_statement_date"] == "2026-10-15"
+    assert result["guidance_refresh"]["failed_companies"] == []
+    assert "HCLTECH" not in result["guidance"]
+    assert "guidance" not in before
+    again = module.sync_reviewed_guidance(result, guidance_manifest(), now)
+    assert again == result
+
+
+def test_guidance_invalid_sources_periods_and_ranges_retain_previous_issuer_records():
+    now = datetime(2026, 11, 6, 7, tzinfo=timezone.utc)
+    before = module.sync_reviewed_guidance(fixture(), guidance_manifest(), now)
+    for invalid in ({"guidance_url": "https://example.com/report.pdf"},
+                    {"actual_period": "FY99"}, {"actual_metric": "Other metric"},
+                    {"actual_basis": "Different currency"}, {"low": 10, "high": 1},
+                    {"actual": float("nan")}, {"guidance_page": True},
+                    {"statement_date": "2028-01-01"}, {"metric": ""}):
+        manifest = copy.deepcopy(guidance_manifest())
+        row = next(item for item in manifest["guidance"] if item["ticker"] == "INFY")
+        row.update(invalid)
+        result = module.sync_reviewed_guidance(before, manifest, now)
+        assert result["guidance"]["INFY"] == before["guidance"]["INFY"]
+        assert result["guidance_refresh"]["failed_companies"] == ["INFY"]
 
 
 def test_public_refresh_rejects_older_history():

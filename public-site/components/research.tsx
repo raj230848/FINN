@@ -620,7 +620,7 @@ export function PromiseTracker({companies, onOpenResearch}: {companies: Company[
       .then(issuers => { if (!request.signal.aborted) setReviewedIssuers(issuers); })
       .catch(e => { if (!request.signal.aborted) setError(e.message); });
     return () => request.abort();
-  }, []);
+  }, [companies]);
 
   useEffect(() => {
     if (!ticker) return;
@@ -629,7 +629,7 @@ export function PromiseTracker({companies, onOpenResearch}: {companies: Company[
       .then(data => { if (!request.signal.aborted) setComparison(data); })
       .catch(e => { if (!request.signal.aborted) setError(e.message); });
     return () => request.abort();
-  }, [ticker]);
+  }, [ticker, companies]);
 
   return (
     <div className="research-workspace promise-tracker">
@@ -637,6 +637,7 @@ export function PromiseTracker({companies, onOpenResearch}: {companies: Company[
         <div><h1>Promise Tracker</h1></div>
         <span className="source-seal"><ShieldCheck size={15} /> Primary sources only</span>
       </div>
+      <p className="section-description">Reviewed guidance and results. New disclosures appear after source review.</p>
       {reviewedIssuers && !!ticker && <div className="promise-tracker-controls">
         <label className="field-label">
           Company

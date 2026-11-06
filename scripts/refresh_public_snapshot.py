@@ -33,6 +33,63 @@ def valid_history(rows, today):
     return points[-65:]
 
 
+def sync_reviewed_guidance(snapshot, manifest, now):
+    """Publish reviewed issuer facts only; a feed check is not a new source review."""
+    from app.services.calculations import guidance_comparison
+    result = json.loads(json.dumps(snapshot))
+    tickers = {company["ticker"] for company in result["companies"]}
+    allowed = {"INFY": {"www.infosys.com"}, "WIPRO": {"www.wipro.com"},
+               "HCLTECH": {"www.hcltech.com"}}
+    grouped = {}
+    for row in manifest["guidance"]:
+        if row.get("ticker") in tickers:
+            grouped.setdefault(row["ticker"], []).append(row)
+    errors = []
+    for ticker, rows in grouped.items():
+        try:
+            items, seen = [], set()
+            for row in rows:
+                if any(not isinstance(row.get(key), str) or not row[key].strip() for key in
+                       ("revision", "statement_date", "target_period", "metric", "unit", "statement")):
+                    raise ValueError("Missing guidance context")
+                if row.get("actual") is None and (row.get("actual_url") is not None or row.get("actual_page") is not None):
+                    raise ValueError("Pending outcome cannot have a reported-result link")
+                for url_key, page_key in (("guidance_url", "guidance_page"), ("actual_url", "actual_page")):
+                    if url_key == "actual_url" and row.get("actual") is None:
+                        continue
+                    source = urlsplit(row[url_key])
+                    if (source.scheme != "https" or source.hostname not in allowed.get(ticker, set()) or source.username
+                            or type(row[page_key]) is not int or row[page_key] < 1):
+                        raise ValueError("Unverified guidance source")
+                if (datetime.fromisoformat(row["statement_date"]).date() > now.date()
+                        or any(isinstance(row[key], bool) or not math.isfinite(row[key]) for key in ("low", "high"))
+                        or row["low"] > row["high"]):
+                    raise ValueError("Invalid guidance range or date")
+                if row.get("actual") is not None and (isinstance(row["actual"], bool)
+                        or any(row.get(a, row.get(b)) != row.get(b) for a, b in
+                            (("actual_period", "target_period"), ("actual_metric", "metric"),
+                             ("actual_unit", "unit"), ("actual_basis", "basis")))):
+                    raise ValueError("Reported result does not match guidance")
+                key = (row["statement_date"], row["target_period"], row["metric"], row["unit"], row.get("basis"))
+                if key in seen:
+                    raise ValueError("Duplicate guidance revision")
+                seen.add(key)
+                comparison = guidance_comparison(row["low"], row["high"], row["actual"]) if row.get("actual") is not None else {"status": "pending", "deviation_pp": None, "midpoint_deviation_pp": None}
+                fields = ("ticker", "revision", "statement_date", "target_period", "metric", "unit", "basis",
+                          "low", "high", "actual", "statement", "guidance_url", "guidance_page", "actual_url", "actual_page")
+                items.append({**{key: row[key] for key in fields if key in row}, **comparison})
+            result.setdefault("guidance", {})[ticker] = {"items": sorted(items, key=lambda row: row["statement_date"]),
+                "note": "Source-reviewed guidance. New disclosures appear after source review. Compare matching periods, metrics, units and currency bases. Future outcomes remain pending."}
+        except (KeyError, TypeError, ValueError, OverflowError):
+            errors.append(ticker)
+    all_items = [row for group in result.get("guidance", {}).values() for row in group["items"]]
+    result["guidance_refresh"] = {"checked_at": now.isoformat(), "source": "reviewed_primary_source_manifest",
+        "automatic_discovery": False, "failed_companies": sorted(errors),
+        "reviewed_companies": sum(bool(group["items"]) for group in result.get("guidance", {}).values()),
+        "comparisons": len(all_items), "latest_statement_date": max((row["statement_date"] for row in all_items), default=None)}
+    return result
+
+
 def refresh(snapshot, fetch_prices, fetch_announcements, classify, now, force_market=False):
     """Return a validated update, retaining each independently failed source."""
     from zoneinfo import ZoneInfo
@@ -137,13 +194,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--file", type=Path, default=ROOT / "public-site/public/data/snapshot-sourced.json")
     parser.add_argument("--force-market", action="store_true", help="Check market sources even within the intraday cooldown.")
+    parser.add_argument("--guidance-only", action="store_true", help="Publish reviewed guidance without checking market or filing providers.")
     args = parser.parse_args()
     snapshot = json.loads(args.file.read_text(encoding="utf-8"))
-    result = refresh(snapshot, fetch_prices, fetch_announcements, classify, datetime.now(timezone.utc), args.force_market)
+    now = datetime.now(timezone.utc)
+    result = snapshot if args.guidance_only else refresh(snapshot, fetch_prices, fetch_announcements, classify, now, args.force_market)
+    manifest = json.loads((ROOT / "backend/data/primary/verified.json").read_text(encoding="utf-8"))
+    result = sync_reviewed_guidance(result, manifest, now)
     temporary = args.file.with_suffix(".tmp")
     temporary.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     temporary.replace(args.file)
-    status = result["refresh_status"]
+    status = result.get("refresh_status", {})
+    if args.guidance_only:
+        print(json.dumps(result["guidance_refresh"]))
+        return
     print(json.dumps({"status": status["status"], "market_as_of": result["market_as_of"],
         "market_sources_ok": sum(row["ok"] for row in status["prices"].values()),
         "filings_ok": status["filings"]["ok"], "checked_at": status["checked_at"]}))

@@ -213,6 +213,28 @@ export function validateSnapshot(input: unknown): DemoSnapshot {
       throw new Error('The update contains an unverified filing.');
     }
   }
+  const issuerHosts: Record<string, string> = {INFY:'www.infosys.com',WIPRO:'www.wipro.com',HCLTECH:'www.hcltech.com'};
+  for (const [ticker, group] of Object.entries(data.guidance)) {
+    if (!tickers.has(ticker) || !Array.isArray(group.items)) throw new Error('Invalid guidance coverage.');
+    for (const item of group.items) {
+      const source = (url: string | null, page: number | null) => {
+        if (!url || !Number.isInteger(page) || page! < 1) return false;
+        const parsed = new URL(url);
+        return parsed.protocol === 'https:' && !parsed.username && parsed.hostname === issuerHosts[ticker];
+      };
+      if (item.ticker !== ticker || !source(item.guidance_url,item.guidance_page)
+          || !Number.isFinite(Date.parse(item.statement_date)) || !item.target_period || !item.metric || !item.unit
+          || !Number.isFinite(item.low) || !Number.isFinite(item.high) || item.low > item.high) {
+        throw new Error('The update contains invalid guidance.');
+      }
+      const expected = item.actual === null ? 'pending' : item.actual > item.high ? 'exceeded' : item.actual < item.low ? 'missed' : 'achieved';
+      if (item.status !== expected || (item.actual === null
+          ? item.actual_url !== null || item.actual_page !== null || item.deviation_pp !== null
+          : !Number.isFinite(item.actual) || !source(item.actual_url,item.actual_page))) {
+        throw new Error('The update contains an unsupported guidance outcome.');
+      }
+    }
+  }
   return data;
 }
 

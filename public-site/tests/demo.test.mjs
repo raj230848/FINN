@@ -163,3 +163,24 @@ test('GitHub API transport recovers when the raw feed is blocked',async()=>{
   assert.ok(urls[1].startsWith('https://api.github.com/repos/raj230848/FINN/contents/'));
   assert.notEqual(loader.status().status,'unavailable');
 });
+
+
+test('reviewed guidance refresh retains pending outcomes and rejects fabricated results', async()=>{
+  const store=createDemoStore(snapshot);
+  const wipro=await store('/companies/WIPRO/guidance');
+  assert.equal(wipro.items.length,4);
+  const pending=wipro.items.find(item=>item.status==='pending');
+  assert.equal(pending.statement_date,'2026-10-15');
+  assert.equal(pending.actual,null);
+  assert.equal(pending.actual_url,null);
+  const refreshed=structuredClone(snapshot);
+  refreshed.guidance.WIPRO.note='New reviewed source version';
+  store.replaceSnapshot(refreshed);
+  assert.equal((await store('/companies/WIPRO/guidance')).note,'New reviewed source version');
+  validateSnapshot(refreshed);
+  for(const changes of [{status:'achieved'}, {actual_url:'https://example.com/result.pdf'}, {low:100,high:1}]){
+    const invalid=structuredClone(snapshot);
+    Object.assign(invalid.guidance.WIPRO.items.find(item=>item.status==='pending'),changes);
+    assert.throws(()=>validateSnapshot(invalid),/guidance/);
+  }
+});

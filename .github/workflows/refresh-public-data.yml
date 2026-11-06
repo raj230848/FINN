@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - scripts/refresh_public_snapshot.py
+      - backend/data/primary/verified.json
       - .github/workflows/refresh-public-data.yml
   schedule:
     # UTC. Checks at :07 and :37 avoid the congested start of each hour.
