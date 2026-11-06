@@ -123,7 +123,9 @@ export function createDemoStore(snapshot: DemoSnapshot, storage?: Storage) {
     }
     if (url.pathname === '/companies') {
       const results = url.searchParams.get('has_guidance') === 'true'
-        ? companies.filter(company => snapshot.guidance[company.ticker]?.items.length)
+        ? companies.filter(company => snapshot.guidance[company.ticker]?.items.length).sort((a,b) =>
+          snapshot.guidance[b.ticker].items.map(item=>item.statement_date).sort().at(-1)!.localeCompare(
+            snapshot.guidance[a.ticker].items.map(item=>item.statement_date).sort().at(-1)!))
         : companies;
       return structuredClone(results);
     }

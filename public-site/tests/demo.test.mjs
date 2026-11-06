@@ -169,6 +169,7 @@ test('reviewed guidance refresh retains pending outcomes and rejects fabricated 
   const store=createDemoStore(snapshot);
   const wipro=await store('/companies/WIPRO/guidance');
   assert.equal(wipro.items.length,4);
+  assert.equal((await store('/companies?has_guidance=true'))[0].ticker,'WIPRO');
   const pending=wipro.items.find(item=>item.status==='pending');
   assert.equal(pending.statement_date,'2026-10-15');
   assert.equal(pending.actual,null);

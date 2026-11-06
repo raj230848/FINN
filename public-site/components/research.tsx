@@ -611,7 +611,7 @@ export function PromiseTracker({companies, onOpenResearch}: {companies: Company[
   const reviewedTickers = new Set(reviewedIssuers?.map(company => company.ticker));
   const otherIssuers = companies.filter(company => !reviewedTickers.has(company.ticker));
   const ticker = selectedTicker || (reviewedIssuers && (
-    reviewedIssuers.find(company => company.ticker === "INFY")?.ticker ?? reviewedIssuers[0]?.ticker ?? otherIssuers[0]?.ticker
+    reviewedIssuers[0]?.ticker ?? otherIssuers[0]?.ticker
   )) || "";
 
   useEffect(() => {
@@ -674,6 +674,7 @@ function GuidanceComparison({
   onExploreInfosys?: () => void;
 }) {
   const targetCount = new Set(guidance.map(item => JSON.stringify([item.target_period, item.metric, item.basis, item.unit]))).size;
+  const timeline = targetCount > 1 ? [...guidance].sort((a,b)=>b.statement_date.localeCompare(a.statement_date)) : guidance;
   return (
   <section className="panel guidance-panel">
     <div className="section-title">
@@ -703,7 +704,7 @@ function GuidanceComparison({
           </div>
         </div>
         <div className="guidance-timeline">
-          {guidance.map((g, i) => (
+          {timeline.map((g, i) => (
             <details className="guidance-card" key={`${g.guidance_url}-${g.target_period}-${g.metric}-${i}`}>
             <summary className="guidance-row">
               <span className="timeline-dot" aria-hidden="true">{i + 1}</span>
